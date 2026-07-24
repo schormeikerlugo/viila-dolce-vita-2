@@ -1,8 +1,13 @@
 ---
 /**
  * Gallery — the visual archive of the estate and its surroundings.
- * A filterable masonry of photographs (villa, landscape, experiences,
- * village life, around Tuscany, food & wine, celebrations) with a lightbox.
+ *
+ * Structure ported from the Magic-Mushroom-Institute gallery:
+ *   centered header + live count · search box · scrollable category chips ·
+ *   CSS-columns masonry (per-image aspect-ratio) · full lightbox with
+ *   prev/next, keyboard nav, counter and download.
+ * Adapted to Villa Dolce Vita's LIGHT theme (parchment background) and to
+ * local, build-optimized images (astro:assets) instead of a remote DB.
  */
 import { Image } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -12,6 +17,17 @@ import { galleryItems, galleryCategories } from "../data/gallery";
 
 const heroImage = galleryItems.find((i) => i.slug === "villa-aerial-golden")!.image;
 const total = galleryItems.length;
+
+// Label lookup so chips + captions read nicely ("Around Tuscany", not "tuscany").
+const catLabel = Object.fromEntries(galleryCategories.map((c) => [c.id, c.label]));
+
+// Per-image aspect ratio (width/height), used both for the masonry tile height
+// and for the CSS `aspect-ratio` so the columns balance without layout jumps.
+const items = galleryItems.map((item) => ({
+  ...item,
+  label: catLabel[item.cat] ?? item.cat,
+  ratio: `${item.image.width}/${item.image.height}`,
+}));
 ---
 
 <BaseLayout
@@ -26,347 +42,690 @@ const total = galleryItems.length;
     imageAlt="Golden hour over Villa Dolce Vita and the surrounding woods"
   />
 
-  <section class="section bg-ivory gal">
+  <section class="section bg-ivory gal-section">
     <div class="wrap">
-      <header class="gal__head">
+      <header class="gal-head" data-reveal>
         <Reveal as="p" class="eyebrow eyebrow--diamond">Visual Archive</Reveal>
         <Reveal as="h2" delay={0.05}>A Curated Collection</Reveal>
         <Reveal delay={0.1}><hr class="rule" /></Reveal>
-        <Reveal as="p" class="gal__count" delay={0.12}>
-          — <span id="gal-count">{total}</span> photographs
+        <Reveal as="p" class="gal-count" delay={0.12}>
+          — <span data-gal-count>{total}</span> photographs
         </Reveal>
       </header>
 
-      <!-- Filters -->
-      <div class="gal__filters" role="group" aria-label="Filter photographs by category">
-        <button class="gal__pill is-active" data-filter="all" aria-pressed="true">
-          All
-        </button>
-        {
-          galleryCategories.map((c) => (
-            <button class="gal__pill" data-filter={c.id} aria-pressed="false">
-              {c.label}
-            </button>
-          ))
-        }
-      </div>
-
-      <!-- Masonry grid -->
-      <div class="gal__grid" id="gal-grid">
-        {
-          galleryItems.map((item, i) => (
-            <figure class="gal__item" data-cat={item.cat} data-index={i}>
-              <button
-                class="gal__open"
-                type="button"
-                aria-label={`View photograph: ${item.alt}`}
-              >
-                <Image
-                  src={item.image}
-                  alt={item.alt}
-                  widths={[480, 800, 1600]}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  loading="lazy"
-                />
-                <figcaption class="gal__caption">{item.alt}</figcaption>
+      <!-- Controls: search + category chips -->
+      <div class="gal-controls gal-controls--center" data-reveal>
+        <div class="gal-search">
+          <svg
+            class="gal-search__icon"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input
+            type="search"
+            id="gallery-search"
+            class="gal-search__input"
+            placeholder="Search photographs…"
+            autocomplete="off"
+            aria-label="Search photographs by description"
+          />
+        </div>
+        <div class="gal-chips" role="group" aria-label="Filter by category">
+          <button type="button" class="gal-chip is-active" data-cat="" aria-pressed="true">
+            All
+          </button>
+          {
+            galleryCategories.map((c) => (
+              <button type="button" class="gal-chip" data-cat={c.id} aria-pressed="false">
+                {c.label}
               </button>
-            </figure>
-          ))
-        }
+            ))
+          }
+        </div>
       </div>
+    </div>
 
-      <p class="gal__empty" id="gal-empty" hidden>No photographs in this category yet.</p>
+    <!-- Full-bleed masonry grid (CSS columns) -->
+    <div class="wp-grid" id="gal-grid">
+      {
+        items.map((item) => (
+          <figure
+            class="wp-item"
+            data-reveal
+            data-cat={item.cat}
+            data-title={item.alt.toLowerCase()}
+            data-credit={item.label}
+            style={`--ratio:${item.ratio}`}
+          >
+            <button
+              type="button"
+              class="wp-item__link"
+              aria-label={`View ${item.alt}`}
+              aria-haspopup="dialog"
+              data-lb-open
+            >
+              <Image
+                src={item.image}
+                alt={item.alt}
+                widths={[320, 480, 800, 1600]}
+                sizes="(max-width: 760px) 50vw, (max-width: 1100px) 33vw, 20vw"
+                loading="lazy"
+              />
+              <span class="wp-item__dl" aria-hidden="true">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </span>
+              <figcaption class="wp-item__cap">
+                <span class="wp-item__title">{item.alt}</span>
+                <span class="wp-item__credit">{item.label}</span>
+              </figcaption>
+            </button>
+          </figure>
+        ))
+      }
+    </div>
+
+    <div class="wrap">
+      <p class="gal-empty" id="gallery-empty" hidden>No photographs match your filters.</p>
+    </div>
+
+    <!-- ─── Lightbox modal ─── -->
+    <div
+      class="gal-lb"
+      id="gallery-lightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Photograph viewer"
+      hidden
+    >
+      <div class="gal-lb__backdrop" data-lb-close></div>
+
+      <button type="button" class="gal-lb__btn gal-lb__close" data-lb-close aria-label="Close">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+
+      <button
+        type="button"
+        class="gal-lb__btn gal-lb__nav gal-lb__prev"
+        data-lb-prev
+        aria-label="Previous photograph"
+      >
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+
+      <figure class="gal-lb__figure">
+        <img class="gal-lb__img" src="" alt="" />
+        <figcaption class="gal-lb__bar">
+          <span class="gal-lb__meta">
+            <span class="gal-lb__title" data-lb-title></span>
+            <span class="gal-lb__credit" data-lb-credit></span>
+          </span>
+          <span class="gal-lb__actions">
+            <span class="gal-lb__count" data-lb-count aria-live="polite"></span>
+            <button
+              type="button"
+              class="gal-lb__btn gal-lb__dl"
+              data-lb-download
+              aria-label="Download full-resolution photograph"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              <span>Download</span>
+            </button>
+          </span>
+        </figcaption>
+      </figure>
+
+      <button
+        type="button"
+        class="gal-lb__btn gal-lb__nav gal-lb__next"
+        data-lb-next
+        aria-label="Next photograph"
+      >
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
     </div>
   </section>
-
-  <!-- Lightbox -->
-  <dialog class="glb" id="gal-lightbox" aria-label="Photograph viewer">
-    <button class="glb__close" type="button" aria-label="Close viewer">&times;</button>
-    <button class="glb__nav glb__nav--prev" type="button" aria-label="Previous photograph">
-      &#8592;
-    </button>
-    <figure class="glb__figure">
-      <img id="glb-img" src="" alt="" />
-      <figcaption class="glb__meta">
-        <span id="glb-caption"></span>
-        <span class="glb__counter" id="glb-counter"></span>
-      </figcaption>
-    </figure>
-    <button class="glb__nav glb__nav--next" type="button" aria-label="Next photograph">
-      &#8594;
-    </button>
-  </dialog>
 </BaseLayout>
 
-<style>
-  /* ---- Archive header ---- */
-  .gal__head {
+<style is:global>
+  /* ─── Section header ─── */
+  .gal-head {
     text-align: center;
-    margin-bottom: clamp(1.6rem, 3vw, 2.4rem);
-  }
-  .gal__head .eyebrow {
-    justify-content: center;
-  }
-  .gal__head :global(.rule) {
+    max-width: 56ch;
     margin-inline: auto;
   }
-  .gal__count {
+  .gal-head .eyebrow {
+    justify-content: center;
+  }
+  .gal-head :global(.rule) {
+    margin-inline: auto;
+  }
+  .gal-count {
     margin: 0.8rem auto 0;
     font-size: 0.8rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--text-muted, #6b6b64);
+    color: var(--text-muted);
   }
 
-  /* ---- Filter pills ---- */
-  .gal__filters {
+  /* ─── Controls: search + category chips ─── */
+  .gal-controls {
     display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: clamp(2rem, 4vw, 3rem) 0 clamp(1.6rem, 3vw, 2.4rem);
+    flex-wrap: wrap;
+  }
+  .gal-controls--center {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.4rem;
+  }
+  .gal-search {
+    position: relative;
+    flex: 0 0 auto;
+    width: min(480px, 100%);
+  }
+  .gal-search__icon {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .gal-search__input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 0.7rem 1rem 0.7rem 2.7rem;
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out),
+      background var(--dur-fast) var(--ease-out);
+  }
+  .gal-search__input::placeholder {
+    color: var(--text-muted);
+  }
+  .gal-search__input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(201, 151, 77, 0.22);
+  }
+
+  .gal-chips {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: clamp(2rem, 4vw, 3rem);
+    width: 100%;
+    max-width: 100%;
   }
-  .gal__pill {
+  .gal-chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: inherit;
     font-size: 0.72rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+    line-height: 1;
     padding: 0.55rem 1.1rem;
-    border: 1px solid var(--line);
     border-radius: 999px;
-    background: transparent;
-    color: inherit;
     cursor: pointer;
+    white-space: nowrap;
     transition:
       background var(--dur-fast) var(--ease-out),
-      color var(--dur-fast) var(--ease-out),
-      border-color var(--dur-fast) var(--ease-out);
+      border-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
   }
-  .gal__pill:hover {
+  .gal-chip:hover {
     border-color: var(--c-forest);
   }
-  .gal__pill.is-active {
+  .gal-chip.is-active {
     background: var(--c-forest);
     border-color: var(--c-forest);
     color: var(--c-ivory);
   }
+  @media (max-width: 760px) {
+    .gal-chips {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      justify-content: flex-start;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+    }
+    .gal-search {
+      width: 100%;
+    }
+  }
 
-  /* ---- Masonry grid (CSS columns) ---- */
-  .gal__grid {
-    columns: 3 300px;
+  /* ─── Full-bleed masonry grid (CSS columns) ─── */
+  .wp-grid {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    padding: 0 var(--gutter);
+    column-count: 5;
     column-gap: 1rem;
   }
-  .gal__item {
-    break-inside: avoid;
-    margin: 0 0 1rem;
+  @media (max-width: 1400px) {
+    .wp-grid {
+      column-count: 4;
+    }
   }
-  .gal__item[hidden] {
-    display: none;
+  @media (max-width: 1100px) {
+    .wp-grid {
+      column-count: 3;
+    }
   }
-  .gal__open {
+  @media (max-width: 760px) {
+    .wp-grid {
+      column-count: 2;
+      column-gap: 0.6rem;
+    }
+  }
+
+  .gal-empty {
+    margin-top: 3rem;
+    text-align: center;
+    font-size: 1rem;
+    color: var(--text-muted);
+  }
+
+  .wp-item {
     position: relative;
     display: block;
+    width: 100%;
+    margin: 0 0 1rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    transition:
+      box-shadow var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out);
+  }
+  /* `display: block` outranks UA `[hidden] { display: none }`; force it. */
+  .wp-item[hidden] {
+    display: none;
+  }
+  .wp-item:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-3px);
+  }
+
+  .wp-item__link {
+    display: block;
+    position: relative;
     width: 100%;
     padding: 0;
     border: 0;
     background: none;
     cursor: zoom-in;
-    border-radius: var(--radius);
+    aspect-ratio: var(--ratio, 4 / 3);
     overflow: hidden;
-    box-shadow: var(--shadow-soft);
   }
-  .gal__open :global(img) {
-    display: block;
+  .wp-item__link img {
     width: 100%;
-    height: auto;
-    transition: transform 0.6s var(--ease-out);
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s var(--ease-out);
   }
-  .gal__open:hover :global(img),
-  .gal__open:focus-visible :global(img) {
+  .wp-item:hover .wp-item__link img {
     transform: scale(1.04);
   }
-  .gal__caption {
+
+  .wp-item__dl {
     position: absolute;
-    inset: auto 0 0 0;
-    padding: 2.2rem 1rem 0.85rem;
-    font-size: 0.8rem;
-    line-height: 1.4;
-    text-align: left;
+    top: 0.8rem;
+    right: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(38, 36, 31, 0.55);
+    backdrop-filter: blur(6px);
     color: var(--c-ivory);
-    background: linear-gradient(to top, rgba(18, 26, 22, 0.72), rgba(18, 26, 22, 0));
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(-4px);
     transition:
       opacity var(--dur) var(--ease-out),
       transform var(--dur) var(--ease-out);
-    pointer-events: none;
   }
-  .gal__open:hover .gal__caption,
-  .gal__open:focus-visible .gal__caption {
+
+  .wp-item__cap {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 2.2rem 1rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+    background: linear-gradient(to top, rgba(38, 36, 31, 0.82) 0%, rgba(38, 36, 31, 0) 100%);
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out);
+  }
+  .wp-item:hover .wp-item__cap,
+  .wp-item:focus-within .wp-item__cap,
+  .wp-item:hover .wp-item__dl,
+  .wp-item:focus-within .wp-item__dl {
     opacity: 1;
     transform: translateY(0);
   }
-
-  .gal__empty {
-    text-align: center;
-    margin-inline: auto;
-    color: var(--text-muted, #6b6b64);
+  .wp-item__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 0.95rem;
+    line-height: 1.3;
+    color: var(--c-ivory);
+  }
+  .wp-item__credit {
+    font-size: 10px;
+    color: rgba(243, 238, 230, 0.7);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }
 
-  /* ---- Lightbox ---- */
-  .glb {
-    /* Reset dialog defaults; centre content on a deep green backdrop. */
-    width: 100vw;
-    height: 100vh;
-    max-width: 100vw;
-    max-height: 100vh;
-    border: 0;
-    margin: 0;
-    padding: clamp(1rem, 3vw, 2.5rem);
-    background: transparent;
-    display: none;
+  /* ─── Lightbox modal ─── */
+  .gal-lb {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: clamp(0.6rem, 2vw, 1.5rem);
+    padding: clamp(1rem, 4vw, 3rem);
   }
-  .glb[open] {
-    display: flex;
+  .gal-lb[hidden] {
+    display: none;
   }
-  .glb::backdrop {
-    background: rgba(18, 26, 22, 0.93);
+  .gal-lb__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(24, 26, 22, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    animation: gal-lb-fade var(--dur-fast) var(--ease-out) both;
   }
-  .glb__figure {
+  .gal-lb__figure {
+    position: relative;
+    z-index: 1;
     margin: 0;
-    max-width: min(1400px, 86vw);
-    text-align: center;
-  }
-  .glb__figure img {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
     max-width: 100%;
+    max-height: 100%;
+    animation: gal-lb-pop var(--dur-fast) var(--ease-out) both;
+  }
+  .gal-lb__img {
+    display: block;
+    max-width: min(90vw, 1400px);
     max-height: 82vh;
     width: auto;
     height: auto;
+    object-fit: contain;
     border-radius: var(--radius);
     box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
+    background: var(--surface);
   }
-  .glb__meta {
+  .gal-lb__bar {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-top: 0.9rem;
-    color: rgba(243, 238, 230, 0.85);
-    font-size: 0.85rem;
+    width: min(90vw, 1400px);
+    max-width: 100%;
+    flex-wrap: wrap;
   }
-  .glb__counter {
+  .gal-lb__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .gal-lb__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--c-ivory);
+  }
+  .gal-lb__credit {
+    font-size: 10px;
+    color: rgba(243, 238, 230, 0.7);
     letter-spacing: 0.12em;
-    font-size: 0.72rem;
     text-transform: uppercase;
-    color: rgba(243, 238, 230, 0.55);
+  }
+  .gal-lb__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 0 0 auto;
+  }
+  .gal-lb__count {
+    font-size: 0.72rem;
+    color: rgba(243, 238, 230, 0.7);
+    letter-spacing: 0.08em;
     white-space: nowrap;
   }
-  .glb__close,
-  .glb__nav {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 999px;
-    border: 1px solid rgba(243, 238, 230, 0.25);
-    background: rgba(243, 238, 230, 0.06);
+  .gal-lb__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(243, 238, 230, 0.2);
+    background: rgba(38, 36, 31, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: var(--c-ivory);
-    font-size: 1.1rem;
     cursor: pointer;
+    font-family: inherit;
     transition:
       background var(--dur-fast) var(--ease-out),
-      border-color var(--dur-fast) var(--ease-out);
+      border-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
   }
-  .glb__close:hover,
-  .glb__nav:hover {
-    background: rgba(243, 238, 230, 0.16);
-    border-color: rgba(243, 238, 230, 0.5);
+  .gal-lb__btn:hover {
+    background: rgba(201, 151, 77, 0.5);
+    border-color: var(--accent);
   }
-  .glb__close {
-    position: fixed;
-    top: clamp(1rem, 3vw, 2rem);
-    right: clamp(1rem, 3vw, 2rem);
-    font-size: 1.5rem;
-    line-height: 1;
+  .gal-lb__btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .gal-lb__close {
+    position: absolute;
+    z-index: 2;
+    top: clamp(0.75rem, 2vw, 1.5rem);
+    right: clamp(0.75rem, 2vw, 1.5rem);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+  }
+  .gal-lb__nav {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+  }
+  .gal-lb__nav:hover {
+    transform: translateY(-50%) scale(1.06);
+  }
+  .gal-lb__prev {
+    left: clamp(0.5rem, 2vw, 1.5rem);
+  }
+  .gal-lb__next {
+    right: clamp(0.5rem, 2vw, 1.5rem);
+  }
+  .gal-lb__dl {
+    border-radius: 999px;
+    padding: 0.55rem 1.1rem;
+    font-size: 0.8rem;
   }
 
-  @media (max-width: 640px) {
-    .glb {
-      padding: 0.75rem;
+  @keyframes gal-lb-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes gal-lb-pop {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  body.gal-lb-open {
+    overflow: hidden;
+  }
+
+  @media (max-width: 760px) {
+    .gal-lb__img {
+      max-height: 70vh;
     }
-    .glb__nav {
-      position: fixed;
-      bottom: 1.2rem;
-      z-index: 2;
+    .gal-lb__nav {
+      width: 44px;
+      height: 44px;
     }
-    .glb__nav--prev {
-      left: 1.2rem;
+    .gal-lb__dl span {
+      display: none;
     }
-    .glb__nav--next {
-      right: 1.2rem;
-    }
-    .glb__figure img {
-      max-height: 74vh;
-    }
-    .glb__meta {
-      flex-direction: column;
-      align-items: center;
-      gap: 0.3rem;
+    .gal-lb__dl {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 50%;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .gal__open :global(img),
-    .gal__caption {
+    .wp-item,
+    .wp-item__link img,
+    .wp-item__cap,
+    .wp-item__dl,
+    .gal-lb__backdrop,
+    .gal-lb__figure {
       transition: none;
+      animation: none;
+    }
+    .gal-lb__nav:hover {
+      transform: translateY(-50%);
     }
   }
 </style>
 
 <script>
-  function setupGallery() {
-    const grid = document.getElementById("gal-grid");
-    const lightbox = document.getElementById("gal-lightbox") as HTMLDialogElement | null;
-    if (!grid || !lightbox || grid.dataset.bound) return;
-    grid.dataset.bound = "true";
+  function initGallery() {
+    const root = document.querySelector<HTMLElement>(".gal-section");
+    if (!root || root.dataset.galReady === "1") return;
+    root.dataset.galReady = "1";
 
-    const items = Array.from(grid.querySelectorAll<HTMLElement>(".gal__item"));
-    const pills = Array.from(document.querySelectorAll<HTMLButtonElement>(".gal__pill"));
-    const countEl = document.getElementById("gal-count");
-    const emptyEl = document.getElementById("gal-empty");
+    const searchEl = document.getElementById("gallery-search") as HTMLInputElement | null;
+    const chips = Array.from(document.querySelectorAll<HTMLButtonElement>(".gal-chip"));
+    const items = Array.from(document.querySelectorAll<HTMLElement>(".wp-item"));
+    const emptyEl = document.getElementById("gallery-empty");
+    const countEl = document.querySelector<HTMLElement>("[data-gal-count]");
+    const total = items.length;
 
-    /* ---- Filtering ---- */
-    function applyFilter(filter: string) {
+    let activeCat = "";
+
+    function apply() {
+      const q = (searchEl?.value ?? "").trim().toLowerCase();
       let visible = 0;
-      for (const item of items) {
-        const show = filter === "all" || item.dataset.cat === filter;
-        item.hidden = !show;
+      items.forEach((el) => {
+        const matchCat = !activeCat || el.dataset.cat === activeCat;
+        const matchQ = !q || (el.dataset.title ?? "").includes(q);
+        const show = matchCat && matchQ;
+        el.hidden = !show;
         if (show) visible++;
-      }
-      if (countEl) countEl.textContent = String(visible);
-      if (emptyEl) emptyEl.hidden = visible > 0;
-    }
-    for (const pill of pills) {
-      pill.addEventListener("click", () => {
-        for (const p of pills) {
-          const active = p === pill;
-          p.classList.toggle("is-active", active);
-          p.setAttribute("aria-pressed", String(active));
-        }
-        applyFilter(pill.dataset.filter || "all");
       });
+      if (emptyEl) emptyEl.hidden = visible !== 0;
+      if (countEl)
+        countEl.textContent = visible === total ? String(total) : `${visible} / ${total}`;
     }
 
-    /* ---- Lightbox ---- */
-    const lbImg = document.getElementById("glb-img") as HTMLImageElement;
-    const lbCaption = document.getElementById("glb-caption")!;
-    const lbCounter = document.getElementById("glb-counter")!;
-    let current = -1;
+    chips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        activeCat = chip.dataset.cat ?? "";
+        chips.forEach((c) => {
+          const on = c === chip;
+          c.classList.toggle("is-active", on);
+          c.setAttribute("aria-pressed", String(on));
+        });
+        apply();
+      });
+    });
 
-    /** Largest candidate from the thumbnail's srcset — reuse the 1600w asset. */
+    searchEl?.addEventListener("input", apply);
+
+    // ─── Lightbox ───────────────────────────────────────────────
+    const lb = document.getElementById("gallery-lightbox");
+    if (!lb) return;
+
+    // Portal the modal to <body> so no transformed/`will-change` ancestor
+    // (e.g. the section's reveal wrappers) traps its `position: fixed`.
+    if (lb.parentElement !== document.body) document.body.appendChild(lb);
+
+    const lbImg = lb.querySelector<HTMLImageElement>(".gal-lb__img");
+    const lbTitle = lb.querySelector<HTMLElement>("[data-lb-title]");
+    const lbCredit = lb.querySelector<HTMLElement>("[data-lb-credit]");
+    const lbCount = lb.querySelector<HTMLElement>("[data-lb-count]");
+    const dlBtn = lb.querySelector<HTMLButtonElement>("[data-lb-download]");
+    const closeEls = Array.from(lb.querySelectorAll<HTMLElement>("[data-lb-close]"));
+    const prevBtn = lb.querySelector<HTMLButtonElement>("[data-lb-prev]");
+    const nextBtn = lb.querySelector<HTMLButtonElement>("[data-lb-next]");
+
+    let group: HTMLElement[] = [];
+    let idx = -1;
+    let lastFocus: HTMLElement | null = null;
+
+    function visibleItems(): HTMLElement[] {
+      return items.filter((el) => !el.hidden);
+    }
+
+    /** Largest candidate from the tile's srcset — reuse the 1600w asset. */
     function largestSrc(img: HTMLImageElement): string {
       const candidates = (img.srcset || "")
         .split(",")
@@ -377,46 +736,100 @@ const total = galleryItems.length;
       return candidates[0][0];
     }
 
-    function visibleItems() {
-      return items.filter((i) => !i.hidden);
+    function fileNameFor(url: string, title: string): string {
+      const slug =
+        title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "photograph";
+      const m = url.split("?")[0].match(/\.(jpe?g|png|webp|avif|gif)$/i);
+      const ext = m ? m[1].toLowerCase() : "jpg";
+      return `villa-dolce-vita-${slug}.${ext}`;
     }
 
-    function show(item: HTMLElement) {
-      const img = item.querySelector("img");
-      if (!img) return;
-      const vis = visibleItems();
-      current = vis.indexOf(item);
-      lbImg.src = largestSrc(img);
-      lbImg.alt = img.alt;
-      lbCaption.textContent = img.alt;
-      lbCounter.textContent = `${current + 1} / ${vis.length}`;
-      if (!lightbox.open) lightbox.showModal();
+    function render() {
+      const el = group[idx];
+      if (!el || !lbImg) return;
+      const img = el.querySelector<HTMLImageElement>("img");
+      const title = el.querySelector(".wp-item__title")?.textContent?.trim() ?? "";
+      const credit = el.dataset.credit ?? "";
+      lbImg.src = img ? largestSrc(img) : "";
+      lbImg.alt = title;
+      if (lbTitle) lbTitle.textContent = title;
+      if (lbCredit) lbCredit.textContent = credit;
+      if (lbCount) lbCount.textContent = `${idx + 1} / ${group.length}`;
     }
 
-    function step(dir: number) {
-      const vis = visibleItems();
-      if (!vis.length || current < 0) return;
-      show(vis[(current + dir + vis.length) % vis.length]);
+    function openAt(el: HTMLElement) {
+      group = visibleItems();
+      idx = group.indexOf(el);
+      if (idx < 0) return;
+      lastFocus = el.querySelector<HTMLElement>(".wp-item__link");
+      render();
+      lb!.hidden = false;
+      document.body.classList.add("gal-lb-open");
+      (closeEls[0] as HTMLButtonElement | undefined)?.focus();
     }
 
-    for (const item of items) {
-      item.querySelector(".gal__open")?.addEventListener("click", () => show(item));
+    function close() {
+      lb!.hidden = true;
+      document.body.classList.remove("gal-lb-open");
+      if (lbImg) lbImg.src = "";
+      lastFocus?.focus();
     }
-    lightbox.querySelector(".glb__close")?.addEventListener("click", () => lightbox.close());
-    lightbox.querySelector(".glb__nav--prev")?.addEventListener("click", () => step(-1));
-    lightbox.querySelector(".glb__nav--next")?.addEventListener("click", () => step(1));
-    lightbox.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft") step(-1);
-      if (e.key === "ArrowRight") step(1);
+
+    function step(delta: number) {
+      if (group.length === 0) return;
+      idx = (idx + delta + group.length) % group.length;
+      render();
+    }
+
+    async function download() {
+      const el = group[idx];
+      if (!el || !dlBtn || !lbImg) return;
+      const url = lbImg.src;
+      if (!url) return;
+      const name = fileNameFor(url, lbTitle?.textContent ?? "photograph");
+      dlBtn.disabled = true;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(String(res.status));
+        const blob = await res.blob();
+        const obj = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = obj;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(obj);
+      } catch {
+        window.open(url, "_blank", "noopener");
+      } finally {
+        dlBtn.disabled = false;
+      }
+    }
+
+    items.forEach((el) => {
+      el.querySelector<HTMLElement>("[data-lb-open]")?.addEventListener("click", () => openAt(el));
     });
-    // Click on the backdrop (outside the figure) closes the viewer.
-    lightbox.addEventListener("click", (e) => {
-      if (e.target === lightbox) lightbox.close();
-    });
-    lightbox.addEventListener("close", () => {
-      lbImg.src = "";
+    closeEls.forEach((c) => c.addEventListener("click", close));
+    prevBtn?.addEventListener("click", () => step(-1));
+    nextBtn?.addEventListener("click", () => step(1));
+    dlBtn?.addEventListener("click", download);
+
+    document.addEventListener("keydown", (e) => {
+      if (lb.hidden) return;
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") step(-1);
+      else if (e.key === "ArrowRight") step(1);
     });
   }
 
-  document.addEventListener("astro:page-load", setupGallery);
+  document.addEventListener("astro:page-load", initGallery);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGallery);
+  } else {
+    initGallery();
+  }
 </script>

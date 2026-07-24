@@ -28,23 +28,45 @@ import { journalTeasers } from "../data/journal";
 // hero tile, then the rest by descending rate for a balanced layout.
 const orderedSuites = [...suites].sort((a, b) => b.fromNight - a.fromNight);
 
-// Home gallery teaser — a curated ~60% suites / ~40% /gallery mix that shows
-// the villa and its surroundings. First item is the large 60% feature tile.
+// Home gallery teaser — a curated ~25-tile masonry (a 5×5 block on desktop)
+// mixing suites + /gallery surroundings, linking out to the full archive.
 const gal = (slug: string) => galleryItems.find((g) => g.slug === slug)!;
 const homeGalleryItems = [
-  // Feature (60%) — the villa from above.
   { image: gal("villa-aerial-golden").image, alt: "Villa Dolce Vita from above in the golden Tuscan light", caption: "The estate at golden hour" },
-  // Suites (≈60% of the set)
   { image: suitePhotos.roma[0], alt: "Roma suite interior", caption: "Roma suite" },
+  { image: gal("pool-afternoon").image, alt: "The villa with its pool and lawn on a bright afternoon", caption: "The pool" },
   { image: suitePhotos.napoli[0], alt: "Napoli suite interior", caption: "Napoli suite" },
+  { image: gal("terrace-table-view").image, alt: "The loggia terrace with the hills opening out beyond", caption: "Terrace view" },
   { image: suitePhotos.positano[0], alt: "Positano suite interior", caption: "Positano suite" },
+  { image: gal("cypress-road-hills").image, alt: "A white road winding between cypresses and green hills", caption: "Cypress road" },
   { image: suitePhotos.roma[2], alt: "Roma suite detail", caption: "Roma suite" },
+  { image: gal("hills-pink-dawn").image, alt: "Pink dawn light over the Tuscan hills", caption: "Hills at dawn" },
   { image: suitePhotos.napoli[2], alt: "Napoli suite detail", caption: "Napoli suite" },
+  { image: gal("vineyard-wine-sunset").image, alt: "Wine and grapes on an old barrel at sunset", caption: "Wine at sunset" },
   { image: suitePhotos.milano[0], alt: "Milano suite interior", caption: "Milano suite" },
-  // Gallery (≈40% of the set) — surroundings.
-  { image: gal("pool-afternoon").image, alt: "The pool in the afternoon sun", caption: "The pool" },
-  { image: gal("terrace-table-view").image, alt: "Terrace table with a view over the hills", caption: "Terrace view" },
-  { image: gal("hills-pink-dawn").image, alt: "Tuscan hills at pink dawn", caption: "Hills at dawn" },
+  { image: gal("massa-marittima-piazza").image, alt: "The cathedral square of Massa Marittima under a summer sky", caption: "Massa Marittima" },
+  { image: suitePhotos.positano[2], alt: "Positano suite detail", caption: "Positano suite" },
+  { image: gal("valdorcia-mist").image, alt: "Morning mist settling into the folds of the Val d'Orcia", caption: "Val d'Orcia" },
+  { image: suitePhotos.roma[4], alt: "Roma suite bathroom", caption: "Roma suite" },
+  { image: gal("horseman").image, alt: "A buttero and his horse in the morning field", caption: "Morning ride" },
+  { image: suitePhotos.napoli[4], alt: "Napoli suite bedroom", caption: "Napoli suite" },
+  { image: gal("piazza-dinner").image, alt: "Dinner tables filling the piazza at dusk", caption: "Dinner in the piazza" },
+  { image: suitePhotos.positano[3], alt: "Positano suite view", caption: "Positano suite" },
+  { image: gal("estate-vineyards-aerial").image, alt: "The estate and its vineyards seen from above", caption: "Estate & vineyards" },
+  { image: suitePhotos.roma[3], alt: "Roma suite living area", caption: "Roma suite" },
+  { image: gal("olive-grove-walk").image, alt: "A slow walk through the olive grove", caption: "Olive grove" },
+  { image: suitePhotos.napoli[5], alt: "Napoli suite detail", caption: "Napoli suite" },
+  { image: gal("stringlight-toast").image, alt: "Glasses raised under the string lights", caption: "Under the lights" },
+];
+
+// Estate at a glance — six headline stats shown beneath the welcome.
+const estateStats = [
+  { value: "50", label: "Acre Hillside Estate" },
+  { value: "7", label: "Elegant Bedrooms" },
+  { value: "7", label: "Marble Bathrooms" },
+  { value: "5", label: "Premium Suites" },
+  { value: "1", label: "Outdoor Pool" },
+  { value: "24", label: "Sleeps Up To" },
 ];
 ---
 
@@ -85,6 +107,69 @@ const homeGalleryItems = [
       <Button href="/our-story" variant="ghost">Read our story</Button>
     </div>
   </SplitSection>
+
+  <!-- ESTATE AT A GLANCE — six headline stats in a single full-width row
+       beneath the welcome, divided by hairline rules. -->
+  <section class="statband bg-ivory" aria-label="The estate at a glance">
+    <ul class="statband__row wrap" data-reveal data-reveal-delay={0.1}>
+      {
+        estateStats.map((s) => (
+          <li class="statband__stat">
+            <span class="statband__value" data-count={s.value}>{s.value}</span>
+            <span class="statband__label">{s.label}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <script>
+    // Count-up: animate each stat from 0 to its target the first time the band
+    // scrolls into view. Respects prefers-reduced-motion (shows final value).
+    (() => {
+      const values = Array.from(
+        document.querySelectorAll<HTMLElement>(".statband__value[data-count]"),
+      );
+      if (!values.length) return;
+
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const run = (el: HTMLElement) => {
+        const target = parseInt(el.dataset.count || "0", 10);
+        if (reduce || !Number.isFinite(target)) {
+          el.textContent = String(target);
+          return;
+        }
+        const duration = 1600;
+        const start = performance.now();
+        // easeOutCubic for a natural deceleration.
+        const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+        const tick = (now: number) => {
+          const p = Math.min((now - start) / duration, 1);
+          el.textContent = String(Math.round(ease(p) * target));
+          if (p < 1) requestAnimationFrame(tick);
+          else el.textContent = String(target);
+        };
+        requestAnimationFrame(tick);
+      };
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              run(entry.target as HTMLElement);
+              io.unobserve(entry.target);
+            }
+          }
+        },
+        { threshold: 0.6 },
+      );
+      values.forEach((el) => {
+        el.textContent = "0";
+        io.observe(el);
+      });
+    })();
+  </script>
 
   <!-- 15 MIN TO MASSA MARITTIMA — full-bleed image with an overlaid text panel -->
   <section class="townband" data-reveal aria-labelledby="townband-title">
@@ -491,6 +576,124 @@ const homeGalleryItems = [
     height: auto;
     object-fit: contain;
     filter: drop-shadow(0 30px 50px rgba(47, 63, 53, 0.18));
+  }
+
+  /* The welcome split leads straight into the stat band — drop its bottom
+     padding (only for the split directly above the band) so the numbers sit
+     close under the intro. */
+  :global(.split:has(+ .statband)) {
+    padding-bottom: 0;
+  }
+  /* Estate-at-a-glance — six headline stats in one full-width row beneath the
+     welcome, with hairline dividers between them. */
+  .statband {
+    /* Sits close under the welcome; a little breathing room below.
+       Top padding trimmed ~20% to pull the numbers closer to the intro. */
+    padding-block: clamp(0.8rem, 1.6vw, 1.28rem) clamp(3rem, 6vw, 5rem);
+  }
+  .statband__row {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+  }
+  .statband__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 0.9rem clamp(0.75rem, 1.5vw, 1.5rem);
+    position: relative;
+    cursor: default;
+  }
+  /* Hover: the whole stat lifts a touch and the number warms to the accent. */
+  .statband__value {
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  .statband__label {
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .statband__stat:hover .statband__value {
+    transform: translateY(-4px);
+    color: var(--accent-deep);
+  }
+  .statband__stat:hover .statband__label {
+    color: var(--c-charcoal);
+  }
+  /* A soft gold underline grows in on hover. */
+  .statband__stat::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: translateX(-50%);
+    transition: width var(--dur) var(--ease-out);
+  }
+  .statband__stat:hover::after {
+    width: clamp(2rem, 4vw, 3rem);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .statband__value,
+    .statband__label,
+    .statband__stat::after {
+      transition: none;
+    }
+    .statband__stat:hover .statband__value {
+      transform: none;
+    }
+  }
+  /* Hairline dividers between columns (not before the first). */
+  .statband__stat:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10%;
+    bottom: 10%;
+    width: 1px;
+    background: var(--line);
+  }
+  .statband__value {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 1.4rem + 1.6vw, 2.7rem);
+    line-height: 1;
+    color: var(--c-forest);
+  }
+  .statband__label {
+    font-family: var(--font-body);
+    font-size: var(--fs-eyebrow);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    max-width: 14ch;
+    line-height: 1.35;
+  }
+  @media (max-width: 760px) {
+    .statband__row {
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(1.6rem, 4vw, 2.4rem) 0;
+    }
+    .statband__stat:nth-child(3n + 1)::before {
+      display: none;
+    }
+  }
+  @media (max-width: 460px) {
+    .statband__row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .statband__stat::before {
+      display: none;
+    }
+    .statband__stat:not(:nth-child(2n + 1))::before {
+      display: block;
+    }
   }
 
   /* Beyond the Villa list */
