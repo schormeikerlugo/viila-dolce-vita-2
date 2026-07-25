@@ -36,6 +36,29 @@ export const bookingHref = `${contact.whatsappHref}?text=${encodeURIComponent(
   "Hello Villa Dolce Vita, I'd like to check availability for a stay.",
 )}`;
 
+/**
+ * Build a WhatsApp enquiry URL with a pre-filled message.
+ * Used by the booking composer (dates + guests) and per-suite CTAs so the
+ * conversation opens with everything the concierge needs.
+ */
+export function bookingMessageHref(opts: {
+  arrive?: string;
+  depart?: string;
+  guests?: string | number;
+  suite?: string;
+} = {}): string {
+  const parts: string[] = ["Hello Villa Dolce Vita!"];
+  if (opts.suite) parts.push(`I'm interested in the ${opts.suite}.`);
+  if (opts.arrive && opts.depart) {
+    parts.push(`I'd like to check availability from ${opts.arrive} to ${opts.depart}`);
+  } else {
+    parts.push("I'd like to check availability for a stay");
+  }
+  if (opts.guests) parts.push(`for ${opts.guests} ${Number(opts.guests) === 1 ? "guest" : "guests"}`);
+  const text = parts.join(" ").replace(/\s+/g, " ").trim() + ".";
+  return `${contact.whatsappHref}?text=${encodeURIComponent(text)}`;
+}
+
 export type NavItem = { label: string; href: string };
 
 /**

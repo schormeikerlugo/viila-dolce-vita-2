@@ -1,0 +1,135 @@
+---
+/**
+ * Cursor — contextual cursor companion (fine pointers only).
+ * A small ink dot trails the pointer; over elements marked with
+ * `data-cursor="view|drag|play"` it grows into a labelled disc.
+ * The native cursor is never hidden (accessibility), and the whole layer
+ * is inert: pointer-events none, aria-hidden, display:none on touch.
+ */
+---
+
+<div class="cursor" id="site-cursor" aria-hidden="true" transition:persist="site-cursor">
+  <span class="cursor__label" data-cursor-label></span>
+</div>
+
+<style>
+  .cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--z-cursor);
+    width: 10px;
+    height: 10px;
+    margin: -5px 0 0 -5px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--c-ink);
+    color: var(--c-ivory);
+    pointer-events: none;
+    opacity: 0;
+    transition:
+      width 0.3s var(--ease-out),
+      height 0.3s var(--ease-out),
+      margin 0.3s var(--ease-out),
+      opacity 0.25s var(--ease-out),
+      background 0.3s var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cursor {
+      display: flex;
+    }
+  }
+  .cursor.is-visible {
+    opacity: 1;
+  }
+  /* Grown, labelled state. */
+  .cursor.is-active {
+    width: 72px;
+    height: 72px;
+    margin: -36px 0 0 -36px;
+    background: var(--c-ivory);
+    color: var(--c-ink);
+    outline: 1px solid var(--line-strong);
+  }
+  .cursor__label {
+    font-family: var(--font-body);
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out) 0.08s;
+    white-space: nowrap;
+  }
+  .cursor.is-active .cursor__label {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cursor {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { gsap } from "gsap";
+
+  const LABELS: Record<string, string> = {
+    view: "View ↗",
+    drag: "Drag",
+    play: "Play",
+  };
+
+  function initCursor() {
+    const el = document.getElementById("site-cursor");
+    if (!el || el.dataset.bound === "1") return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    el.dataset.bound = "1";
+
+    const label = el.querySelector<HTMLElement>("[data-cursor-label]");
+    const xTo = gsap.quickTo(el, "x", { duration: 0.35, ease: "power3.out" });
+    const yTo = gsap.quickTo(el, "y", { duration: 0.35, ease: "power3.out" });
+
+    let visible = false;
+    document.addEventListener("pointermove", (e) => {
+      if (!visible) {
+        // Jump to the pointer before the first show — no fly-in from 0,0.
+        gsap.set(el, { x: e.clientX, y: e.clientY });
+        el.classList.add("is-visible");
+        visible = true;
+      }
+      xTo(e.clientX);
+      yTo(e.clientY);
+
+      // Contextual state — resolved per-move so it survives DOM swaps.
+      const zone = (e.target as Element | null)?.closest?.("[data-cursor]");
+      const kind = zone?.getAttribute("data-cursor") ?? "";
+      const text = LABELS[kind];
+      if (text) {
+        if (label && label.textContent !== text) label.textContent = text;
+        el.classList.add("is-active");
+      } else {
+        el.classList.remove("is-active");
+      }
+    });
+
+    document.addEventListener("pointerleave", () => {
+      el.classList.remove("is-visible");
+      visible = false;
+    });
+    document.documentElement.addEventListener("mouseleave", () => {
+      el.classList.remove("is-visible");
+      visible = false;
+    });
+  }
+
+  document.addEventListener("astro:page-load", initCursor);
+  if (document.readyState !== "loading") initCursor();
+  else document.addEventListener("DOMContentLoaded", initCursor);
+</script>

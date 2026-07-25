@@ -1,0 +1,154 @@
+---
+/**
+ * AreaMap — a stylised, hand-drawn-feel map of the estate's corner of the
+ * Maremma. Pure inline SVG in the editorial palette (ink lines on ivory,
+ * one terracotta marker) — no tiles, no external requests, no cookies.
+ * Geography is deliberately abstract: orientation, not navigation.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className = "" } = Astro.props;
+---
+
+<figure class:list={["areamap", className]} data-reveal>
+  <svg
+    viewBox="0 0 800 520"
+    role="img"
+    aria-label="Stylised map: Villa Dolce Vita sits inland from the Tyrrhenian coast, fifteen minutes from Massa Marittima, with Siena and Florence to the north-east and Rome far to the south-east."
+  >
+    <!-- frame -->
+    <rect x="0.5" y="0.5" width="799" height="519" fill="none" stroke="var(--line)" />
+
+    <!-- coastline — Tyrrhenian sea to the west -->
+    <path
+      d="M 150 0 C 140 60 120 110 130 160 C 140 210 110 250 118 300 C 126 350 100 400 120 450 C 132 480 128 500 132 520"
+      fill="none"
+      stroke="var(--c-ink)"
+      stroke-width="1.2"
+    />
+    <!-- shore hatching -->
+    <g stroke="var(--line-strong)" stroke-width="1">
+      <line x1="96" y1="120" x2="116" y2="126" />
+      <line x1="88" y1="220" x2="108" y2="226" />
+      <line x1="80" y1="330" x2="100" y2="336" />
+      <line x1="86" y1="430" x2="106" y2="436" />
+    </g>
+    <text x="58" y="300" class="map-sea" transform="rotate(-90 58 300)">Tyrrhenian Sea</text>
+
+    <!-- Elba, on the horizon -->
+    <ellipse cx="64" cy="472" rx="14" ry="7" fill="none" stroke="var(--c-ink)" stroke-width="1" />
+    <text x="64" y="497" class="map-label" text-anchor="middle">Elba</text>
+
+    <!-- hills — quiet contour marks around the estate -->
+    <g fill="none" stroke="var(--line-strong)" stroke-width="1">
+      <path d="M 300 190 q 25 -18 50 0" />
+      <path d="M 360 150 q 25 -18 50 0" />
+      <path d="M 430 210 q 25 -18 50 0" />
+      <path d="M 330 300 q 25 -18 50 0" />
+      <path d="M 470 320 q 25 -18 50 0" />
+    </g>
+
+    <!-- Follonica, on the coast -->
+    <circle cx="150" cy="330" r="4" fill="none" stroke="var(--c-ink)" stroke-width="1.2" />
+    <text x="168" y="335" class="map-label">Follonica</text>
+
+    <!-- Massa Marittima -->
+    <circle cx="330" cy="240" r="4" fill="var(--c-ink)" />
+    <text x="348" y="245" class="map-label">Massa Marittima</text>
+
+    <!-- the villa — the single terracotta mark -->
+    <g>
+      <rect x="394" y="284" width="12" height="12" fill="var(--accent)" transform="rotate(45 400 290)" />
+      <text x="418" y="288" class="map-villa">Villa Dolce Vita</text>
+      <text x="418" y="306" class="map-note">Podere Seccatoi, 56</text>
+    </g>
+
+    <!-- 15 minutes — dotted link villa → town -->
+    <line
+      x1="392"
+      y1="282"
+      x2="340"
+      y2="248"
+      stroke="var(--c-ink)"
+      stroke-width="1"
+      stroke-dasharray="2 5"
+    />
+    <text x="392" y="258" class="map-note" text-anchor="middle">15 min</text>
+
+    <!-- compass -->
+    <g transform="translate(736 64)">
+      <line x1="0" y1="18" x2="0" y2="-18" stroke="var(--c-ink)" stroke-width="1" />
+      <path d="M 0 -18 l 5 10 h -10 z" fill="var(--c-ink)" />
+      <text x="0" y="-26" class="map-note" text-anchor="middle">N</text>
+    </g>
+
+    <!-- directions off the map -->
+    <g class="map-dir">
+      <text x="600" y="40" text-anchor="middle">Florence ↑</text>
+      <text x="700" y="150" text-anchor="middle">Siena ↗</text>
+      <text x="700" y="480" text-anchor="middle">Rome ↘</text>
+      <text x="260" y="40" text-anchor="middle">Pisa ↖</text>
+    </g>
+  </svg>
+  <figcaption class="areamap__caption">
+    The Maremma — the estate's corner of Tuscany, drawn loosely.
+  </figcaption>
+</figure>
+
+<style>
+  .areamap {
+    margin: 0;
+    background: var(--surface);
+  }
+  .areamap svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .areamap :global(.map-label) {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    fill: var(--c-ink);
+  }
+  .areamap :global(.map-villa) {
+    font-family: var(--font-display);
+    font-size: 19px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    fill: var(--c-ink);
+  }
+  .areamap :global(.map-note) {
+    font-family: var(--font-body);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    fill: var(--text-muted);
+  }
+  .areamap :global(.map-sea) {
+    font-family: var(--font-body);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    fill: var(--text-muted);
+  }
+  .areamap :global(.map-dir text) {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    fill: var(--text-muted);
+  }
+  .areamap__caption {
+    padding: 0.9rem 0.25rem;
+    font-size: 0.72rem;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-top: 1px solid var(--line);
+  }
+</style>

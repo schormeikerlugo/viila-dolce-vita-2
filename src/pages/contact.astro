@@ -9,10 +9,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
 import FaqAccordion from "../components/FaqAccordion.astro";
+import AreaMap from "../components/AreaMap.astro";
 import { Image } from "astro:assets";
 import { photos } from "../data/media";
 import { contact, notices, bookingHref } from "../data/site";
 import { faqs } from "../data/faq";
+import { faqSchema } from "../lib/schema";
 
 const channels = [
   {
@@ -45,6 +47,7 @@ const channels = [
 <BaseLayout
   title="Contact Us"
   description="Get in touch by WhatsApp, email or Instagram. Villa Dolce Vita, Podere Seccatoi, Massa Marittima, Tuscany."
+  schemas={[faqSchema(faqs)]}
 >
   <!-- SPLIT — channels left, image + CTA right -->
   <section class="chero" aria-label="Contact channels">
@@ -93,6 +96,78 @@ const channels = [
     </div>
   </section>
 
+  <!-- ENQUIRY FORM — composes a WhatsApp / email message client-side -->
+  <section class="section bg-ivory enquiry" aria-labelledby="enquiry-title">
+    <div class="wrap enquiry__grid">
+      <div class="enquiry__head">
+        <Reveal as="p" class="eyebrow">Send an Enquiry</Reveal>
+        <h2 id="enquiry-title" data-split>Tell Us About<br />Your Stay</h2>
+        <Reveal as="p" class="enquiry__note" delay={0.08}>
+          Fill in the details and send it our way — we reply personally, by
+          WhatsApp or email, usually within the hour.
+        </Reveal>
+      </div>
+
+      <form class="eform" id="enquiry-form" novalidate data-reveal data-reveal-delay={0.1}>
+        <div class="eform__row">
+          <div class="eform__field">
+            <label for="ef-name">Name *</label>
+            <input type="text" id="ef-name" name="name" required autocomplete="name" />
+            <p class="eform__error" data-error-for="ef-name">Please tell us your name.</p>
+          </div>
+          <div class="eform__field">
+            <label for="ef-email">Email *</label>
+            <input type="email" id="ef-email" name="email" required autocomplete="email" />
+            <p class="eform__error" data-error-for="ef-email">Please enter a valid email address.</p>
+          </div>
+        </div>
+
+        <div class="eform__row eform__row--three">
+          <div class="eform__field">
+            <label for="ef-arrive">Arrival</label>
+            <input type="date" id="ef-arrive" name="arrive" />
+          </div>
+          <div class="eform__field">
+            <label for="ef-depart">Departure</label>
+            <input type="date" id="ef-depart" name="depart" />
+          </div>
+          <div class="eform__field">
+            <label for="ef-guests">Guests</label>
+            <select id="ef-guests" name="guests">
+              {Array.from({ length: 24 }, (_, i) => i + 1).map((n) => (
+                <option value={n} selected={n === 2}>{n}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div class="eform__field">
+          <label for="ef-message">Message *</label>
+          <textarea
+            id="ef-message"
+            name="message"
+            rows="5"
+            required
+            placeholder="Tell us about your trip — occasion, party, questions…"></textarea>
+          <p class="eform__error" data-error-for="ef-message">Please write a short message.</p>
+        </div>
+
+        <div class="eform__actions">
+          <Button type="submit" variant="primary" data-send="whatsapp">
+            Send via WhatsApp
+          </Button>
+          <Button type="submit" variant="secondary" data-send="email">
+            Send via Email
+          </Button>
+        </div>
+        <p class="eform__success" data-success hidden aria-live="polite">
+          Your message is ready in the app that just opened — press send there
+          and we'll take it from here. Grazie!
+        </p>
+      </form>
+    </div>
+  </section>
+
   <!-- NOTICES — hairline columns -->
   <section class="section bg-sunk" aria-label="Guest notices">
     <div class="wrap notices">
@@ -104,6 +179,32 @@ const channels = [
         <p class="eyebrow">A Note for Our Guests</p>
         <p class="notice__body">{notices.animals}</p>
       </article>
+    </div>
+  </section>
+
+  <!-- FINDING US — stylised area map -->
+  <section class="section bg-ivory findus" aria-labelledby="findus-title">
+    <div class="wrap findus__grid">
+      <div class="findus__head">
+        <Reveal as="p" class="eyebrow">Finding Us</Reveal>
+        <h2 id="findus-title" data-split>Our Corner of<br />the Maremma</h2>
+        <Reveal as="p" class="findus__note" delay={0.08}>
+          Fifteen minutes from Massa Marittima, forty from the coast, and far
+          enough from everything else. Chauffeured transfers can be arranged
+          from Rome, Florence and Pisa.
+        </Reveal>
+        <Reveal delay={0.12}>
+          <Button
+            href="https://maps.google.com/?q=Podere+Seccatoi+56+Massa+Marittima"
+            variant="ghost"
+            target="_blank"
+            rel="noopener"
+          >
+            Open in Google Maps
+          </Button>
+        </Reveal>
+      </div>
+      <AreaMap />
     </div>
   </section>
 
@@ -124,6 +225,99 @@ const channels = [
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  import { contact } from "../data/site";
+
+  // Enquiry form — validates, composes the message, and hands it to the
+  // guest's own WhatsApp or email app. No backend, nothing stored.
+  function initEnquiry() {
+    const form = document.getElementById("enquiry-form") as HTMLFormElement | null;
+    if (!form || form.dataset.bound === "1") return;
+    form.dataset.bound = "1";
+
+    const success = form.querySelector<HTMLElement>("[data-success]");
+    const field = (id: string) =>
+      form.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`#${id}`);
+
+    const markValidity = (id: string, ok: boolean) => {
+      field(id)?.closest(".eform__field")?.classList.toggle("is-invalid", !ok);
+      return ok;
+    };
+
+    const fmt = (v: string) =>
+      v
+        ? new Date(`${v}T12:00:00`).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })
+        : "";
+
+    const compose = () => {
+      const name = field("ef-name")?.value.trim() ?? "";
+      const email = field("ef-email")?.value.trim() ?? "";
+      const arrive = fmt(field("ef-arrive")?.value ?? "");
+      const depart = fmt(field("ef-depart")?.value ?? "");
+      const guests = field("ef-guests")?.value ?? "";
+      const message = field("ef-message")?.value.trim() ?? "";
+
+      const lines = [
+        `Hello Villa Dolce Vita! My name is ${name}.`,
+        arrive && depart ? `Dates: ${arrive} — ${depart}, ${guests} guests.` : "",
+        message,
+        `You can also reach me at ${email}.`,
+      ].filter(Boolean);
+      return { name, email, message, text: lines.join("\n\n") };
+    };
+
+    const validate = () => {
+      const name = (field("ef-name")?.value.trim().length ?? 0) > 0;
+      const emailEl = field("ef-email") as HTMLInputElement | null;
+      const email = !!emailEl && emailEl.validity.valid && emailEl.value.trim().length > 0;
+      const message = (field("ef-message")?.value.trim().length ?? 0) > 0;
+      markValidity("ef-name", name);
+      markValidity("ef-email", email);
+      markValidity("ef-message", message);
+      return name && email && message;
+    };
+
+    let channel: "whatsapp" | "email" = "whatsapp";
+    form.querySelectorAll<HTMLButtonElement>("[data-send]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        channel = (btn.dataset.send as typeof channel) ?? "whatsapp";
+      });
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!validate()) {
+        (form.querySelector(
+          ".is-invalid input, .is-invalid textarea",
+        ) as HTMLElement | null)?.focus();
+        return;
+      }
+      const { text } = compose();
+      const href =
+        channel === "email"
+          ? `mailto:${contact.email}?subject=${encodeURIComponent(
+              "Enquiry — Villa Dolce Vita",
+            )}&body=${encodeURIComponent(text)}`
+          : `${contact.whatsappHref}?text=${encodeURIComponent(text)}`;
+      window.open(href, "_blank", "noopener");
+      if (success) success.hidden = false;
+    });
+
+    // Clear the error as soon as the guest fixes a field.
+    ["ef-name", "ef-email", "ef-message"].forEach((id) => {
+      field(id)?.addEventListener("input", () => markValidity(id, true));
+    });
+  }
+
+  document.addEventListener("astro:page-load", initEnquiry);
+  if (document.readyState !== "loading") initEnquiry();
+  else document.addEventListener("DOMContentLoaded", initEnquiry);
+</script>
 
 <style>
   /* ── Split hero — Tonelli ─────────────────────────────────────────────── */
@@ -236,6 +430,105 @@ const channels = [
     margin-top: clamp(1.25rem, 2.5vw, 2rem);
   }
 
+  /* ── Enquiry form ─────────────────────────────────────────────────────── */
+  .enquiry__grid {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.8fr) 1.4fr;
+    gap: clamp(2.5rem, 6vw, 7rem);
+    align-items: start;
+  }
+  .enquiry__head {
+    position: sticky;
+    top: clamp(6rem, 12vh, 8rem);
+  }
+  .enquiry__head :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
+  .enquiry :global(.enquiry__note) {
+    margin-top: clamp(1.2rem, 2.5vw, 2rem);
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.7;
+    max-width: 38ch;
+  }
+  .eform {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.4rem, 2.5vw, 2rem);
+  }
+  .eform__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.4rem, 2.5vw, 2rem);
+  }
+  .eform__row--three {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .eform__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .eform__field label {
+    font-size: 0.64rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .eform__field input,
+  .eform__field select,
+  .eform__field textarea {
+    appearance: none;
+    -webkit-appearance: none;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0;
+    padding: 0.85rem 1rem;
+    width: 100%;
+    transition: border-color var(--dur-fast) var(--ease-out);
+    color-scheme: light;
+  }
+  .eform__field textarea {
+    resize: vertical;
+    min-height: 8rem;
+  }
+  .eform__field input:focus,
+  .eform__field select:focus,
+  .eform__field textarea:focus {
+    outline: none;
+    border-color: var(--c-ink);
+  }
+  .eform__field.is-invalid input,
+  .eform__field.is-invalid textarea {
+    border-color: var(--accent);
+  }
+  .eform__error {
+    display: none;
+    font-size: 0.78rem;
+    color: var(--accent);
+  }
+  .eform__field.is-invalid .eform__error {
+    display: block;
+  }
+  .eform__actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .eform__success {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text);
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
+    max-width: 52ch;
+  }
+
   /* ── Notices ──────────────────────────────────────────────────────────── */
   .notices {
     display: grid;
@@ -252,6 +545,31 @@ const channels = [
     font-size: 0.92rem;
     line-height: 1.75;
     max-width: 58ch;
+  }
+
+  /* ── Finding us — map split ───────────────────────────────────────────── */
+  .findus__grid {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.8fr) 1.4fr;
+    gap: clamp(2.5rem, 6vw, 7rem);
+    align-items: start;
+  }
+  .findus__head :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
+  .findus :global(.findus__note) {
+    margin-top: clamp(1.2rem, 2.5vw, 2rem);
+    margin-bottom: clamp(1.2rem, 2.5vw, 2rem);
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.7;
+    max-width: 38ch;
+  }
+  @media (max-width: 900px) {
+    .findus__grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
   }
 
   /* ── FAQ on ink ───────────────────────────────────────────────────────── */
@@ -300,12 +618,22 @@ const channels = [
     .chero__media {
       aspect-ratio: 16 / 10;
     }
-    .faq-section__grid {
+    .faq-section__grid,
+    .enquiry__grid {
       grid-template-columns: 1fr;
       gap: 2rem;
     }
-    .faq-section__head {
+    .faq-section__head,
+    .enquiry__head {
       position: static;
+    }
+    .eform__row--three {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 560px) {
+    .eform__row {
+      grid-template-columns: 1fr;
     }
   }
   @media (max-width: 560px) {

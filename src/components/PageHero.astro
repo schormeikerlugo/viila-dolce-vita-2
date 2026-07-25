@@ -16,14 +16,27 @@ interface Props {
   imageAlt?: string;
   /** Optional meta row: label/value pairs rendered under a hairline. */
   meta?: { label: string; value: string }[];
+  /** Optional shared View Transition name for the hero media. */
+  mediaTransitionName?: string;
 }
-const { eyebrow, title, subtitle, image, imageAlt = "", meta = [] } = Astro.props;
+const {
+  eyebrow,
+  title,
+  subtitle,
+  image,
+  imageAlt = "",
+  meta = [],
+  // Default shared name: interior heroes morph into each other across
+  // navigations. Pass a unique name (e.g. `journal-${slug}`) to pair the
+  // hero with a specific card elsewhere.
+  mediaTransitionName = "pagehero-media",
+} = Astro.props;
 const hasSlot = Astro.slots.has("default");
 ---
 
 <section class="pagehero">
   <div class="pagehero__grid wrap">
-    <div class="pagehero__media" data-parallax-scope>
+    <div class="pagehero__media" data-parallax-scope transition:name={mediaTransitionName}>
       <Image
         src={image}
         alt={imageAlt}

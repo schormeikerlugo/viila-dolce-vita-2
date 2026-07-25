@@ -531,6 +531,59 @@ a.card {
   }
 }
 
+/* ---------- Ink curtain page transition ---------- */
+/* Rests below the viewport; sweeps up to cover on navigation, then exits
+   through the top once the next page is ready. Persisted across swaps. */
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-overlay) + 50);
+  display: grid;
+  place-items: center;
+  background: var(--c-ink);
+  transform: translateY(101%);
+  pointer-events: none;
+  visibility: hidden;
+}
+.curtain.is-covering {
+  visibility: visible;
+  transform: translateY(0);
+  transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.curtain.is-leaving {
+  visibility: visible;
+  transform: translateY(-101%);
+  transition: transform 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.curtain__mark {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ivory);
+  opacity: 0;
+}
+.curtain.is-covering .curtain__mark {
+  opacity: 1;
+  transition: opacity 0.3s 0.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .curtain {
+    display: none;
+  }
+}
+
+/* ---------- Split-line heading reveals ---------- */
+/* [data-split] headings hide until SplitText has measured lines (fonts
+   loaded), then each line rises from behind its mask. If JS never arrives
+   (.no-js) or motion is reduced, the heading simply stays visible. */
+.is-ready [data-split]:not(.is-split-ready) {
+  visibility: hidden;
+}
+.split-line {
+  will-change: transform;
+}
+
 /* ---------- Scroll-reveal base state ---------- */
 /* Elements marked [data-reveal] start hidden; scroll.ts animates them in. */
 [data-reveal] {

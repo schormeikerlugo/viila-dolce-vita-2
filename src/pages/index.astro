@@ -16,6 +16,7 @@ import CardCarousel from "../components/CardCarousel.astro";
 import DarkTimeline from "../components/DarkTimeline.astro";
 import FaqAccordion from "../components/FaqAccordion.astro";
 import CtaBanner from "../components/CtaBanner.astro";
+import BookingBar from "../components/BookingBar.astro";
 import BackgroundVideo from "../components/BackgroundVideo.astro";
 import TestimonialCarousel from "../components/TestimonialCarousel.tsx";
 import { Image } from "astro:assets";
@@ -27,6 +28,7 @@ import { galleryItems } from "../data/gallery";
 import { experienceLinks } from "../data/experiences";
 import { journalTeasers } from "../data/journal";
 import { homeFaqs } from "../data/faq";
+import { faqSchema } from "../lib/schema";
 
 // Metro mosaic order: signature (highest rate) suite first so it takes the
 // hero tile, then the rest by descending rate for a balanced layout.
@@ -115,7 +117,7 @@ const weddingSlides = [
 ];
 ---
 
-<BaseLayout navTheme="dark">
+<BaseLayout navTheme="dark" schemas={[faqSchema(homeFaqs)]}>
   <!-- HERO -->
   <Hero eyebrow="Massa Marittima, Tuscany" video="laDolceVita" booking>
     <Fragment slot="title">Villa <em>Dolce Vita</em></Fragment>
@@ -127,11 +129,11 @@ const weddingSlides = [
     <div class="wrap overview__grid">
       <Reveal as="p" class="eyebrow">Overview</Reveal>
       <div class="overview__body">
-        <Reveal as="p" class="overview__statement" id="overview-title" delay={0.05}>
+        <p class="overview__statement" id="overview-title" data-split>
           A 50-acre hillside estate in Tuscany — two stone houses, five large
           suites and a private pool, looking out past olive groves and forest
           to the sea, <em>Elba and Corsica beyond</em>.
-        </Reveal>
+        </p>
         <Reveal as="p" class="overview__copy" delay={0.12}>
           Set high on the Maremma hills, Villa Dolce Vita hosts up to 24 guests
           with daily breakfast, chef-cooked dinners, an on-site concierge and a
@@ -357,7 +359,7 @@ const weddingSlides = [
         {
           journalTeasers.map((a) => (
             <a class="jcard carousel__slide" href={`/journal/${a.slug}`}>
-              <div class="jcard__media hoist">
+              <div class="jcard__media hoist" transition:name={`journal-${a.slug}`}>
                 <Image
                   src={a.image}
                   alt={a.imageAlt}
@@ -419,9 +421,9 @@ const weddingSlides = [
   <section class="section bg-ivory reviews" aria-labelledby="reviews-title">
     <div class="wrap">
       <Reveal as="p" class="eyebrow">Reviews</Reveal>
-      <Reveal as="h2" id="reviews-title" class="reviews__title" delay={0.05}>
+      <h2 id="reviews-title" class="reviews__title" data-split>
         What Our Guests Say<br />About Their Stay
-      </Reveal>
+      </h2>
 
       <ul class="reviews__stats statband__row" data-reveal data-reveal-delay={0.1}>
         {
@@ -438,12 +440,29 @@ const weddingSlides = [
     </div>
   </section>
 
+  <!-- PLAN YOUR STAY — enquiry composer (dates + guests → WhatsApp). -->
+  <section class="section bg-sunk plan" aria-labelledby="plan-title">
+    <div class="wrap">
+      <div class="plan__head">
+        <Reveal as="p" class="eyebrow">Plan Your Stay</Reveal>
+        <h2 id="plan-title" data-split>Choose Your Dates</h2>
+        <Reveal as="p" class="plan__note" delay={0.08}>
+          Send us your dates and party size — the concierge replies personally
+          on WhatsApp, usually within the hour.
+        </Reveal>
+      </div>
+      <div data-reveal data-reveal-delay={0.12}>
+        <BookingBar />
+      </div>
+    </div>
+  </section>
+
   <!-- FAQ — ink accordion (Masseto). -->
   <section class="section bg-dark faq-section" aria-labelledby="faq-title">
     <div class="wrap faq-section__grid">
       <div class="faq-section__head">
         <Reveal as="p" class="eyebrow">FAQ</Reveal>
-        <Reveal as="h2" id="faq-title" delay={0.05}>Your Questions<br />Answered</Reveal>
+        <h2 id="faq-title" data-split>Your Questions<br />Answered</h2>
         <Reveal as="p" class="faq-section__note" delay={0.1}>
           Have more unanswered questions? Feel free to send an enquiry to
           <a href={`mailto:${contact.email}`}>{contact.email}</a>
@@ -1066,6 +1085,20 @@ const weddingSlides = [
   .reviews__stats.statband__row {
     margin-bottom: clamp(2.5rem, 5vw, 4rem);
     border-bottom: 0;
+  }
+
+  /* ── PLAN YOUR STAY ──────────────────────────────────────────────────── */
+  .plan__head {
+    max-width: 60ch;
+    margin-bottom: var(--space-group);
+  }
+  .plan__head :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.6rem);
+  }
+  .plan :global(.plan__note) {
+    margin-top: clamp(1rem, 2vw, 1.5rem);
+    color: var(--text-muted);
+    max-width: 46ch;
   }
 
   /* ── FAQ ─────────────────────────────────────────────────────────────── */

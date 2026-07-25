@@ -23,7 +23,7 @@ const { eyebrow, title, entries, class: className = "" } = Astro.props;
 <div class:list={["timeline", className]}>
   <div class="timeline__head">
     {eyebrow && <Reveal as="p" class="eyebrow">{eyebrow}</Reveal>}
-    <Reveal as="h2" delay={0.05} class="timeline__title" set:html={title} />
+    <h2 class="timeline__title" data-split set:html={title} />
     <slot name="head" />
   </div>
 

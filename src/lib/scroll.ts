@@ -15,8 +15,9 @@
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, SplitText);
 
 const prefersReducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -44,6 +45,58 @@ function initSmoothScroll() {
   rafCallback = (time: number) => lenis?.raf(time * 1000);
   gsap.ticker.add(rafCallback);
   gsap.ticker.lagSmoothing(0);
+}
+
+/**
+ * [data-split] — display headings reveal line by line behind a mask.
+ * The luxury-editorial signature move. Waits for fonts so line breaks are
+ * measured correctly; falls back to a plain reveal on reduced motion.
+ */
+let splitInstances: SplitText[] = [];
+
+function initSplitReveals() {
+  const targets = gsap.utils.toArray<HTMLElement>("[data-split]");
+  if (!targets.length) return;
+
+  if (prefersReducedMotion()) {
+    targets.forEach((el) => el.classList.add("is-split-ready"));
+    return;
+  }
+
+  const build = () => {
+    targets.forEach((el) => {
+      // Never split twice (View Transitions can re-run init).
+      if (el.dataset.splitDone === "1") return;
+      el.dataset.splitDone = "1";
+
+      const split = new SplitText(el, {
+        type: "lines",
+        linesClass: "split-line",
+        // Wrap each line in a masking parent so the text rises from behind
+        // a clean edge instead of fading in place.
+        mask: "lines",
+      });
+      splitInstances.push(split);
+      el.classList.add("is-split-ready");
+
+      gsap.from(split.lines, {
+        yPercent: 110,
+        duration: 1.1,
+        stagger: 0.09,
+        ease: "power4.out",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 88%",
+          toggleActions: "play none none none",
+        },
+      });
+    });
+    ScrollTrigger.refresh();
+  };
+
+  // Fonts must be loaded before measuring lines (Bodoni is a variable font).
+  if (document.fonts?.status === "loaded") build();
+  else document.fonts?.ready.then(build).catch(build);
 }
 
 /** [data-reveal] — staggered fade + rise as elements enter the viewport. */
@@ -466,6 +519,9 @@ function initAnchorLinks() {
 
 /** Tear down the previous page's scroll state (for View Transition navigations). */
 function destroyScroll() {
+  // Release SplitText instances from the outgoing page.
+  splitInstances.forEach((s) => s.revert?.());
+  splitInstances = [];
   ScrollTrigger.getAll().forEach((st) => st.kill());
   if (rafCallback) {
     gsap.ticker.remove(rafCallback);
@@ -493,6 +549,7 @@ export function initScroll() {
   // The suites carousel also pins — register it before reveals so downstream
   // sections measure their trigger positions with the pin space accounted for.
   initSuitesCarousel();
+  initSplitReveals();
   initReveals();
   initParallax();
   initMouseParallax();

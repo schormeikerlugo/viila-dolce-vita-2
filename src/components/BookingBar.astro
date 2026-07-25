@@ -1,0 +1,224 @@
+---
+/**
+ * BookingBar — the enquiry composer: arrival / departure / guests on a
+ * hairline row. Submitting opens WhatsApp with the stay details pre-filled
+ * (no backend). Without JS it degrades to the plain availability link.
+ *
+ * Themes: "light" (ivory sections) | "dark" (ink sections).
+ */
+import { bookingHref } from "../data/site";
+
+interface Props {
+  theme?: "light" | "dark";
+  /** Pre-fill the enquiry with a suite name (suite pages). */
+  suite?: string;
+  class?: string;
+}
+const { theme = "light", suite, class: className = "" } = Astro.props;
+
+// Sensible defaults: arrival in 30 days, a week-long stay.
+const plus = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+const today = plus(0);
+const defaultArrive = plus(30);
+const defaultDepart = plus(37);
+---
+
+<form
+  class:list={["bookbar", `bookbar--${theme}`, className]}
+  data-bookbar
+  data-suite={suite}
+  action={bookingHref}
+  method="get"
+  target="_blank"
+  rel="noopener"
+>
+  <div class="bookbar__field">
+    <label for={`bb-arrive-${suite ?? "x"}`}>Arrival</label>
+    <input
+      type="date"
+      id={`bb-arrive-${suite ?? "x"}`}
+      name="arrive"
+      min={today}
+      value={defaultArrive}
+      data-bb-arrive
+    />
+  </div>
+  <div class="bookbar__field">
+    <label for={`bb-depart-${suite ?? "x"}`}>Departure</label>
+    <input
+      type="date"
+      id={`bb-depart-${suite ?? "x"}`}
+      name="depart"
+      min={today}
+      value={defaultDepart}
+      data-bb-depart
+    />
+  </div>
+  <div class="bookbar__field">
+    <label for={`bb-guests-${suite ?? "x"}`}>Guests</label>
+    <select id={`bb-guests-${suite ?? "x"}`} name="guests" data-bb-guests>
+      {Array.from({ length: 24 }, (_, i) => i + 1).map((n) => (
+        <option value={n} selected={n === 2}>
+          {n} {n === 1 ? "guest" : "guests"}
+        </option>
+      ))}
+    </select>
+  </div>
+  <button type="submit" class="bookbar__submit">
+    Check Availability <span aria-hidden="true">↗</span>
+  </button>
+</form>
+
+<style>
+  .bookbar {
+    --bb-line: var(--line);
+    --bb-fg: var(--text);
+    --bb-muted: var(--text-muted);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    align-items: stretch;
+    border: 1px solid var(--bb-line);
+  }
+  .bookbar--dark {
+    --bb-line: var(--line-on-dark);
+    --bb-fg: var(--text-on-dark);
+    --bb-muted: var(--text-on-dark-muted);
+  }
+  .bookbar__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1rem clamp(1rem, 2vw, 1.5rem);
+    border-right: 1px solid var(--bb-line);
+  }
+  .bookbar__field label {
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--bb-muted);
+  }
+  .bookbar__field input,
+  .bookbar__field select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    color: var(--bb-fg);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 0;
+    cursor: pointer;
+    width: 100%;
+    color-scheme: light;
+  }
+  .bookbar--dark .bookbar__field input,
+  .bookbar--dark .bookbar__field select {
+    color-scheme: dark;
+  }
+  .bookbar__field input:focus,
+  .bookbar__field select:focus {
+    outline: none;
+  }
+  .bookbar__field:focus-within {
+    background: rgba(22, 20, 18, 0.03);
+  }
+  .bookbar--dark .bookbar__field:focus-within {
+    background: rgba(244, 241, 234, 0.05);
+  }
+  .bookbar__submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem clamp(1.4rem, 2.5vw, 2.2rem);
+    background: var(--c-ink);
+    color: var(--c-ivory);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  .bookbar--dark .bookbar__submit {
+    background: var(--c-ivory);
+    color: var(--c-ink);
+  }
+  .bookbar__submit:hover {
+    opacity: 0.85;
+  }
+
+  @media (max-width: 760px) {
+    .bookbar {
+      grid-template-columns: 1fr 1fr;
+    }
+    .bookbar__field:nth-child(2),
+    .bookbar__field:nth-child(3) {
+      border-right: 0;
+    }
+    .bookbar__field {
+      border-bottom: 1px solid var(--bb-line);
+    }
+    .bookbar__field:nth-child(3) {
+      grid-column: 1 / -1;
+    }
+    .bookbar__submit {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<script>
+  import { bookingMessageHref } from "../data/site";
+
+  function initBookbars() {
+    document
+      .querySelectorAll<HTMLFormElement>("[data-bookbar]:not([data-bound])")
+      .forEach((form) => {
+        form.dataset.bound = "1";
+        const arrive = form.querySelector<HTMLInputElement>("[data-bb-arrive]");
+        const depart = form.querySelector<HTMLInputElement>("[data-bb-depart]");
+        const guests = form.querySelector<HTMLSelectElement>("[data-bb-guests]");
+
+        // Keep departure after arrival.
+        arrive?.addEventListener("change", () => {
+          if (depart && arrive.value && depart.value <= arrive.value) {
+            const d = new Date(arrive.value);
+            d.setDate(d.getDate() + 1);
+            depart.min = d.toISOString().slice(0, 10);
+            if (depart.value <= arrive.value) depart.value = depart.min;
+          }
+        });
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const fmt = (v?: string) =>
+            v
+              ? new Date(`${v}T12:00:00`).toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
+              : undefined;
+          const href = bookingMessageHref({
+            arrive: fmt(arrive?.value),
+            depart: fmt(depart?.value),
+            guests: guests?.value,
+            suite: form.dataset.suite || undefined,
+          });
+          window.open(href, "_blank", "noopener");
+        });
+      });
+  }
+
+  document.addEventListener("astro:page-load", initBookbars);
+  if (document.readyState !== "loading") initBookbars();
+  else document.addEventListener("DOMContentLoaded", initBookbars);
+</script>

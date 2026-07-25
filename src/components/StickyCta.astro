@@ -1,0 +1,122 @@
+---
+/**
+ * StickyCta — mobile-only bottom bar with the availability CTA.
+ * Appears once the page hero has scrolled away, retreats when the footer
+ * comes into view. Desktop never sees it (the nav CTA is always visible).
+ */
+import { bookingHref, site } from "../data/site";
+---
+
+<div class="stickycta" id="sticky-cta" transition:persist="sticky-cta">
+  <span class="stickycta__name">{site.name}</span>
+  <a class="stickycta__btn" href={bookingHref} target="_blank" rel="noopener">
+    Check Availability <span aria-hidden="true">↗</span>
+  </a>
+</div>
+
+<style>
+  .stickycta {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: calc(var(--z-nav) - 1);
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem var(--gutter);
+    padding-bottom: calc(0.8rem + env(safe-area-inset-bottom, 0px));
+    background: var(--c-ivory);
+    border-top: 1px solid var(--line);
+    transform: translateY(105%);
+    transition: transform 0.4s var(--ease-out);
+  }
+  .stickycta.is-visible {
+    transform: translateY(0);
+  }
+  .stickycta__name {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .stickycta__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.4rem;
+    background: var(--c-ink);
+    color: var(--c-ivory);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 900px) {
+    .stickycta {
+      display: flex;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stickycta {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Show after the page opener leaves the viewport; hide over the footer.
+  function initStickyCta() {
+    const bar = document.getElementById("sticky-cta");
+    if (!bar) return;
+
+    // Re-observe per page (targets are new after each View Transition).
+    (bar as HTMLElement & { _cleanup?: () => void })._cleanup?.();
+
+    const hero = document.querySelector(".hero, .pagehero");
+    // The SITE footer specifically — cards may carry their own <footer>.
+    const footer = document.querySelector("footer.footer");
+    let pastHero = !hero; // pages without a hero: show right away
+    let overFooter = false;
+
+    const update = () =>
+      bar.classList.toggle("is-visible", pastHero && !overFooter);
+
+    const observers: IntersectionObserver[] = [];
+    if (hero) {
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          pastHero = !entry.isIntersecting;
+          update();
+        },
+        { rootMargin: "-80px 0px 0px 0px" },
+      );
+      io.observe(hero);
+      observers.push(io);
+    }
+    if (footer) {
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          overFooter = entry.isIntersecting;
+          update();
+        },
+        { rootMargin: "120px 0px 0px 0px" },
+      );
+      io.observe(footer);
+      observers.push(io);
+    }
+    update();
+
+    (bar as HTMLElement & { _cleanup?: () => void })._cleanup = () =>
+      observers.forEach((o) => o.disconnect());
+  }
+
+  document.addEventListener("astro:page-load", initStickyCta);
+  if (document.readyState !== "loading") initStickyCta();
+  else document.addEventListener("DOMContentLoaded", initStickyCta);
+</script>

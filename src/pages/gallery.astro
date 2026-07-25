@@ -21,10 +21,15 @@ const total = galleryItems.length;
 // Label lookup so chips + captions read nicely ("Around Tuscany", not "tuscany").
 const catLabel = Object.fromEntries(galleryCategories.map((c) => [c.id, c.label]));
 
-const items = galleryItems.map((item) => ({
-  ...item,
-  label: catLabel[item.cat] ?? item.cat,
-}));
+import { lqipStyle } from "../lib/lqip";
+
+const items = await Promise.all(
+  galleryItems.map(async (item) => ({
+    ...item,
+    label: catLabel[item.cat] ?? item.cat,
+    lqip: await lqipStyle(item.image),
+  })),
+);
 ---
 
 <BaseLayout
@@ -101,6 +106,7 @@ const items = galleryItems.map((item) => ({
             data-cat={item.cat}
             data-title={item.alt.toLowerCase()}
             data-credit={item.label}
+            style={item.lqip}
           >
             <button
               type="button"
@@ -108,6 +114,7 @@ const items = galleryItems.map((item) => ({
               aria-label={`View ${item.alt}`}
               aria-haspopup="dialog"
               data-lb-open
+              data-cursor="view"
             >
               <Image
                 src={item.image}
@@ -344,6 +351,11 @@ const items = galleryItems.map((item) => ({
     margin: 0;
     background: var(--surface-sunk);
     overflow: hidden;
+    /* Skip rendering work for offscreen tiles — the archive holds 115
+       photographs. The intrinsic size matches the 4/3 tile so scrollbars
+       stay stable. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 300px auto 225px;
   }
   /* `display: block` outranks UA `[hidden] { display: none }`; force it. */
   .wp-item[hidden] {
@@ -579,6 +591,11 @@ const items = galleryItems.map((item) => ({
 </style>
 
 <script>
+  import { gsap } from "gsap";
+  import { Flip } from "gsap/Flip";
+
+  gsap.registerPlugin(Flip);
+
   function initGallery() {
     const root = document.querySelector<HTMLElement>(".gal-section");
     if (!root || root.dataset.galReady === "1") return;
@@ -590,11 +607,17 @@ const items = galleryItems.map((item) => ({
     const emptyEl = document.getElementById("gallery-empty");
     const countEl = document.querySelector<HTMLElement>("[data-gal-count]");
     const total = items.length;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let activeCat = "";
 
-    function apply() {
+    function apply(animate = false) {
       const q = (searchEl?.value ?? "").trim().toLowerCase();
+
+      // FLIP: capture the surviving tiles' positions before the reflow…
+      const doFlip = animate && !reduceMotion;
+      const state = doFlip ? Flip.getState(items.filter((el) => !el.hidden)) : null;
+
       let visible = 0;
       items.forEach((el) => {
         const matchCat = !activeCat || el.dataset.cat === activeCat;
@@ -606,6 +629,18 @@ const items = galleryItems.map((item) => ({
       if (emptyEl) emptyEl.hidden = visible !== 0;
       if (countEl)
         countEl.textContent = visible === total ? String(total) : `${visible} / ${total}`;
+
+      // …then glide them to their new spots; newcomers fade in.
+      if (state) {
+        Flip.from(state, {
+          duration: 0.5,
+          ease: "power3.out",
+          stagger: 0.008,
+          onEnter: (els) =>
+            gsap.fromTo(els, { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.4 }),
+          onLeave: (els) => gsap.set(els, { opacity: 1 }),
+        });
+      }
     }
 
     chips.forEach((chip) => {
@@ -616,11 +651,11 @@ const items = galleryItems.map((item) => ({
           c.classList.toggle("is-active", on);
           c.setAttribute("aria-pressed", String(on));
         });
-        apply();
+        apply(true);
       });
     });
 
-    searchEl?.addEventListener("input", apply);
+    searchEl?.addEventListener("input", () => apply(false));
 
     // ─── Lightbox ───────────────────────────────────────────────
     const lb = document.getElementById("gallery-lightbox");

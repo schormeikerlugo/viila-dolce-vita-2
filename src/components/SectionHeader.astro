@@ -17,7 +17,7 @@ const { eyebrow, title, align = "center", class: className = "" } = Astro.props;
 
 <header class:list={["sechead", `sechead--${align}`, className]}>
   {eyebrow && <Reveal as="p" class="eyebrow">{eyebrow}</Reveal>}
-  <Reveal as="h2" delay={0.05}>{title}</Reveal>
+  <h2 data-split>{title}</h2>
   <slot />
 </header>
 

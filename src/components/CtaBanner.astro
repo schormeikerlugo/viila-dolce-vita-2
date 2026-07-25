@@ -40,7 +40,7 @@ const { eyebrow, title, sub, ctaLabel, ctaHref, image, imageAlt = "" } = Astro.p
 
   <div class="ctab__inner wrap">
     {eyebrow && <Reveal as="p" class="eyebrow eyebrow--gold">{eyebrow}</Reveal>}
-    <Reveal as="h2" delay={0.05} class="ctab__title" set:html={title} />
+    <h2 class="ctab__title" data-split set:html={title} />
     {sub && <Reveal as="p" delay={0.1} class="ctab__sub">{sub}</Reveal>}
     <Reveal delay={0.15} class="ctab__action">
       <Button href={ctaHref} variant="primary" onDark>{ctaLabel}</Button>

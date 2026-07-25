@@ -17,7 +17,14 @@ const { label = "Carousel", class: className = "" } = Astro.props;
 ---
 
 <div class:list={["carousel", className]} data-carousel>
-  <div class="carousel__track" role="region" aria-label={label} tabindex="0" data-carousel-track>
+  <div
+    class="carousel__track"
+    role="region"
+    aria-label={label}
+    tabindex="0"
+    data-carousel-track
+    data-cursor="drag"
+  >
     <slot />
   </div>
 
@@ -41,6 +48,17 @@ const { label = "Carousel", class: className = "" } = Astro.props;
   }
   .carousel__track::-webkit-scrollbar {
     display: none;
+  }
+  /* While dragging: free movement (no snap fighting the pointer), no
+     accidental text/image selection or native image drag. */
+  .carousel__track.is-dragging {
+    scroll-snap-type: none;
+    cursor: grabbing;
+    user-select: none;
+  }
+  .carousel__track :global(img) {
+    -webkit-user-drag: none;
+    user-select: none;
   }
   .carousel__track > :global(*) {
     scroll-snap-align: start;
@@ -93,6 +111,63 @@ const { label = "Carousel", class: className = "" } = Astro.props;
         track.addEventListener("scroll", update, { passive: true });
         window.addEventListener("resize", update);
         update();
+
+        // ── Pointer drag with a smooth glide on release (fine pointers). ──
+        // Touch keeps the native scroll-snap behaviour untouched.
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+          let dragging = false;
+          let moved = 0;
+          let startX = 0;
+          let startScroll = 0;
+          let lastX = 0;
+          let lastT = 0;
+          let velocity = 0;
+
+          track.addEventListener("pointerdown", (e) => {
+            if (e.pointerType !== "mouse" || e.button !== 0) return;
+            dragging = true;
+            moved = 0;
+            startX = lastX = e.clientX;
+            startScroll = track.scrollLeft;
+            lastT = performance.now();
+            velocity = 0;
+            track.classList.add("is-dragging");
+          });
+          track.addEventListener("pointermove", (e) => {
+            if (!dragging) return;
+            const dx = e.clientX - startX;
+            moved = Math.max(moved, Math.abs(dx));
+            track.scrollLeft = startScroll - dx;
+            const now = performance.now();
+            const dt = now - lastT || 16;
+            velocity = (e.clientX - lastX) / dt; // px per ms
+            lastX = e.clientX;
+            lastT = now;
+          });
+          const endDrag = () => {
+            if (!dragging) return;
+            dragging = false;
+            track.classList.remove("is-dragging");
+            // Glide: let the captured velocity carry the track, then snap.
+            const glide = -velocity * 220;
+            if (Math.abs(glide) > 40) {
+              track.scrollBy({ left: glide, behavior: "smooth" });
+            }
+          };
+          track.addEventListener("pointerup", endDrag);
+          track.addEventListener("pointerleave", endDrag);
+          // A real drag must not fire the slide's link.
+          track.addEventListener(
+            "click",
+            (e) => {
+              if (moved > 6) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            },
+            true,
+          );
+        }
       });
   }
 

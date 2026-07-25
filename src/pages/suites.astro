@@ -14,7 +14,7 @@ import Reveal from "../components/Reveal.astro";
 import { Image } from "astro:assets";
 import { suites, roomsIntro } from "../data/suites";
 import { photos, mockups } from "../data/media";
-import { bookingHref, contact } from "../data/site";
+import { bookingHref, bookingMessageHref, contact } from "../data/site";
 import { galleryItems } from "../data/gallery";
 
 // The premium (highest-rate) suite gets a "Signature" flag.
@@ -76,7 +76,7 @@ const indexRows = suites.map((s) => ({
         <div class:list={["suite-detail__inner", "wrap", { "is-reverse": i % 2 === 1 }]}>
           <div class="suite-detail__media" data-parallax-scope>
             <div class="suite-gallery" data-suite-gallery>
-              <div class="suite-detail__img hoist">
+              <div class="suite-detail__img hoist" transition:name={`suite-${suite.slug}`}>
                 {suite.images.map((img, gi) => (
                   <Image
                     src={img}
@@ -176,7 +176,12 @@ const indexRows = suites.map((s) => ({
             </Reveal>
             <Reveal delay={0.18}>
               <div class="suite-detail__foot">
-                <Button href={bookingHref} variant="primary">
+                <Button
+                  href={bookingMessageHref({ suite: suite.name })}
+                  variant="primary"
+                  target="_blank"
+                  rel="noopener"
+                >
                   Reserve This Suite
                 </Button>
                 <Button href="/gallery" variant="ghost">

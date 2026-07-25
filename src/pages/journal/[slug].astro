@@ -9,6 +9,7 @@ import PageHero from "../../components/PageHero.astro";
 import Button from "../../components/Button.astro";
 import Reveal from "../../components/Reveal.astro";
 import { journal } from "../../data/journal";
+import { articleSchema } from "../../lib/schema";
 
 export function getStaticPaths() {
   return journal.map((article) => ({
@@ -21,16 +22,32 @@ const { article } = Astro.props;
 
 // Related: the other articles.
 const related = journal.filter((a) => a.slug !== article.slug);
+
+// Estimated reading time (200 wpm) from the article body.
+const words = [article.excerpt, ...article.body].join(" ").split(/\s+/).length;
+const readMinutes = Math.max(1, Math.round(words / 200));
 ---
 
-<BaseLayout title={article.title} description={article.excerpt}>
+<BaseLayout
+  title={article.title}
+  description={article.excerpt}
+  ogImage={article.image}
+  schemas={[articleSchema(article)]}
+>
   <PageHero
     eyebrow="From the Journal"
     title={article.title}
     image={article.image}
     imageAlt={article.imageAlt}
-    meta={[{ label: "Category", value: article.category }]}
+    meta={[
+      { label: "Category", value: article.category },
+      { label: "Reading Time", value: `${readMinutes} min` },
+    ]}
+    mediaTransitionName={`journal-${article.slug}`}
   />
+
+  {/* Reading progress — a hairline of accent that fills as you read. */}
+  <div class="readbar" id="read-progress" aria-hidden="true"></div>
 
   <article class="section bg-ivory">
     <div class="wrap">
@@ -75,6 +92,25 @@ const related = journal.filter((a) => a.slug !== article.slug);
 </BaseLayout>
 
 <style>
+  /* ── Reading progress bar ─────────────────────────────────────────────── */
+  .readbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: calc(var(--z-nav) + 1);
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .readbar {
+      display: none;
+    }
+  }
+
   /* ── Article body — centered 68ch measure ─────────────────────────────── */
   .prose {
     max-width: 68ch;
@@ -207,3 +243,33 @@ const related = journal.filter((a) => a.slug !== article.slug);
     }
   }
 </style>
+
+<script>
+  // Reading progress bar — fills with scroll depth through the article.
+  function initReadProgress() {
+    const bar = document.getElementById("read-progress");
+    const body = document.querySelector<HTMLElement>("article.section");
+    if (!bar || !body) return;
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const rect = body.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
+      const read = Math.min(Math.max(-rect.top, 0), Math.max(total, 1));
+      bar.style.transform = `scaleX(${total > 0 ? read / total : 1})`;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update();
+  }
+
+  document.addEventListener("astro:page-load", initReadProgress);
+  if (document.readyState !== "loading") initReadProgress();
+  else document.addEventListener("DOMContentLoaded", initReadProgress);
+</script>

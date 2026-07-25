@@ -37,7 +37,7 @@ const { image, imageAlt = "", quote, cite } = Astro.props;
   </div>
   <div class="quoteband__scrim" aria-hidden="true"></div>
   <div class="quoteband__inner wrap">
-    <Reveal as="blockquote" class="quoteband__quote">{quote}</Reveal>
+    <blockquote class="quoteband__quote" data-split>{quote}</blockquote>
     {cite && <Reveal as="p" class="quoteband__cite" delay={0.1}>{cite}</Reveal>}
   </div>
 </section>

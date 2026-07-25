@@ -36,7 +36,7 @@ import { journal, journalIntro } from "../../data/journal";
               data-reveal-delay={Math.min(i * 0.05, 0.2)}
             >
               <span class="jrow__num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-              <div class="jrow__media hoist">
+              <div class="jrow__media hoist" transition:name={`journal-${a.slug}`}>
                 <Image
                   src={a.image}
                   alt={a.imageAlt}

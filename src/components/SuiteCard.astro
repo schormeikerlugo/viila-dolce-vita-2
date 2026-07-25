@@ -22,7 +22,12 @@ const href = `/suites#${suite.slug}`;
   class:list={["suite", { "suite--featured": featured, "suite--compact": compact }]}
   data-reveal
 >
-  <a class="suite__media hoist" href={href} aria-label={`View the ${suite.name}`}>
+  <a
+    class="suite__media hoist"
+    href={href}
+    aria-label={`View the ${suite.name}`}
+    transition:name={`suite-${suite.slug}`}
+  >
     <Image
       src={suite.images[0]}
       alt={suite.imageAlt}

@@ -8,23 +8,57 @@
 import "../styles/global.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
+import Cursor from "../components/Cursor.astro";
+import StickyCta from "../components/StickyCta.astro";
 import { site } from "../data/site";
 import { ClientRouter, fade } from "astro:transitions";
+import { getImage } from "astro:assets";
+import { lodgingBusinessSchema } from "../lib/schema";
+import { photos } from "../data/media";
+
+// Preload the two variable font files (latin subsets) so the display type
+// paints without a fallback flash. `?url` resolves to the same hashed asset
+// the @fontsource CSS references.
+import bodoniWoff2 from "@fontsource-variable/bodoni-moda/files/bodoni-moda-latin-wght-normal.woff2?url";
+import bodoniItalicWoff2 from "@fontsource-variable/bodoni-moda/files/bodoni-moda-latin-wght-italic.woff2?url";
+import archivoWoff2 from "@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2?url";
+
+import type { ImageMetadata } from "astro";
 
 interface Props {
   title?: string;
   description?: string;
   /** Dark nav (default) sits over hero media; light nav for inner pages w/o hero. */
   navTheme?: "dark" | "light";
+  /** Social share image — defaults to the estate at golden hour. */
+  ogImage?: ImageMetadata;
+  /** Extra JSON-LD blocks (FAQPage, Article, …). */
+  schemas?: object[];
 }
 
 const {
   title,
   description = site.description,
   navTheme = "light",
+  ogImage = photos.hillsPinkDawn,
+  schemas = [],
 } = Astro.props;
 
 const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;
+
+// 1200×630 social card, absolute URL (WhatsApp/IG previews need it).
+const ogProcessed = await getImage({
+  src: ogImage,
+  width: 1200,
+  height: 630,
+  format: "jpeg",
+  quality: 80,
+  fit: "cover",
+});
+const ogUrl = new URL(ogProcessed.src, Astro.site ?? site.url).href;
+
+// Structured data: the estate card everywhere + page-level extras.
+const jsonLd = [lodgingBusinessSchema(), ...schemas];
 ---
 
 <!doctype html>
@@ -35,6 +69,11 @@ const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
 
+    <!-- Font preloads — kill the display-type flash on first paint. -->
+    <link rel="preload" href={bodoniWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={bodoniItalicWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={archivoWoff2} as="font" type="font/woff2" crossorigin />
+
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
 
@@ -44,6 +83,18 @@ const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site
     <meta property="og:description" content={description} />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:locale" content="en" />
+    <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogUrl} />
+
+    <!-- Structured data -->
+    {jsonLd.map((block) => (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(block)} />
+    ))}
 
     <!-- Smooth cross-page fade (no flash between nav sections). -->
     <ClientRouter />
@@ -51,10 +102,19 @@ const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <Nav theme={navTheme} transition:persist="site-nav" />
-    <main id="main" transition:animate={fade({ duration: "0.45s" })}>
+    <main id="main" transition:animate={fade({ duration: "0.3s" })}>
       <slot />
     </main>
     <Footer />
+
+    {/* Ink curtain — sweeps over the page between navigations. Persisted so
+        it can cover the swap itself; purely decorative. */}
+    <div class="curtain" id="page-curtain" transition:persist="page-curtain" aria-hidden="true">
+      <span class="curtain__mark">Villa <em>Dolce Vita</em></span>
+    </div>
+
+    <Cursor />
+    <StickyCta />
 
     {/* Tell the persistent nav what theme each page needs. */}
     <meta name="nav-theme" content={navTheme} data-nav-theme />
@@ -66,6 +126,32 @@ const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site
       document.addEventListener("astro:page-load", () => initScroll());
       // Start each new page at the top (Lenis shouldn't inherit scroll).
       document.addEventListener("astro:after-swap", () => window.scrollTo(0, 0));
+
+      // ── Ink curtain page transition ─────────────────────────────────────
+      // Covers on navigation intent, retracts once the new page has loaded.
+      const curtain = () => document.getElementById("page-curtain");
+      const reduce = () =>
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      document.addEventListener("astro:before-preparation", () => {
+        const el = curtain();
+        if (!el || reduce()) return;
+        el.classList.remove("is-leaving");
+        el.classList.add("is-covering");
+      });
+      document.addEventListener("astro:page-load", () => {
+        const el = curtain();
+        if (!el) return;
+        if (!el.classList.contains("is-covering")) return;
+        // Let the cover settle one frame, then sweep it away upward.
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            el.classList.add("is-leaving");
+            el.classList.remove("is-covering");
+            window.setTimeout(() => el.classList.remove("is-leaving"), 700);
+          }),
+        );
+      });
     </script>
   </body>
 </html>

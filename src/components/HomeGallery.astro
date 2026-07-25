@@ -41,10 +41,15 @@ const {
   limit = 25,
 } = Astro.props;
 
-const tiles = items.slice(0, limit).map((item) => ({
-  ...item,
-  ratio: `${item.image.width}/${item.image.height}`,
-}));
+import { lqipStyle } from "../lib/lqip";
+
+const tiles = await Promise.all(
+  items.slice(0, limit).map(async (item) => ({
+    ...item,
+    ratio: `${item.image.width}/${item.image.height}`,
+    lqip: await lqipStyle(item.image),
+  })),
+);
 ---
 
 <section class="section bg-ivory hgal">
@@ -61,7 +66,7 @@ const tiles = items.slice(0, limit).map((item) => ({
           data-reveal
           data-reveal-delay={Math.min(0.05 + (i % 5) * 0.04, 0.3)}
           data-cap={item.caption ?? item.alt}
-          style={`--ratio:${item.ratio}`}
+          style={`--ratio:${item.ratio};${item.lqip}`}
         >
           <button
             type="button"
@@ -69,6 +74,7 @@ const tiles = items.slice(0, limit).map((item) => ({
             aria-label={`View ${item.alt}`}
             aria-haspopup="dialog"
             data-lb-open
+            data-cursor="view"
           >
             <Image
               src={item.image}

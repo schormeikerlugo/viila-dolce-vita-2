@@ -175,6 +175,11 @@ export const videos = {
   medievalAlley: `${V}/AdobeStock_635357112`,
 } as const;
 
+/** Videos that ship an additional 720p variant (`<name>-720.webm/mp4`) for
+ *  small screens. Generate with ffmpeg, e.g.:
+ *  ffmpeg -i in.mp4 -vf scale=1280:-2 -c:v libx264 -crf 26 -an out-720.mp4 */
+const has720: ReadonlySet<keyof typeof videos> = new Set(["laDolceVita"]);
+
 /** Helper: build <source> URLs + poster for a given video key. */
 export function videoSources(key: keyof typeof videos) {
   const base = videos[key];
@@ -182,5 +187,8 @@ export function videoSources(key: keyof typeof videos) {
     webm: `${base}.webm`,
     mp4: `${base}.mp4`,
     poster: `${base}-poster.jpg`,
+    /** Optional lighter sources for viewports ≤768px. */
+    webm720: has720.has(key) ? `${base}-720.webm` : undefined,
+    mp4720: has720.has(key) ? `${base}-720.mp4` : undefined,
   };
 }

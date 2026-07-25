@@ -103,5 +103,62 @@ const { items, onDark = true, class: className = "" } = Astro.props;
     font-size: 0.92rem;
     line-height: 1.7;
     color: var(--faq-muted);
+    overflow: hidden;
   }
 </style>
+
+<script>
+  // Smooth open/close for the native <details> accordions (WAAPI).
+  // Fully progressive: without JS the accordions still toggle natively.
+  function initFaq() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document
+      .querySelectorAll<HTMLDetailsElement>(".faq__item:not([data-anim])")
+      .forEach((item) => {
+        item.dataset.anim = "1";
+        const summary = item.querySelector<HTMLElement>(".faq__q");
+        const answer = item.querySelector<HTMLElement>(".faq__a");
+        if (!summary || !answer || reduce) return;
+
+        let animating = false;
+        summary.addEventListener("click", (e) => {
+          e.preventDefault();
+          if (animating) return;
+          animating = true;
+
+          if (item.open) {
+            // Collapse: animate to 0, then close.
+            const h = answer.offsetHeight;
+            const anim = answer.animate(
+              [
+                { height: `${h}px`, opacity: 1 },
+                { height: "0px", opacity: 0 },
+              ],
+              { duration: 260, easing: "cubic-bezier(0.65, 0, 0.35, 1)" },
+            );
+            anim.onfinish = () => {
+              item.open = false;
+              animating = false;
+            };
+          } else {
+            item.open = true;
+            const h = answer.offsetHeight;
+            const anim = answer.animate(
+              [
+                { height: "0px", opacity: 0 },
+                { height: `${h}px`, opacity: 1 },
+              ],
+              { duration: 320, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+            );
+            anim.onfinish = () => {
+              animating = false;
+            };
+          }
+        });
+      });
+  }
+
+  document.addEventListener("astro:page-load", initFaq);
+  if (document.readyState !== "loading") initFaq();
+  else document.addEventListener("DOMContentLoaded", initFaq);
+</script>

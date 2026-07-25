@@ -11,7 +11,7 @@ interface Props {
   overlay?: boolean;
 }
 const { video, class: className = "", overlay = true } = Astro.props;
-const { webm, mp4, poster } = videoSources(video);
+const { webm, mp4, poster, webm720, mp4720 } = videoSources(video);
 ---
 
 <div class={`bgvideo ${className}`}>
@@ -24,6 +24,11 @@ const { webm, mp4, poster } = videoSources(video);
     poster={poster}
     class="bgvideo__el"
   >
+    {/* Lighter 720p sources first, gated to small viewports. Browsers that
+        ignore the media attribute simply pick the lighter file — a safe
+        degradation. Desktop Chrome/Safari fall through to the full sources. */}
+    {webm720 && <source src={webm720} type="video/webm" media="(max-width: 768px)" />}
+    {mp4720 && <source src={mp4720} type="video/mp4" media="(max-width: 768px)" />}
     <source src={webm} type="video/webm" />
     <source src={mp4} type="video/mp4" />
   </video>
@@ -47,9 +52,9 @@ const { webm, mp4, poster } = videoSources(video);
     background:
       linear-gradient(
         to bottom,
-        rgba(47, 63, 53, 0.55) 0%,
-        rgba(47, 63, 53, 0.2) 35%,
-        rgba(38, 36, 31, 0.48) 100%
+        rgba(22, 20, 18, 0.5) 0%,
+        rgba(22, 20, 18, 0.18) 35%,
+        rgba(22, 20, 18, 0.48) 100%
       );
   }
 </style>
