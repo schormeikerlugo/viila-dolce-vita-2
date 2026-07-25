@@ -1,12 +1,14 @@
 ---
 /**
  * Suites — the five suites in detail.
- * Each suite is an alternating editorial SplitSection with its feature list,
- * anchored by slug (e.g. /suites#roma) so cards elsewhere can deep-link.
+ * "Tuscan Editorial" reskin: a split PageHero with a hairline meta-row, a
+ * Tonelli-style SpecTable index deep-linking to each suite, then alternating
+ * editorial suite sections (media gallery + copy on hairlines).
  * Content from suites.ts (lifted verbatim from content.md).
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "../components/PageHero.astro";
+import SpecTable from "../components/SpecTable.astro";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
 import { Image } from "astro:assets";
@@ -18,11 +20,24 @@ import { galleryItems } from "../data/gallery";
 // The premium (highest-rate) suite gets a "Signature" flag.
 const premiumSlug = [...suites].sort((a, b) => b.fromNight - a.fromNight)[0].slug;
 
-// Rate range for the closing CTA.
+// Rate range + capacity for the hero meta and closing CTA.
 const lowestRate = Math.min(...suites.map((s) => s.fromNight));
+// Official estate capacity (incl. premium sofa beds) — matches the site copy.
+const totalSleeps = 24;
 
-// Evocative full-bleed background for the closing CTA.
+// Evocative full-bleed background for the mid-page CTA.
 const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image;
+
+// Index rows for the SpecTable (title / tagline / anchor / data).
+const indexRows = suites.map((s) => ({
+  title: s.name,
+  note: s.tagline,
+  href: `#${s.slug}`,
+  specs: [
+    { label: "Sleeps", value: `${s.sleeps} guests` },
+    { label: "From", value: `€${s.fromNight} / night` },
+  ],
+}));
 ---
 
 <BaseLayout
@@ -35,7 +50,20 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     subtitle={roomsIntro}
     image={photos.terraceTableView}
     imageAlt="Private terrace overlooking the Tuscan valley"
+    meta={[
+      { label: "Suites", value: "5" },
+      { label: "Sleeps", value: `Up to ${totalSleeps} guests` },
+      { label: "From", value: `€${lowestRate} / night` },
+    ]}
   />
+
+  <!-- SUITE INDEX — Tonelli spec table, deep-linking to each suite. -->
+  <section class="section bg-ivory suites-index" aria-label="Suite index">
+    <div class="wrap">
+      <Reveal as="p" class="slash-label suites-index__label">Suite Index</Reveal>
+      <SpecTable rows={indexRows} />
+    </div>
+  </section>
 
   <!-- SUITES -->
   {
@@ -43,7 +71,7 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
       <>
       <section
         id={suite.slug}
-        class:list={["section", "suite-detail", i % 2 === 0 ? "bg-ivory" : "split--stone"]}
+        class:list={["section", "suite-detail", i % 2 === 0 ? "bg-ivory" : "bg-sunk"]}
       >
         <div class:list={["suite-detail__inner", "wrap", { "is-reverse": i % 2 === 1 }]}>
           <div class="suite-detail__media" data-parallax-scope>
@@ -60,7 +88,6 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
                     data-slide={gi}
                   />
                 ))}
-                {suite.badge && <span class="suite-detail__badge">{suite.badge}</span>}
                 {suite.images.length > 1 && (
                   <>
                     <button
@@ -112,26 +139,33 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
           </div>
 
           <div class="suite-detail__copy">
-            <span class="suite-detail__num" aria-hidden="true">
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <Reveal as="p" class="eyebrow suite-detail__kicker">
-              {suite.slug === premiumSlug ? "Signature Suite · Sleeps " + suite.sleeps : "Sleeps " + suite.sleeps}
+            <Reveal as="p" class="slash-label suite-detail__kicker">
+              {`Suite ${String(i + 1).padStart(2, "0")}${suite.slug === premiumSlug ? " — Signature Suite" : ""}`}
             </Reveal>
             <Reveal as="h2" delay={0.05}>{suite.name}</Reveal>
             <Reveal delay={0.08}>
               <p class="suite-detail__tagline">{suite.tagline}</p>
             </Reveal>
-            <Reveal delay={0.1}>
-              <p class="suite-detail__from">
-                <span class="suite-detail__from-label">from</span>
-                <strong>€{suite.fromNight}</strong>
-                <span class="suite-detail__from-unit">/ night</span>
-              </p>
-            </Reveal>
-            <Reveal delay={0.12}><hr class="rule" /></Reveal>
-            <Reveal delay={0.14}>
+            <Reveal delay={0.12}>
               <p class="suite-detail__intro">{suite.intro}</p>
+            </Reveal>
+            <Reveal delay={0.14}>
+              <dl class="suite-detail__meta">
+                <div class="suite-detail__metacell">
+                  <dt>Sleeps</dt>
+                  <dd>{suite.sleeps} guests</dd>
+                </div>
+                <div class="suite-detail__metacell">
+                  <dt>From</dt>
+                  <dd>€{suite.fromNight} / night</dd>
+                </div>
+                {suite.badge && (
+                  <div class="suite-detail__metacell">
+                    <dt>Note</dt>
+                    <dd>{suite.badge}</dd>
+                  </div>
+                )}
+              </dl>
             </Reveal>
             <Reveal delay={0.16}>
               <ul class="suite-detail__features">
@@ -145,10 +179,9 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
                 <Button href={bookingHref} variant="primary">
                   Reserve This Suite
                 </Button>
-                <a class="suite-detail__gallery-link" href="/gallery">
+                <Button href="/gallery" variant="ghost">
                   View more photos
-                  <span aria-hidden="true">→</span>
-                </a>
+                </Button>
               </div>
             </Reveal>
           </div>
@@ -157,8 +190,8 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
 
       {/* Dynamic CTA band, placed between the 2nd (Roma) and 3rd (Capri) suite. */}
       {i === 1 && (
-        <section class="suites-cta" aria-labelledby="suites-cta-title">
-          <div class="suites-cta__media" data-parallax-scope>
+        <section class="suites-cta" aria-labelledby="suites-cta-title" data-parallax-scope>
+          <div class="suites-cta__media" data-parallax="0.12">
             <Image
               class="suites-cta__img"
               src={ctaImage}
@@ -166,10 +199,9 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
               widths={[768, 1280, 1920, 2560]}
               sizes="100vw"
               loading="lazy"
-              data-parallax="0.12"
             />
-            <div class="suites-cta__scrim" aria-hidden="true" />
           </div>
+          <div class="suites-cta__scrim" aria-hidden="true" />
           <div class="wrap suites-cta__inner">
             <Reveal as="p" class="eyebrow eyebrow--gold">
               Ready When You Are
@@ -191,7 +223,7 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
               </Button>
               <a class="suites-cta__wa" href={contact.whatsappHref}>
                 Or message us on WhatsApp
-                <span aria-hidden="true">→</span>
+                <span aria-hidden="true">↗</span>
               </a>
             </Reveal>
           </div>
@@ -202,8 +234,8 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
   }
 
   <!-- IN EVERY SUITE (branding detail) -->
-  <section class="in-suite">
-    <div class="in-suite__media" data-parallax-scope>
+  <section class="in-suite" data-parallax-scope>
+    <div class="in-suite__media">
       <Image
         class="in-suite__img"
         src={mockups.welcomeLetter}
@@ -218,7 +250,6 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     <div class="wrap in-suite__inner">
       <Reveal as="p" class="eyebrow eyebrow--gold">In Every Suite</Reveal>
       <Reveal as="h2" delay={0.05}>The Little Things, Handled</Reveal>
-      <Reveal delay={0.1}><hr class="rule" /></Reveal>
       <Reveal delay={0.12}>
         <p class="in-suite__lead">
           A handwritten welcome note and your room key waiting on arrival.
@@ -233,55 +264,45 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
 </BaseLayout>
 
 <style>
-  .lead {
-    font-family: var(--font-display);
-    font-size: clamp(1.2rem, 0.9rem + 1.2vw, 1.8rem);
-    line-height: 1.5;
-    color: var(--c-forest);
+  /* ── Suite index ─────────────────────────────────────────────────────── */
+  .suites-index {
+    padding-block: clamp(3rem, 6vw, 5.5rem);
+  }
+  .suites-index :global(.slash-label) {
+    display: block;
+    margin-bottom: clamp(1.25rem, 2.5vw, 2rem);
   }
 
-  /* Constrain the editorial pair to the site's content column so the image
-     never sprawls edge-to-edge, and centre it on the page. */
+  /* ── Suite sections ──────────────────────────────────────────────────── */
+  /* Media leads at ~58%, copy in a narrow column — matches SplitSection. */
   .suite-detail__inner {
-    max-width: var(--content-max);
-    margin-inline: auto;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: center;
+    grid-template-columns: 1.35fr 1fr;
+    gap: clamp(2.5rem, 6vw, 6.5rem);
+    align-items: start;
   }
   .suite-detail__inner.is-reverse .suite-detail__media {
     order: 2;
   }
   .suite-detail__media {
     position: relative;
+    min-width: 0;
   }
   .suite-detail__copy {
     position: relative;
+    min-width: 0;
   }
-  /* Oversized index numeral — quiet editorial marker behind the kicker. */
-  .suite-detail__num {
-    position: absolute;
-    top: -0.55em;
-    right: 0;
-    font-family: var(--font-display);
-    font-size: clamp(4rem, 9vw, 7rem);
-    line-height: 1;
-    color: var(--accent-deep);
-    opacity: 0.12;
-    pointer-events: none;
-    z-index: 0;
+  .suite-detail__copy :global(.suite-detail__kicker) {
+    display: block;
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
   }
-  .suite-detail__kicker {
-    position: relative;
-    z-index: 1;
+  .suite-detail__copy :global(h2) {
+    max-width: 14ch;
   }
   .suite-detail__img {
     position: relative;
     overflow: hidden;
-    border-radius: var(--radius);
     aspect-ratio: 4 / 3;
-    box-shadow: var(--shadow-soft);
   }
   @media (min-width: 901px) {
     .suite-detail__img {
@@ -297,7 +318,7 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     height: 100%;
     object-fit: cover;
     opacity: 0;
-    transition: opacity var(--dur-med, 0.5s) var(--ease-out, ease);
+    transition: opacity var(--dur, 0.5s) var(--ease-out, ease);
     pointer-events: none;
   }
   .suite-gallery__slide.is-active {
@@ -309,6 +330,7 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     opacity: 1;
   }
 
+  /* Square hairline nav buttons — no circles, no shadows. */
   .suite-gallery__nav {
     position: absolute;
     top: 50%;
@@ -317,45 +339,49 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     height: 2.75rem;
     display: grid;
     place-items: center;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.82);
-    color: var(--c-forest, #1e3a2f);
-    font-size: 1.6rem;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--c-ivory);
+    color: var(--c-ink);
+    font-size: 1.4rem;
     line-height: 1;
     cursor: pointer;
     opacity: 0;
-    transition: opacity var(--dur-fast, 0.25s), background var(--dur-fast, 0.25s);
+    transition:
+      opacity var(--dur-fast, 0.25s),
+      background var(--dur-fast, 0.25s),
+      color var(--dur-fast, 0.25s);
     z-index: 2;
-    backdrop-filter: blur(2px);
   }
-  .suite-gallery__nav--prev { left: 0.8rem; }
-  .suite-gallery__nav--next { right: 0.8rem; }
+  .suite-gallery__nav--prev { left: 0; }
+  .suite-gallery__nav--next { right: 0; }
   .suite-detail__img:hover .suite-gallery__nav,
   .suite-gallery__nav:focus-visible {
     opacity: 1;
   }
   .suite-gallery__nav:hover {
-    background: #fff;
+    background: var(--c-ink);
+    color: var(--c-ivory);
   }
 
   .suite-gallery__count {
     position: absolute;
-    bottom: 0.9rem;
-    right: 0.9rem;
+    bottom: 0;
+    right: 0;
     z-index: 2;
-    padding: 0.25rem 0.6rem;
-    border-radius: var(--radius-sm);
-    background: rgba(20, 20, 20, 0.55);
-    color: #fff;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
+    padding: 0.35rem 0.7rem;
+    background: var(--c-ink);
+    color: var(--c-ivory);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
   }
 
   .suite-gallery__thumbs {
     display: flex;
     gap: 0.6rem;
-    margin-top: 0.8rem;
+    margin-top: 0.6rem;
     overflow-x: auto;
     scrollbar-width: thin;
     padding-bottom: 0.2rem;
@@ -365,13 +391,15 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     width: 4.5rem;
     aspect-ratio: 4 / 3;
     padding: 0;
-    border: 2px solid transparent;
-    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    border-radius: 0;
     overflow: hidden;
     cursor: pointer;
     background: none;
-    opacity: 0.6;
-    transition: opacity var(--dur-fast, 0.25s), border-color var(--dur-fast, 0.25s);
+    opacity: 0.55;
+    transition:
+      opacity var(--dur-fast, 0.25s),
+      border-color var(--dur-fast, 0.25s);
   }
   .suite-gallery__thumb :global(img) {
     width: 100%;
@@ -383,7 +411,7 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
   }
   .suite-gallery__thumb.is-active {
     opacity: 1;
-    border-color: var(--accent-deep, #c47a5a);
+    border-color: var(--c-ink);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -392,176 +420,139 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     }
   }
 
-  .suite-detail__badge {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    background: var(--accent);
-    color: var(--c-forest);
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 0.4rem 0.7rem;
-    border-radius: var(--radius-sm);
-  }
+  /* ---- Copy column ---- */
   .suite-detail__tagline {
-    color: var(--accent-deep);
-    font-size: 1.05rem;
-    margin-top: 0.4rem;
+    margin-top: clamp(0.8rem, 1.5vw, 1.2rem);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.05rem, 0.95rem + 0.4vw, 1.3rem);
+    color: var(--text);
   }
   .suite-detail__intro {
+    margin-top: clamp(0.9rem, 1.8vw, 1.3rem);
     color: var(--text-muted);
+    line-height: 1.75;
   }
+
+  /* Hairline meta-row (Tonelli "Sleeps / From / Note"). */
+  .suite-detail__meta {
+    margin: clamp(1.6rem, 3vw, 2.2rem) 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(7.5rem, 100%), 1fr));
+    gap: 1.25rem;
+  }
+  .suite-detail__metacell {
+    border-top: 1px solid var(--line);
+    padding-top: 0.75rem;
+  }
+  .suite-detail__metacell dt {
+    font-size: 0.64rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+  .suite-detail__metacell dd {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--text);
+  }
+
+  /* Features — index rows on 1px hairlines. */
   .suite-detail__features {
     list-style: none;
-    margin: 1.6rem 0 0;
+    margin: clamp(1.6rem, 3vw, 2.2rem) 0 0;
     padding: 0;
-    display: grid;
-    gap: 0.7rem;
   }
   .suite-detail__features li {
-    position: relative;
-    padding-left: 1.6rem;
+    padding-block: 0.7rem;
+    border-top: 1px solid var(--line);
     color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
   }
-  .suite-detail__features li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.6em;
-    width: 8px;
-    height: 8px;
-    border: 1px solid var(--accent-deep);
-    transform: rotate(45deg);
+  .suite-detail__features li:last-child {
+    border-bottom: 1px solid var(--line);
   }
-  /* Price sits just below the tagline — large and prominent. */
-  .suite-detail__from {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-  }
-  .suite-detail__from-label {
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-size: 0.78rem;
-  }
-  .suite-detail__from strong {
-    color: var(--text);
-    font-size: clamp(2.2rem, 1.6rem + 2vw, 3.2rem);
-    font-family: var(--font-display);
-    line-height: 1;
-  }
-  .suite-detail__from-unit {
-    font-size: 0.9rem;
-  }
+
   /* Actions row — left-aligned on every suite (reverse rows too). */
   .suite-detail__foot {
-    margin-top: 2.2rem;
-    padding-top: 1.6rem;
-    border-top: 1px solid var(--line);
+    margin-top: clamp(1.8rem, 3.5vw, 2.6rem);
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 1.2rem 1.6rem;
+    gap: 1.2rem 2rem;
     flex-wrap: wrap;
   }
-  .suite-detail__gallery-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.78rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--accent-deep);
-    border-bottom: 1px solid transparent;
-    padding-bottom: 2px;
-    transition:
-      border-color var(--dur-fast) var(--ease-out),
-      gap var(--dur-fast) var(--ease-out);
-  }
-  .suite-detail__gallery-link span {
-    transition: transform var(--dur-fast) var(--ease-out);
-  }
-  .suite-detail__gallery-link:hover {
-    border-color: currentColor;
-  }
-  .suite-detail__gallery-link:hover span {
-    transform: translateX(3px);
-  }
 
-  /* ---- Closing CTA (full-bleed) ---- */
+  /* ── Mid-page CTA (full-bleed, ink scrim, left-anchored) ─────────────── */
   .suites-cta {
     position: relative;
     isolation: isolate;
     overflow: hidden;
+    min-height: clamp(26rem, 66svh, 40rem);
+    display: flex;
+    align-items: flex-end;
     color: var(--c-ivory);
-    padding-block: clamp(5rem, 12vw, 9rem);
-    text-align: center;
   }
   .suites-cta__media {
     position: absolute;
-    inset: 0;
-    z-index: -1;
+    inset: -8% 0;
+    height: 116%;
+    z-index: -2;
   }
   .suites-cta__img {
     width: 100%;
-    height: 120%;
+    height: 100%;
     object-fit: cover;
-    will-change: transform;
   }
   .suites-cta__scrim {
     position: absolute;
     inset: 0;
-    background:
-      radial-gradient(ellipse 80% 70% at 50% 50%, rgba(18, 26, 22, 0.45), rgba(18, 26, 22, 0.72)),
-      linear-gradient(to bottom, rgba(18, 26, 22, 0.6), rgba(18, 26, 22, 0.55));
+    z-index: -1;
+    background: linear-gradient(
+      to top,
+      rgba(22, 20, 18, 0.78) 0%,
+      rgba(22, 20, 18, 0.35) 55%,
+      rgba(22, 20, 18, 0.2) 100%
+    );
   }
   .suites-cta__inner {
+    padding-block: clamp(3.5rem, 7vw, 6rem);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    max-width: 56rem;
-    margin-inline: auto;
+    align-items: flex-start;
+    gap: clamp(1rem, 2vw, 1.5rem);
   }
-  .suites-cta__inner .eyebrow {
-    justify-content: center;
-  }
-  .suites-cta__inner :global(.rule) {
-    margin-inline: auto;
+  .suites-cta__inner :global(h2) {
+    max-width: 16ch;
   }
   .suites-cta__lead {
-    margin-top: 1.2rem;
     max-width: 46ch;
-    margin-inline: auto;
-    color: rgba(243, 238, 230, 0.9);
-    font-size: clamp(1rem, 0.95rem + 0.3vw, 1.2rem);
-    line-height: 1.65;
-    text-shadow: 0 1px 20px rgba(0, 0, 0, 0.3);
+    color: var(--text-on-dark-muted);
+    font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.1rem);
+    line-height: 1.7;
   }
   .suites-cta__actions {
-    margin-top: 2.2rem;
+    margin-top: 0.5rem;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 1rem 1.8rem;
+    gap: 1rem 2rem;
     flex-wrap: wrap;
   }
   .suites-cta__wa {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--accent);
-    border-bottom: 1px solid transparent;
+    color: var(--c-ivory);
+    border-bottom: 1px solid var(--line-on-dark);
     padding-bottom: 2px;
-    transition:
-      border-color var(--dur-fast) var(--ease-out),
-      gap var(--dur-fast) var(--ease-out);
+    transition: border-color var(--dur-fast) var(--ease-out);
   }
   .suites-cta__wa span {
     transition: transform var(--dur-fast) var(--ease-out);
@@ -570,10 +561,10 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     border-color: currentColor;
   }
   .suites-cta__wa:hover span {
-    transform: translateX(3px);
+    transform: translate(2px, -2px);
   }
 
-  /* ---- In Every Suite (full-bleed background) ---- */
+  /* ── In Every Suite (full-bleed background) ──────────────────────────── */
   .in-suite {
     position: relative;
     isolation: isolate;
@@ -590,30 +581,28 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     width: 100%;
     height: 118%;
     object-fit: cover;
-    will-change: transform;
   }
   /* Darken from the left so the copy stays legible over the imagery. */
   .in-suite__scrim {
     position: absolute;
     inset: 0;
-    background:
-      linear-gradient(
-        105deg,
-        rgba(18, 26, 22, 0.92) 0%,
-        rgba(18, 26, 22, 0.82) 34%,
-        rgba(18, 26, 22, 0.5) 62%,
-        rgba(18, 26, 22, 0.32) 100%
-      );
-  }
-  .in-suite__inner {
-    max-width: var(--content-max);
-    margin-inline: auto;
+    background: linear-gradient(
+      105deg,
+      rgba(22, 20, 18, 0.92) 0%,
+      rgba(22, 20, 18, 0.82) 34%,
+      rgba(22, 20, 18, 0.5) 62%,
+      rgba(22, 20, 18, 0.32) 100%
+    );
   }
   .in-suite__inner > :global(*) {
     max-width: 44rem;
   }
+  .in-suite__inner :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
   .in-suite__lead {
-    color: rgba(243, 238, 230, 0.9);
+    margin-top: clamp(1.2rem, 2.5vw, 1.8rem);
+    color: var(--text-on-dark-muted);
     line-height: 1.7;
   }
 
@@ -625,10 +614,6 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     .suite-detail__inner.is-reverse .suite-detail__media {
       order: 0;
     }
-    .suite-detail__num {
-      font-size: clamp(3rem, 14vw, 4.5rem);
-      top: -0.45em;
-    }
     .suite-detail__foot {
       justify-content: flex-start;
     }
@@ -636,8 +621,8 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
     .in-suite__scrim {
       background: linear-gradient(
         to bottom,
-        rgba(18, 26, 22, 0.72),
-        rgba(18, 26, 22, 0.88)
+        rgba(22, 20, 18, 0.72),
+        rgba(22, 20, 18, 0.88)
       );
     }
   }

@@ -1,0 +1,105 @@
+---
+/**
+ * CardCarousel — Tonelli "Highlights" carousel.
+ * A horizontal scroll-snap track (slot children become slides) with the
+ * "Prev ————●———— Next" hairline control underneath. Works with native
+ * scrolling when JS is off; the control enhances it.
+ *
+ * Slot children should set their own width (e.g. `flex: 0 0 clamp(...)`),
+ * or use the default `.carousel__slide` sizing by adding that class.
+ */
+interface Props {
+  /** aria-label for the scroll region */
+  label?: string;
+  class?: string;
+}
+const { label = "Carousel", class: className = "" } = Astro.props;
+---
+
+<div class:list={["carousel", className]} data-carousel>
+  <div class="carousel__track" role="region" aria-label={label} tabindex="0" data-carousel-track>
+    <slot />
+  </div>
+
+  <div class="ctl carousel__ctl">
+    <button class="ctl__btn" type="button" data-carousel-prev>Prev</button>
+    <div class="ctl__track"><span class="ctl__thumb" data-carousel-thumb></span></div>
+    <button class="ctl__btn" type="button" data-carousel-next>Next</button>
+  </div>
+</div>
+
+<style>
+  .carousel__track {
+    display: flex;
+    gap: clamp(1rem, 2vw, 1.75rem);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Let slides breathe to the viewport edge on the right. */
+    padding-bottom: 0.5rem;
+  }
+  .carousel__track::-webkit-scrollbar {
+    display: none;
+  }
+  .carousel__track > :global(*) {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+  /* Default slide sizing if the consumer opts in. */
+  .carousel__track > :global(.carousel__slide) {
+    flex: 0 0 clamp(16rem, 30vw, 26rem);
+  }
+  .carousel__ctl {
+    margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
+  }
+</style>
+
+<script>
+  function initCarousels() {
+    document
+      .querySelectorAll<HTMLElement>("[data-carousel]:not([data-carousel-ready])")
+      .forEach((root) => {
+        root.dataset.carouselReady = "1";
+        const track = root.querySelector<HTMLElement>("[data-carousel-track]");
+        const prev = root.querySelector<HTMLButtonElement>("[data-carousel-prev]");
+        const next = root.querySelector<HTMLButtonElement>("[data-carousel-next]");
+        const thumb = root.querySelector<HTMLElement>("[data-carousel-thumb]");
+        if (!track) return;
+
+        const step = () => {
+          const first = track.firstElementChild as HTMLElement | null;
+          if (!first) return track.clientWidth * 0.8;
+          const gap = parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+          return first.offsetWidth + gap;
+        };
+
+        prev?.addEventListener("click", () =>
+          track.scrollBy({ left: -step(), behavior: "smooth" }),
+        );
+        next?.addEventListener("click", () =>
+          track.scrollBy({ left: step(), behavior: "smooth" }),
+        );
+
+        // Progress thumb: width = visible fraction, left = scroll fraction.
+        const update = () => {
+          if (!thumb) return;
+          const max = track.scrollWidth - track.clientWidth;
+          const visible = Math.min(track.clientWidth / track.scrollWidth, 1);
+          const p = max > 0 ? track.scrollLeft / max : 0;
+          thumb.style.width = `${Math.max(visible * 100, 8)}%`;
+          thumb.style.left = `${p * (100 - Math.max(visible * 100, 8))}%`;
+        };
+        track.addEventListener("scroll", update, { passive: true });
+        window.addEventListener("resize", update);
+        update();
+      });
+  }
+
+  document.addEventListener("astro:page-load", initCarousels);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initCarousels);
+  } else {
+    initCarousels();
+  }
+</script>

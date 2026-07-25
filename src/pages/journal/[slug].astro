@@ -1,6 +1,8 @@
 ---
 /**
  * Journal article — static route generated per slug from journal.ts.
+ * Tuscan Editorial: split hero with category meta row, a centered 68ch body
+ * with a Bodoni italic lead, and hairline "Keep Reading" rows to close.
  */
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PageHero from "../../components/PageHero.astro";
@@ -22,33 +24,48 @@ const related = journal.filter((a) => a.slug !== article.slug);
 ---
 
 <BaseLayout title={article.title} description={article.excerpt}>
-  <PageHero eyebrow={article.category} title={article.title} image={article.image} imageAlt={article.imageAlt} />
+  <PageHero
+    eyebrow="From the Journal"
+    title={article.title}
+    image={article.image}
+    imageAlt={article.imageAlt}
+    meta={[{ label: "Category", value: article.category }]}
+  />
 
   <article class="section bg-ivory">
-    <div class="wrap wrap--narrow prose">
-      <Reveal as="p" class="prose__lead">{article.excerpt}</Reveal>
-      <hr class="rule" />
-      {article.body.map((p, i) => (
-        <Reveal as="p" delay={Math.min(i * 0.03, 0.15)}>{p}</Reveal>
-      ))}
+    <div class="wrap">
+      <div class="prose">
+        <Reveal as="p" class="prose__lead">{article.excerpt}</Reveal>
+        <hr class="prose__rule" />
+        {article.body.map((p, i) => (
+          <Reveal as="p" delay={Math.min(i * 0.03, 0.15)}>{p}</Reveal>
+        ))}
 
-      <div class="prose__foot">
-        <Button href="/journal" variant="ghost">Back to the Journal</Button>
+        <footer class="prose__foot">
+          <Button href="/journal" variant="ghost">Back to the Journal</Button>
+        </footer>
       </div>
     </div>
   </article>
 
-  <!-- RELATED -->
-  <section class="section split--stone">
+  <!-- RELATED — hairline index rows -->
+  <section class="section bg-sunk" aria-label="Related journal articles">
     <div class="wrap">
-      <p class="eyebrow" style="margin-bottom:2rem">Keep Reading</p>
+      <p class="eyebrow related__eyebrow" data-reveal>Keep Reading</p>
       <div class="related">
         {
-          related.map((a) => (
-            <a class="rcard card" href={`/journal/${a.slug}`} data-reveal>
-              <span class="rcard__cat">{a.category}</span>
-              <h3 class="rcard__title">{a.title}</h3>
-              <span class="rcard__more">Read →</span>
+          related.map((a, i) => (
+            <a
+              class="rrow"
+              href={`/journal/${a.slug}`}
+              data-reveal
+              data-reveal-delay={Math.min(i * 0.05, 0.2)}
+            >
+              <span class="rrow__cat">{a.category}</span>
+              <h3 class="rrow__title">{a.title}</h3>
+              <span class="rrow__more">
+                Read <span class="rrow__arrow" aria-hidden="true">↗</span>
+              </span>
             </a>
           ))
         }
@@ -58,60 +75,135 @@ const related = journal.filter((a) => a.slug !== article.slug);
 </BaseLayout>
 
 <style>
+  /* ── Article body — centered 68ch measure ─────────────────────────────── */
   .prose {
     max-width: 68ch;
+    margin-inline: auto;
   }
-  .prose__lead {
+  .prose :global(.prose__lead) {
     font-family: var(--font-display);
+    font-style: italic;
     font-size: clamp(1.3rem, 1rem + 1.2vw, 1.9rem);
     line-height: 1.45;
-    color: var(--c-forest);
-    font-style: italic;
+    color: var(--text);
+    max-width: none;
+  }
+  .prose__rule {
+    border: 0;
+    height: 1px;
+    width: 100%;
+    background: var(--line);
+    margin-block: clamp(1.8rem, 3.5vw, 2.8rem);
   }
   .prose :global(p:not(.prose__lead)) {
-    font-size: 1.08rem;
-    line-height: 1.75;
-    color: var(--c-charcoal);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text);
     margin-bottom: 1.4rem;
+    max-width: none;
+  }
+  /* Editorial defaults for rich content, should the body ever carry it. */
+  .prose :global(img) {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-block: clamp(1.8rem, 3.5vw, 2.8rem);
+  }
+  .prose :global(blockquote) {
+    margin: clamp(1.8rem, 3.5vw, 2.8rem) 0;
+    padding-left: 1.6rem;
+    border-left: 1px solid var(--line-strong);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem);
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .prose :global(a) {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .prose :global(a:hover) {
+    color: var(--accent);
   }
   .prose__foot {
-    margin-top: 2.5rem;
-    padding-top: 1.5rem;
+    margin-top: clamp(2.5rem, 5vw, 3.5rem);
+    padding-top: clamp(1.5rem, 3vw, 2rem);
     border-top: 1px solid var(--line);
   }
 
+  /* ── Related rows ─────────────────────────────────────────────────────── */
+  .related__eyebrow {
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  }
   .related {
+    border-top: 1px solid var(--line);
+  }
+  .rrow {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.8rem;
+    grid-template-columns: minmax(9rem, 0.4fr) 1fr auto;
+    gap: clamp(1.25rem, 3vw, 3rem);
+    align-items: baseline;
+    padding-block: clamp(1.4rem, 2.8vw, 2.2rem);
+    border-bottom: 1px solid var(--line);
+    color: var(--text);
   }
-  /* Base look (border, radius, background, hover lift) comes from .card.
-     No image in related cards — keep padding generous so they read as
-     intentional editorial cards. */
-  .rcard {
-    gap: 0.6rem;
-    padding: 2rem 1.9rem;
+  .rrow:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
-  .rcard__cat {
-    font-size: var(--fs-eyebrow);
+  .rrow__cat {
+    font-size: 0.64rem;
+    font-weight: 500;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--accent-deep);
+    color: var(--text-muted);
   }
-  .rcard__title {
-    font-size: 1.3rem;
+  .rrow__title {
+    font-size: clamp(1.25rem, 1rem + 1.2vw, 2rem);
+    line-height: 1.15;
+    transition: color var(--dur-fast) var(--ease-out);
   }
-  .rcard__more {
-    margin-top: auto;
-    font-size: 0.78rem;
-    letter-spacing: 0.1em;
+  .rrow:hover .rrow__title {
+    color: var(--accent);
+  }
+  .rrow__more {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--accent-deep);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .rrow__arrow {
+    display: inline-block;
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  .rrow:hover .rrow__arrow {
+    transform: translate(2px, -2px);
+    color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rrow__title,
+    .rrow__arrow,
+    .prose :global(a) {
+      transition: none;
+    }
   }
 
   @media (max-width: 700px) {
-    .related {
-      grid-template-columns: 1fr;
+    .rrow {
+      grid-template-columns: 1fr auto;
+      gap: 0.6rem 1.5rem;
+    }
+    .rrow__cat {
+      grid-column: 1 / -1;
     }
   }
 </style>

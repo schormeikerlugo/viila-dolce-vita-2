@@ -2,6 +2,8 @@
 /**
  * Our Story — the estate's story, land, house, philosophy and mission.
  * Copy adapted from Docs/our-story-estate-voice.md (Maremma estate voice).
+ * Reskinned to the "Tuscan Editorial" language: rectangles, 1px hairlines,
+ * ivory/ink grounds, a single terracotta accent.
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "../components/PageHero.astro";
@@ -9,6 +11,7 @@ import SplitSection from "../components/SplitSection.astro";
 import SectionHeader from "../components/SectionHeader.astro";
 import StatBand from "../components/StatBand.astro";
 import QuoteBand from "../components/QuoteBand.astro";
+import CtaBanner from "../components/CtaBanner.astro";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
 import { bookingHref } from "../data/site";
@@ -54,6 +57,12 @@ const values = [
     title="The Maremma Was Here First"
     image={photos.hillsPinkDawn}
     imageAlt="Estate hills at first light, the sea on the horizon"
+    meta={[
+      { label: "Location", value: "Colline Metallifere, Maremma" },
+      { label: "Estate", value: "40 Acres" },
+      { label: "Suites", value: "5" },
+      { label: "View", value: "Sea, Elba & Corsica" },
+    ]}
   >
     <p>
       This is old country. The Etruscans mined these metal-bearing hills three
@@ -69,7 +78,6 @@ const values = [
     title="Where Tuscany Keeps Its Wildness"
     image={photos.landMaremmaHilltown}
     imageAlt="A medieval hilltown rising over the wild Maremma valley"
-    arch
     reverse
   >
     <p>
@@ -87,7 +95,6 @@ const values = [
   </SplitSection>
 
   <!-- THE HOUSE -->
-  <div class="house-split">
   <SplitSection
     eyebrow="The House"
     title="An Ancient Hill, Newly Kept"
@@ -110,7 +117,6 @@ const values = [
       <Button href="/suites" variant="ghost">See the suites</Button>
     </div>
   </SplitSection>
-  </div>
 
   <!-- BY THE NUMBERS -->
   <StatBand
@@ -126,7 +132,6 @@ const values = [
     title="Rest, at Altitude"
     image={photos.hilltopRest}
     imageAlt="Rest at altitude — the estate's hilltop gardens and view"
-    arch
     reverse
   >
     <p>
@@ -172,13 +177,13 @@ const values = [
     </p>
   </SplitSection>
 
-  <!-- MISSION & VALUES -->
+  <!-- MISSION & VALUES — editorial index list on ivory (Tonelli) -->
   <section class="section bg-ivory creed-section">
     <div class="wrap">
       <SectionHeader
         eyebrow="Our Mission"
-        title="To Keep This Corner of the Maremma as It Is"
-        align="center"
+        title="To Keep This Corner of the Maremma as It Is"
+        align="left"
       >
         <p>
           Its land, its light, its pace, and its evenings under the Tuscan
@@ -186,137 +191,83 @@ const values = [
         </p>
       </SectionHeader>
 
-      <ul class="values">
+      <ol class="values">
         {
           values.map((v, i) => (
             <Reveal as="li" class="values__item" delay={i * 0.06}>
-              <span class="values__num">{String(i + 1).padStart(2, "0")}</span>
+              <span class="values__num" aria-hidden="true">
+                {String(i + 1).padStart(2, "0")}
+              </span>
               <h3 class="values__title">{v.title}</h3>
               <p class="values__body">{v.body}</p>
             </Reveal>
           ))
         }
-      </ul>
+      </ol>
     </div>
   </section>
 
   <!-- INVITATION -->
-  <section class="section bg-charcoal invite">
-    <div class="wrap wrap--narrow" style="text-align:center">
-      <SectionHeader
-        eyebrow="The Invitation"
-        title="Three Thousand Years of View"
-        align="center"
-        onDark
-      >
-        <p style="color:var(--text-on-dark-muted)">
-          The Etruscans chose these hills. So did the butteri. The door is open.
-        </p>
-      </SectionHeader>
-      <Reveal delay={0.15}>
-        <Button href={bookingHref} variant="secondary" onDark>Check Availability</Button>
-      </Reveal>
-    </div>
-  </section>
+  <CtaBanner
+    eyebrow="The Invitation"
+    title="Three Thousand Years of View"
+    sub="The Etruscans chose these hills. So did the butteri. The door is open."
+    ctaLabel="Check Availability"
+    ctaHref={bookingHref}
+    image={photos.valdorciaGolden}
+    imageAlt="Golden evening light falling across the Tuscan hills"
+  />
 </BaseLayout>
 
 <style>
-  /* Scale the arched section images down ~20% and centre them in their column. */
-  :global(.split .arch) {
-    display: flex;
-    justify-content: center;
-  }
-  :global(.split .arch__frame) {
-    width: 80%;
+  /* The mission title runs long — let it breathe wider than the 24ch default. */
+  .creed-section :global(.sechead h2) {
+    max-width: 28ch;
   }
 
-  /* "The House" uses a plain (non-arch) image — scale it down ~20% and centre
-     it in its column so it matches the arched sections' visual weight. */
-  .house-split :global(.split__media) {
-    display: flex;
-    justify-content: center;
-  }
-  .house-split :global(.split__img) {
-    width: 80%;
-  }
-
-  /* Mission header stays on the ivory section; only the values grid below is a
-     dark forest ground with the FeatureBar hover behaviour. */
-  .creed-section :global(.sechead p) {
-    color: var(--text-muted);
-  }
+  /* Values — index list drawn with 1px hairlines: number / title / body. */
   .values {
     list-style: none;
-    margin: var(--space-group) 0 0;
+    margin: 0;
     padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-    background: var(--bg-dark);
-    border: 1px solid var(--line-on-dark);
-    border-radius: var(--radius);
-    overflow: hidden;
+    border-top: 1px solid var(--line);
   }
   /* NOTE: .values__item is rendered by <Reveal as="li">, so it does NOT carry
      this page's scope hash — target it (and its children) with :global(). */
   .values :global(.values__item) {
-    position: relative;
-    background: var(--bg-dark);
-    padding: clamp(1.8rem, 3vw, 2.6rem);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    border-left: 1px solid var(--line-on-dark);
-    transition: background var(--dur-fast) var(--ease-out);
-  }
-  .values :global(.values__item:first-child) {
-    border-left: 0;
-  }
-  /* Accent line that grows up from the bottom on hover (matches FeatureBar). */
-  .values :global(.values__item)::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    width: 0;
-    height: 2px;
-    background: var(--accent);
-    transform: translateX(-50%);
-    transition: width var(--dur-fast) var(--ease-out);
-  }
-  .values :global(.values__item:hover) {
-    background: rgba(243, 238, 230, 0.05);
-  }
-  .values :global(.values__item:hover)::after {
-    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(3rem, 0.2fr) minmax(11rem, 0.8fr) 1.6fr;
+    gap: clamp(1.25rem, 4vw, 4rem);
+    align-items: baseline;
+    padding-block: clamp(1.4rem, 2.8vw, 2.2rem);
+    border-bottom: 1px solid var(--line);
   }
   .values :global(.values__num) {
-    font-family: var(--font-display);
-    font-size: 0.9rem;
-    letter-spacing: 0.06em;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
     color: var(--accent);
   }
   .values :global(.values__title) {
-    font-family: var(--font-display);
-    font-size: clamp(1.3rem, 1.1rem + 0.7vw, 1.7rem);
-    line-height: 1.1;
-    color: var(--c-ivory);
-    transition: color var(--dur-fast) var(--ease-out);
-  }
-  .values :global(.values__item:hover) .values__title {
-    color: var(--accent);
+    font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.8rem);
+    line-height: 1.15;
+    color: var(--text);
   }
   .values :global(.values__body) {
-    color: var(--text-on-dark-muted);
-    line-height: 1.5;
-    font-size: 0.98rem;
-    transition: color var(--dur-fast) var(--ease-out);
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    max-width: 52ch;
   }
-  .values :global(.values__item:hover) .values__body {
-    color: var(--c-ivory);
-  }
-  @media (max-width: 900px) {
-    .values :global(.values__item:nth-child(odd)) {
-      border-left: 0;
+
+  @media (max-width: 720px) {
+    .values :global(.values__item) {
+      grid-template-columns: minmax(2.5rem, auto) 1fr;
+      row-gap: 0.4rem;
+    }
+    .values :global(.values__body) {
+      grid-column: 2;
     }
   }
 </style>

@@ -1,0 +1,148 @@
+---
+/**
+ * SpecTable — Tonelli-style specification table.
+ * Rows separated by 1px hairlines: a serif title (optionally linked) on the
+ * left, and a small label/value data grid on the right.
+ *
+ * Usage:
+ *   <SpecTable
+ *     rows={[
+ *       {
+ *         title: "Roma",
+ *         note: "Honeymoon Hideaway",
+ *         href: "/suites#roma",
+ *         specs: [
+ *           { label: "Sleeps", value: "4" },
+ *           { label: "From", value: "€360 / night" },
+ *         ],
+ *       },
+ *     ]}
+ *   />
+ */
+export interface SpecRow {
+  title: string;
+  note?: string;
+  href?: string;
+  specs: { label: string; value: string }[];
+}
+
+interface Props {
+  rows: SpecRow[];
+  onDark?: boolean;
+  class?: string;
+}
+const { rows, onDark = false, class: className = "" } = Astro.props;
+---
+
+<div class:list={["spectable", { "spectable--dark": onDark }, className]}>
+  {
+    rows.map((row) => (
+      <div class="spectable__row" data-reveal>
+        <div class="spectable__head">
+          {row.href ? (
+            <a class="spectable__title spectable__title--link" href={row.href}>
+              {row.title} <span class="spectable__arrow" aria-hidden="true">↗</span>
+            </a>
+          ) : (
+            <p class="spectable__title">{row.title}</p>
+          )}
+          {row.note && <p class="spectable__note">{row.note}</p>}
+        </div>
+        <dl class="spectable__specs">
+          {row.specs.map((s) => (
+            <div class="spectable__spec">
+              <dt>{s.label}</dt>
+              <dd>{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .spectable {
+    --st-line: var(--line);
+    --st-title: var(--text);
+    --st-muted: var(--text-muted);
+    border-top: 1px solid var(--st-line);
+  }
+  .spectable--dark {
+    --st-line: var(--line-on-dark);
+    --st-title: var(--text-on-dark);
+    --st-muted: var(--text-on-dark-muted);
+  }
+  .spectable__row {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.9fr) 1.6fr;
+    gap: clamp(1.5rem, 4vw, 4rem);
+    padding-block: clamp(1.5rem, 3vw, 2.4rem);
+    border-bottom: 1px solid var(--st-line);
+  }
+  .spectable__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.8rem);
+    line-height: 1.15;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--st-title);
+    max-width: none;
+  }
+  .spectable__title--link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .spectable__title--link:hover {
+    color: var(--accent);
+  }
+  .spectable__arrow {
+    font-family: var(--font-body);
+    font-size: 0.6em;
+    transform: translateY(-0.2em);
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .spectable__title--link:hover .spectable__arrow {
+    transform: translate(2px, calc(-0.2em - 2px));
+  }
+  .spectable__note {
+    margin-top: 0.5rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--st-muted);
+    max-width: 34ch;
+  }
+  .spectable__specs {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.65rem;
+  }
+  .spectable__spec {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 10rem) 1fr;
+    gap: 1.5rem;
+    align-items: baseline;
+  }
+  .spectable__spec dt {
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--st-muted);
+  }
+  .spectable__spec dd {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--st-title);
+  }
+
+  @media (max-width: 720px) {
+    .spectable__row {
+      grid-template-columns: 1fr;
+      gap: 1.1rem;
+    }
+  }
+</style>

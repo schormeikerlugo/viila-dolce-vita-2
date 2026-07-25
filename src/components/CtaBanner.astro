@@ -1,0 +1,105 @@
+---
+/**
+ * CtaBanner — "Ready to elevate" closing banner (Tonelli).
+ * A full-bleed image (or video via the `media` slot) with the title and a
+ * single CTA laid over the top-left, on a quiet ink scrim.
+ */
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import Button from "./Button.astro";
+import Reveal from "./Reveal.astro";
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  sub?: string;
+  ctaLabel: string;
+  ctaHref: string;
+  image?: ImageMetadata;
+  imageAlt?: string;
+}
+const { eyebrow, title, sub, ctaLabel, ctaHref, image, imageAlt = "" } = Astro.props;
+---
+
+<section class="ctab" data-parallax-scope>
+  <div class="ctab__media" data-parallax="0.12">
+    {
+      image && (
+        <Image
+          src={image}
+          alt={imageAlt}
+          widths={[768, 1280, 1920, 2560]}
+          sizes="100vw"
+          loading="lazy"
+        />
+      )
+    }
+    <slot name="media" />
+  </div>
+  <div class="ctab__scrim" aria-hidden="true"></div>
+
+  <div class="ctab__inner wrap">
+    {eyebrow && <Reveal as="p" class="eyebrow eyebrow--gold">{eyebrow}</Reveal>}
+    <Reveal as="h2" delay={0.05} class="ctab__title" set:html={title} />
+    {sub && <Reveal as="p" delay={0.1} class="ctab__sub">{sub}</Reveal>}
+    <Reveal delay={0.15} class="ctab__action">
+      <Button href={ctaHref} variant="primary" onDark>{ctaLabel}</Button>
+    </Reveal>
+  </div>
+</section>
+
+<style>
+  .ctab {
+    position: relative;
+    min-height: clamp(28rem, 72svh, 44rem);
+    display: flex;
+    align-items: flex-end;
+    color: var(--c-ivory);
+    overflow: hidden;
+  }
+  .ctab__media {
+    position: absolute;
+    inset: -8% 0;
+    height: 116%;
+    z-index: 0;
+  }
+  .ctab__media :global(img),
+  .ctab__media :global(video) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ctab__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to top,
+      rgba(22, 20, 18, 0.72) 0%,
+      rgba(22, 20, 18, 0.28) 55%,
+      rgba(22, 20, 18, 0.2) 100%
+    );
+  }
+  .ctab__inner {
+    position: relative;
+    z-index: 2;
+    padding-block: clamp(3.5rem, 7vw, 6rem);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(1rem, 2vw, 1.5rem);
+  }
+  .ctab :global(.ctab__title) {
+    font-size: clamp(2.2rem, 1.3rem + 3.6vw, 4.6rem);
+    max-width: 16ch;
+  }
+  .ctab :global(.ctab__sub) {
+    font-size: 0.78rem;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-on-dark-muted);
+  }
+  .ctab :global(.ctab__action) {
+    margin-top: 0.5rem;
+  }
+</style>

@@ -1,8 +1,8 @@
 ---
 /**
- * SplitSection — editorial two-column block: media on one side, copy on the
- * other (reference 04's "A Timeless Escape"). The workhorse layout across the
- * site. Media can be a plain image or the arched frame.
+ * SplitSection — editorial two-column block (Tonelli): media leads at ~58%,
+ * copy sits in a narrow column with the "↳" eyebrow, uppercase title, body
+ * and an optional hairline meta-row of label/value pairs.
  *
  * Slots: default = body copy; "media" optional custom media.
  */
@@ -20,6 +20,8 @@ interface Props {
   arch?: boolean;
   theme?: "ivory" | "dark" | "stone";
   parallax?: number | false;
+  /** Optional meta row rendered under the copy on hairlines. */
+  meta?: { label: string; value: string }[];
 }
 const {
   eyebrow,
@@ -30,9 +32,10 @@ const {
   arch = false,
   theme = "ivory",
   parallax = 0.12,
+  meta = [],
 } = Astro.props;
 
-const bgClass = theme === "dark" ? "bg-dark" : theme === "stone" ? "split--stone" : "bg-ivory";
+const bgClass = theme === "dark" ? "bg-dark" : theme === "stone" ? "bg-sunk" : "bg-ivory";
 ---
 
 <section class:list={["section", "split", bgClass, { "split--reverse": reverse }]}>
@@ -58,27 +61,34 @@ const bgClass = theme === "dark" ? "bg-dark" : theme === "stone" ? "split--stone
     </div>
 
     <div class="split__copy">
-      {eyebrow && <Reveal as="p" class="eyebrow eyebrow--diamond">{eyebrow}</Reveal>}
+      {eyebrow && <Reveal as="p" class="eyebrow">{eyebrow}</Reveal>}
       <Reveal as="h2" delay={0.05}>{title}</Reveal>
-      <Reveal delay={0.1}><hr class="rule" /></Reveal>
-      <Reveal delay={0.15} class="split__body">
+      <Reveal delay={0.12} class="split__body">
         <slot />
       </Reveal>
+      {
+        meta.length > 0 && (
+          <Reveal delay={0.18}>
+            <dl class="split__meta">
+              {meta.map((m) => (
+                <div class="split__metacell">
+                  <dt>{m.label}</dt>
+                  <dd>{m.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </Reveal>
+        )
+      }
     </div>
   </div>
 </section>
 
 <style>
-  /* "stone" now reads as a warm terracotta-tinted ground (measured accent),
-     far more inviting than flat taupe while staying subtle. */
-  .split--stone {
-    background: var(--surface-warm);
-    color: var(--c-charcoal);
-  }
   .split__inner {
     display: grid;
-    /* Image leads: ~57% media, ~43% copy. */
-    grid-template-columns: 1.15fr 0.85fr;
+    /* Image leads: ~58% media, ~42% copy. */
+    grid-template-columns: 1.35fr 1fr;
     gap: clamp(2.5rem, 6vw, 6.5rem);
     align-items: center;
   }
@@ -89,15 +99,7 @@ const bgClass = theme === "dark" ? "bg-dark" : theme === "stone" ? "split--stone
   .split__img {
     position: relative;
     overflow: hidden;
-    border-radius: var(--radius);
-    /* Taller, more cinematic than the old 4/5 */
-    aspect-ratio: 5 / 6;
-    box-shadow: var(--shadow-soft);
-  }
-  @media (min-width: 1100px) {
-    .split__img {
-      aspect-ratio: 4 / 5;
-    }
+    aspect-ratio: 4 / 3;
   }
   .split__img :global(img) {
     width: 100%;
@@ -105,15 +107,20 @@ const bgClass = theme === "dark" ? "bg-dark" : theme === "stone" ? "split--stone
     object-fit: cover;
   }
 
+  .split__copy :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
   .split__copy :global(h2) {
-    margin-top: 0.5rem;
+    max-width: 18ch;
   }
   .split__body {
-    font-size: 1.05rem;
+    margin-top: clamp(1.2rem, 2.5vw, 1.8rem);
+    font-size: 1rem;
   }
   .split__body :global(p) {
     color: var(--text-muted);
     margin-bottom: 1.1rem;
+    line-height: 1.75;
   }
   .bg-dark .split__body :global(p) {
     color: var(--text-on-dark-muted);
@@ -121,8 +128,41 @@ const bgClass = theme === "dark" ? "bg-dark" : theme === "stone" ? "split--stone
   .split__body :global(.actions) {
     margin-top: 1.6rem;
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     flex-wrap: wrap;
+  }
+
+  /* Hairline meta-row (Tonelli "Room Type / Featuring / Dimensions"). */
+  .split__meta {
+    margin-top: clamp(1.6rem, 3vw, 2.4rem);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(7.5rem, 100%), 1fr));
+    gap: 1.25rem;
+  }
+  .split__metacell {
+    border-top: 1px solid var(--line);
+    padding-top: 0.75rem;
+  }
+  .bg-dark .split__metacell {
+    border-top-color: var(--line-on-dark);
+  }
+  .split__metacell dt {
+    font-size: 0.64rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+  .bg-dark .split__metacell dt {
+    color: var(--text-on-dark-muted);
+  }
+  .split__metacell dd {
+    font-size: 0.92rem;
+    color: var(--text);
+  }
+  .bg-dark .split__metacell dd {
+    color: var(--text-on-dark);
   }
 
   @media (max-width: 900px) {

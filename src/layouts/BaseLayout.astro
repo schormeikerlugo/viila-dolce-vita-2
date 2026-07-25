@@ -21,7 +21,7 @@ interface Props {
 const {
   title,
   description = site.description,
-  navTheme = "dark",
+  navTheme = "light",
 } = Astro.props;
 
 const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;

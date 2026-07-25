@@ -1,169 +1,67 @@
 ---
 /**
- * Home — the cinematic, scroll-driven landing page.
- * Sections follow content.md's Home order:
- * Hero → Welcome → 15 min to Massa Marittima → The Experience (pinned) →
- * Suites → Beyond the Villa → Weddings → Testimonials → Journal → Final CTA.
+ * Home — Tuscan Editorial landing page.
+ * Order: Hero → Overview (ink) → Features & Amenities → Suites → Gallery →
+ * Massa Marittima band → History (ink) → Beyond the Villa → Journal →
+ * Weddings → Reviews → FAQ (ink) → Final CTA.
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/Hero.astro";
-import SplitSection from "../components/SplitSection.astro";
 import SectionHeader from "../components/SectionHeader.astro";
 import SuiteCard from "../components/SuiteCard.astro";
 import HomeGallery from "../components/HomeGallery.astro";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
+import CardCarousel from "../components/CardCarousel.astro";
+import DarkTimeline from "../components/DarkTimeline.astro";
+import FaqAccordion from "../components/FaqAccordion.astro";
+import CtaBanner from "../components/CtaBanner.astro";
 import BackgroundVideo from "../components/BackgroundVideo.astro";
 import TestimonialCarousel from "../components/TestimonialCarousel.tsx";
 import { Image } from "astro:assets";
-import { bookingHref } from "../data/site";
+import { bookingHref, contact } from "../data/site";
 import { suites } from "../data/suites";
 import { testimonials } from "../data/testimonials";
 import { photos, suitePhotos } from "../data/media";
 import { galleryItems } from "../data/gallery";
 import { experienceLinks } from "../data/experiences";
 import { journalTeasers } from "../data/journal";
+import { homeFaqs } from "../data/faq";
 
 // Metro mosaic order: signature (highest rate) suite first so it takes the
 // hero tile, then the rest by descending rate for a balanced layout.
 const orderedSuites = [...suites].sort((a, b) => b.fromNight - a.fromNight);
 
-// Home gallery teaser — a curated ~25-tile masonry (a 5×5 block on desktop)
-// mixing suites + /gallery surroundings, linking out to the full archive.
+// Home gallery teaser — a curated set mixing suites + /gallery surroundings.
 const gal = (slug: string) => galleryItems.find((g) => g.slug === slug)!;
 const homeGalleryItems = [
-  {
-    image: gal("villa-aerial-golden").image,
-    alt: "Villa Dolce Vita from above in the golden Tuscan light",
-    caption: "The estate at golden hour",
-  },
-  {
-    image: suitePhotos.roma[0],
-    alt: "Roma suite interior",
-    caption: "Roma suite",
-  },
-  {
-    image: gal("pool-afternoon").image,
-    alt: "The villa with its pool and lawn on a bright afternoon",
-    caption: "The pool",
-  },
-  {
-    image: suitePhotos.napoli[0],
-    alt: "Napoli suite interior",
-    caption: "Napoli suite",
-  },
-  {
-    image: gal("terrace-table-view").image,
-    alt: "The loggia terrace with the hills opening out beyond",
-    caption: "Terrace view",
-  },
-  {
-    image: suitePhotos.positano[0],
-    alt: "Positano suite interior",
-    caption: "Positano suite",
-  },
-  {
-    image: gal("cypress-road-hills").image,
-    alt: "A white road winding between cypresses and green hills",
-    caption: "Cypress road",
-  },
-  {
-    image: suitePhotos.roma[2],
-    alt: "Roma suite detail",
-    caption: "Roma suite",
-  },
-  {
-    image: gal("hills-pink-dawn").image,
-    alt: "Pink dawn light over the Tuscan hills",
-    caption: "Hills at dawn",
-  },
-  {
-    image: suitePhotos.napoli[2],
-    alt: "Napoli suite detail",
-    caption: "Napoli suite",
-  },
-  {
-    image: gal("vineyard-wine-sunset").image,
-    alt: "Wine and grapes on an old barrel at sunset",
-    caption: "Wine at sunset",
-  },
-  {
-    image: suitePhotos.milano[0],
-    alt: "Milano suite interior",
-    caption: "Milano suite",
-  },
-  {
-    image: gal("massa-marittima-piazza").image,
-    alt: "The cathedral square of Massa Marittima under a summer sky",
-    caption: "Massa Marittima",
-  },
-  {
-    image: suitePhotos.positano[2],
-    alt: "Positano suite detail",
-    caption: "Positano suite",
-  },
-  {
-    image: gal("valdorcia-mist").image,
-    alt: "Morning mist settling into the folds of the Val d'Orcia",
-    caption: "Val d'Orcia",
-  },
-  {
-    image: suitePhotos.roma[4],
-    alt: "Roma suite bathroom",
-    caption: "Roma suite",
-  },
-  {
-    image: gal("horseman").image,
-    alt: "A buttero and his horse in the morning field",
-    caption: "Morning ride",
-  },
-  {
-    image: suitePhotos.napoli[4],
-    alt: "Napoli suite bedroom",
-    caption: "Napoli suite",
-  },
-  {
-    image: gal("piazza-dinner").image,
-    alt: "Dinner tables filling the piazza at dusk",
-    caption: "Dinner in the piazza",
-  },
-  {
-    image: suitePhotos.positano[3],
-    alt: "Positano suite view",
-    caption: "Positano suite",
-  },
-  {
-    image: gal("estate-vineyards-aerial").image,
-    alt: "The estate and its vineyards seen from above",
-    caption: "Estate & vineyards",
-  },
-  {
-    image: suitePhotos.roma[3],
-    alt: "Roma suite living area",
-    caption: "Roma suite",
-  },
-  {
-    image: gal("olive-grove-walk").image,
-    alt: "A slow walk through the olive grove",
-    caption: "Olive grove",
-  },
-  {
-    image: suitePhotos.napoli[5],
-    alt: "Napoli suite detail",
-    caption: "Napoli suite",
-  },
-  {
-    image: gal("stringlight-toast").image,
-    alt: "Glasses raised under the string lights",
-    caption: "Under the lights",
-  },
+  { image: gal("villa-aerial-golden").image, alt: "Villa Dolce Vita from above in the golden Tuscan light", caption: "The estate at golden hour" },
+  { image: suitePhotos.roma[0], alt: "Roma suite interior", caption: "Roma suite" },
+  { image: gal("pool-afternoon").image, alt: "The villa with its pool and lawn on a bright afternoon", caption: "The pool" },
+  { image: suitePhotos.napoli[0], alt: "Napoli suite interior", caption: "Napoli suite" },
+  { image: gal("terrace-table-view").image, alt: "The loggia terrace with the hills opening out beyond", caption: "Terrace view" },
+  { image: suitePhotos.positano[0], alt: "Positano suite interior", caption: "Positano suite" },
+  { image: gal("cypress-road-hills").image, alt: "A white road winding between cypresses and green hills", caption: "Cypress road" },
+  { image: suitePhotos.roma[2], alt: "Roma suite detail", caption: "Roma suite" },
+  { image: gal("hills-pink-dawn").image, alt: "Pink dawn light over the Tuscan hills", caption: "Hills at dawn" },
+  { image: suitePhotos.napoli[2], alt: "Napoli suite detail", caption: "Napoli suite" },
+  { image: gal("vineyard-wine-sunset").image, alt: "Wine and grapes on an old barrel at sunset", caption: "Wine at sunset" },
+  { image: suitePhotos.milano[0], alt: "Milano suite interior", caption: "Milano suite" },
+  { image: gal("massa-marittima-piazza").image, alt: "The cathedral square of Massa Marittima under a summer sky", caption: "Massa Marittima" },
+  { image: suitePhotos.positano[2], alt: "Positano suite detail", caption: "Positano suite" },
+  { image: gal("valdorcia-mist").image, alt: "Morning mist settling into the folds of the Val d'Orcia", caption: "Val d'Orcia" },
+  { image: suitePhotos.roma[4], alt: "Roma suite bathroom", caption: "Roma suite" },
+  { image: gal("horseman").image, alt: "A buttero and his horse in the morning field", caption: "Morning ride" },
+  { image: suitePhotos.napoli[4], alt: "Napoli suite bedroom", caption: "Napoli suite" },
+  { image: gal("piazza-dinner").image, alt: "Dinner tables filling the piazza at dusk", caption: "Dinner in the piazza" },
+  { image: gal("estate-vineyards-aerial").image, alt: "The estate and its vineyards seen from above", caption: "Estate & vineyards" },
 ];
 
-// Estate at a glance — four headline stats shown beneath the welcome.
+// Features & amenities — Masseto-style headline stats.
 const estateStats = [
-  { value: "50", label: "Acre Hillside Estate" },
-  { value: "2", label: "Stone Structures" },
-  { value: "5", label: "Premium Suites" },
+  { value: "7", label: "Bedrooms" },
+  { value: "7", label: "Marble Bathrooms" },
+  { value: "50", label: "Acre Estate" },
   { value: "24", label: "Guests Max" },
 ];
 
@@ -174,123 +72,112 @@ const reviewStats = [
   { value: "98%", label: "Satisfaction Rate" },
 ];
 
-// Full feature list, grouped into accordion sections for a tidy, scannable UX.
-// Everything beyond the four headline stats lives here.
+// Full feature list, grouped into accordion rows (Masseto amenities panel).
 const featureGroups = [
+  { title: "Bedrooms & Beds", items: ["7 Elegant Bedrooms", "5 King Size Beds", "2 Queen Size Beds", "5 Premium Sofa Beds"] },
+  { title: "Bathrooms & Living", items: ["7 Marble Bathrooms with High-End Finishing", "5 Living Rooms & Fully Equipped Kitchens"] },
+  { title: "Views & Pool", items: ["Sea, Island & Forest Views", "1 Outdoor Pool"] },
+  { title: "Wellness", items: ["Fully Equipped Outdoor Gym & Shaded Yoga Platform", "4-Person Outdoor Barrel Sauna"] },
+  { title: "Dining", items: ["Daily Breakfast Service", "3 Chef-Cooked Dinners Per Week", "Food & Grocery Delivery"] },
+  { title: "Service", items: ["On-Site Concierge", "Animal Sanctuary — 3 Rescue Dogs & 7 Cats"] },
+  { title: "Entertainment", items: ["5 Big Screen TVs with Netflix & Amazon Prime", "Foosball Table"] },
+  { title: "Connectivity", items: ["Starlink Satellite Internet"] },
+];
+
+// History teaser — real copy condensed from /our-story.
+const historyEntries = [
   {
-    title: "Bedrooms & Beds",
-    items: [
-      "7 Elegant Bedrooms",
-      "5 King Size Beds",
-      "2 Queen Size Beds",
-      "5 Premium Sofa Beds",
-    ],
+    era: "3,000 Years Ago",
+    text: "The Etruscans mined these metal-bearing hills three thousand years ago. The <strong>butteri</strong>, Tuscany's last working cowboys, still herd cattle on horseback across the plains below. Through all of it, the same view held.",
   },
   {
-    title: "Bathrooms & Living",
-    items: [
-      "7 Marble Bathrooms with High-End Finishing",
-      "5 Living Rooms & Fully Equipped Kitchens",
-    ],
+    era: "The Land",
+    text: "The Maremma is the Tuscany that stayed itself — less discovered than Chianti, more untamed than the Val d'Orcia. The estate sits at the centre of it, high on the <strong>Colline Metallifere</strong>: olive groves, pine and forest, threaded with walking paths that all end at a view.",
   },
   {
-    title: "Views & Pool",
-    items: ["Sea, Island & Forest Views", "1 Outdoor Pool"],
+    era: "The House",
+    text: "The hill is three thousand years old; the house does not rest on that. Every suite has been renovated recently and completely — <strong>marble bathrooms</strong>, new beds dressed in fine linens, fully fitted kitchens, and fine art on the walls.",
   },
   {
-    title: "Wellness",
-    items: [
-      "Fully Equipped Outdoor Gym & Shaded Yoga Platform",
-      "4-Person Outdoor Barrel Sauna",
-    ],
+    era: "Today",
+    text: "The estate was never conceived as a resort. It is a <strong>home that opens its doors</strong> — its work is not to invent an experience of Tuscany but to keep a real one intact, and to hold the gate open.",
   },
-  {
-    title: "Dining",
-    items: [
-      "Daily Breakfast Service",
-      "3 Chef-Cooked Dinners Per Week",
-      "Food & Grocery Delivery",
-    ],
-  },
-  {
-    title: "Service",
-    items: ["On-Site Concierge", "Animal Sanctuary — 3 Rescue Dogs & 7 Cats"],
-  },
-  {
-    title: "Entertainment",
-    items: ["5 Big Screen TVs with Netflix & Amazon Prime", "Foosball Table"],
-  },
-  {
-    title: "Connectivity",
-    items: ["Starlink Satellite Internet"],
-  },
+];
+
+// Weddings carousel slides.
+const weddingSlides = [
+  { image: photos.weddingVeil, alt: "Bride and groom beneath a veil in the golden Tuscan light", caption: "The Ceremony" },
+  { image: photos.weddingCoupleSunset, alt: "Bride and groom outdoors at dusk", caption: "Golden Hour" },
+  { image: photos.weddingDance, alt: "A couple's first dance, gown lit against the dark", caption: "The First Dance" },
+  { image: photos.weddingSilhouette, alt: "A couple silhouetted against the glowing evening light", caption: "Under the Sky" },
+  { image: photos.weddingBouquet, alt: "Bride holding an illuminated bouquet beside the groom", caption: "The Details" },
+  { image: photos.weddingEmbrace, alt: "An intimate embrace in warm low light", caption: "The Quiet Moment" },
 ];
 ---
 
-<BaseLayout>
+<BaseLayout navTheme="dark">
   <!-- HERO -->
   <Hero eyebrow="Massa Marittima, Tuscany" video="laDolceVita" booking>
-    <Fragment slot="title">Under The <em>Tuscan Sun</em></Fragment>
+    <Fragment slot="title">Villa <em>Dolce Vita</em></Fragment>
+    <Fragment slot="subtitle">Under the Tuscan Stars — A Private Hilltop Estate in the Maremma</Fragment>
   </Hero>
 
-  <!-- WELCOME -->
-  <SplitSection
-    eyebrow="Welcome to Villa Dolce Vita"
-    title="50 Acre Hillside Estate in Tuscany"
-    reverse
-  >
-    <Image
-      slot="media"
-      class="welcome-cutout"
-      src={photos.welcomeVilla}
-      alt="Villa Dolce Vita perched on the Tuscan hillside"
-      widths={[560, 900, 1300, 1800]}
-      sizes="(max-width: 900px) 92vw, 52vw"
-      loading="lazy"
-      data-mouse-parallax="14"
-    />
-    <p>
-      Set high on the Maremma hills, Villa Dolce Vita looks out past olive
-      groves and forest to the sea, Elba and Corsica beyond. Two stone houses,
-      five large suites, up to 24 guests.
-    </p>
-    <div class="actions">
-      <Button href="/our-story" variant="ghost">Read our story</Button>
+  <!-- OVERVIEW — ink band with the large serif statement (Masseto). -->
+  <section class="section bg-dark overview" aria-labelledby="overview-title">
+    <div class="wrap overview__grid">
+      <Reveal as="p" class="eyebrow">Overview</Reveal>
+      <div class="overview__body">
+        <Reveal as="p" class="overview__statement" id="overview-title" delay={0.05}>
+          A 50-acre hillside estate in Tuscany — two stone houses, five large
+          suites and a private pool, looking out past olive groves and forest
+          to the sea, <em>Elba and Corsica beyond</em>.
+        </Reveal>
+        <Reveal as="p" class="overview__copy" delay={0.12}>
+          Set high on the Maremma hills, Villa Dolce Vita hosts up to 24 guests
+          with daily breakfast, chef-cooked dinners, an on-site concierge and a
+          working animal sanctuary. Massa Marittima — cobbled streets, medieval
+          charm and a thousand-year-old cathedral — is fifteen minutes from
+          your terrace.
+        </Reveal>
+        <Reveal delay={0.18}>
+          <dl class="overview__meta">
+            <div><dt>Location</dt><dd>Massa Marittima, Tuscany</dd></div>
+            <div><dt>Accommodation</dt><dd>5 Suites · 2 Stone Houses</dd></div>
+            <div><dt>Capacity</dt><dd>Up to 24 Guests</dd></div>
+            <div><dt>To Town</dt><dd>15 Minutes</dd></div>
+          </dl>
+        </Reveal>
+        <Reveal delay={0.22} class="overview__actions">
+          <Button href="/our-story" variant="ghost" onDark>Read our story</Button>
+        </Reveal>
+      </div>
     </div>
-  </SplitSection>
+  </section>
 
-  <!-- ESTATE AT A GLANCE — four headline stats as a full-width table row
-       beneath the welcome, with framing rules on all sides. -->
-  <section class="statband bg-ivory" aria-label="The estate at a glance">
+  <!-- FEATURES & AMENITIES — headline stats table + amenity rows. -->
+  <section class="section bg-ivory amenities-section" aria-label="Features and amenities">
     <div class="wrap">
-      <ul class="statband__row statband__row--four statband__row--table" data-reveal data-reveal-delay={0.1}>
+      <Reveal as="p" class="eyebrow">Features &amp; Amenities</Reveal>
+
+      <ul class="statband__row statband__row--four" data-reveal data-reveal-delay={0.08}>
         {
           estateStats.map((s) => (
             <li class="statband__stat">
-              <span class="statband__value" data-count={s.value}>
-                {s.value}
-              </span>
+              <span class="statband__value" data-count={s.value}>{s.value}</span>
               <span class="statband__label">{s.label}</span>
             </li>
           ))
         }
       </ul>
-    </div>
-  </section>
 
-  <!-- FEATURES & AMENITIES — full-width hover-reveal columns, pulled up close
-       under the welcome to avoid excess height. -->
-  <section class="amenities-section bg-ivory" aria-label="Features and amenities">
-    <div class="amenities wrap" data-reveal data-reveal-delay={0.1}>
-      <p class="amenities__eyebrow">Features &amp; Amenities</p>
-      <div class="amenities__groups">
+      <div class="amenities__groups" data-reveal data-reveal-delay={0.12}>
         {
           featureGroups.map((group) => (
             <div class="amenity" tabindex="0">
               <div class="amenity__summary">
+                <span class="amenity__icon" aria-hidden="true" />
                 <span class="amenity__title">{group.title}</span>
                 <span class="amenity__count">{group.items.length}</span>
-                <span class="amenity__icon" aria-hidden="true" />
               </div>
               <div class="amenity__panel">
                 <ul class="amenity__list">
@@ -306,16 +193,6 @@ const featureGroups = [
     </div>
   </section>
 
-  <!-- GALLERY — 60/40 teaser: the villa and its surroundings, curated from the
-       suites + the /gallery archive, linking out to the full gallery. -->
-  <HomeGallery
-    eyebrow="Gallery"
-    title="The Property"
-    items={homeGalleryItems}
-    href="/gallery"
-    cta="View full gallery"
-  />
-
   <script>
     // Count-up: animate each stat from 0 to its target the first time the band
     // scrolls into view. Respects prefers-reduced-motion (shows final value).
@@ -325,14 +202,11 @@ const featureGroups = [
       );
       if (!values.length) return;
 
-      const reduce = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       const run = (el: HTMLElement) => {
         const raw = el.dataset.count || "0";
         const target = parseInt(raw, 10);
-        // Preserve any non-numeric suffix ("+", "%") so "15+" / "98%" survive.
         const suffix = raw.replace(/^-?\d+/, "");
         if (reduce || !Number.isFinite(target)) {
           el.textContent = raw;
@@ -340,7 +214,6 @@ const featureGroups = [
         }
         const duration = 1600;
         const start = performance.now();
-        // easeOutCubic for a natural deceleration.
         const ease = (t: number) => 1 - Math.pow(1 - t, 3);
         const tick = (now: number) => {
           const p = Math.min((now - start) / duration, 1);
@@ -363,13 +236,44 @@ const featureGroups = [
         { threshold: 0.6 },
       );
       values.forEach((el) => {
-        el.textContent = "0";
+        if (!reduce) el.textContent = "0";
         io.observe(el);
       });
     })();
   </script>
 
-  <!-- 15 MIN TO MASSA MARITTIMA — full-bleed image with an overlaid text panel -->
+  <!-- THE SUITES — left header + metro mosaic. -->
+  <section class="section bg-ivory suites-section">
+    <div class="wrap">
+      <div class="suites-head">
+        <SectionHeader eyebrow="The Suites" title="Five Suites, One View" align="left">
+          <p>Sophisticated comfort and genuine charm, curated for real rest.</p>
+        </SectionHeader>
+        <Button href="/suites" variant="ghost" class="suites-head__cta">Explore all suites</Button>
+      </div>
+      <div class="suites-metro">
+        {
+          orderedSuites.map((s, i) => (
+            <div class:list={["suites-metro__cell", `suites-metro__cell--${i}`]}>
+              <SuiteCard suite={s} featured={i === 0} />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <HomeGallery
+    eyebrow="Gallery"
+    title="The Property"
+    items={homeGalleryItems}
+    href="/gallery"
+    cta="View full gallery"
+    limit={20}
+  />
+
+  <!-- 15 MIN TO MASSA MARITTIMA — full-bleed image with overlaid text -->
   <section class="townband" data-reveal aria-labelledby="townband-title">
     <Image
       class="townband__bg"
@@ -384,75 +288,54 @@ const featureGroups = [
       <div class="townband__panel">
         <p class="eyebrow eyebrow--gold">15 Minutes To</p>
         <h2 class="townband__title" id="townband-title">Massa Marittima</h2>
-        <hr class="rule" />
         <p class="townband__body">
           Cobbled streets, medieval charm, and a thousand-year-old cathedral — a
           fifteen-minute drive from your terrace, with the sea on the horizon.
           The rare town you can visit on a whim, not a whole day out.
         </p>
-        <Button
-          href="/experiences#day-trips"
-          variant="secondary"
-          onDark
-          class="townband__cta"
-        >
+        <Button href="/experiences#day-trips" variant="secondary" onDark class="townband__cta">
           Discover the Town
         </Button>
       </div>
     </div>
   </section>
 
-  <!-- THE SUITES — metro mosaic: a signature hero tile + a 2×2 grid. -->
-  <section class="section bg-ivory">
+  <!-- HISTORY — ink timeline (Masseto "Centuries of History"). -->
+  <section class="section bg-dark history" aria-label="The story of the estate">
     <div class="wrap">
-      <div class="suites-head">
-        <SectionHeader
-          eyebrow="The Suites"
-          title="Five Suites, One View"
-          align="center"
-        >
-          <p>Sophisticated comfort and genuine charm, curated for real rest.</p>
-        </SectionHeader>
-        <Button href="/suites" variant="ghost" class="suites-head__cta"
-          >Explore all suites</Button
-        >
-      </div>
-      <div class="suites-metro">
-        {
-          orderedSuites.map((s, i) => (
-            <div
-              class:list={["suites-metro__cell", `suites-metro__cell--${i}`]}
-            >
-              <SuiteCard suite={s} featured={i === 0} />
-            </div>
-          ))
-        }
-      </div>
+      <DarkTimeline
+        eyebrow="History"
+        title="The Maremma<br />Was Here First"
+        entries={historyEntries}
+      >
+        <div slot="head" class="history__cta">
+          <Button href="/our-story" variant="ghost" onDark>Read the full story</Button>
+        </div>
+      </DarkTimeline>
     </div>
   </section>
 
-  <!-- BEYOND THE VILLA -->
-  <section class="section bg-dark beyond">
+  <!-- BEYOND THE VILLA — editorial index list with hairlines. -->
+  <section class="section bg-ivory beyond">
     <div class="wrap">
       <SectionHeader
         eyebrow="Beyond the Villa"
         title="This Is What There Is to Do Here, Beyond Nothing at All"
-        align="center"
-        onDark
-        class="beyond-head"
+        align="left"
       >
-        <p style="color:var(--text-on-dark-muted)">
+        <p>
           Wine tastings ten minutes away. Horses through the olive groves. A
           cooking class that ends with a flaming wheel of parmigiano.
         </p>
       </SectionHeader>
-      <ul class="beyond__grid">
+      <ul class="beyond__list">
         {
-          experienceLinks.map((e) => (
-            <li class="beyond__item" data-reveal>
+          experienceLinks.map((e, i) => (
+            <li class="beyond__item" data-reveal data-reveal-delay={Math.min(i * 0.04, 0.2)}>
               <a href={e.href}>
+                <span class="beyond__num">{String(i + 1).padStart(2, "0")}</span>
                 <span class="beyond__name">{e.label}</span>
-                <span class="beyond__arrow">→</span>
+                <span class="beyond__arrow" aria-hidden="true">↗</span>
               </a>
             </li>
           ))
@@ -461,74 +344,90 @@ const featureGroups = [
     </div>
   </section>
 
-  <!-- JOURNAL -->
-  <section class="section bg-ivory">
+  <!-- JOURNAL — editorial card carousel. -->
+  <section class="section bg-sunk journal">
     <div class="wrap">
-      <div class="journal-head">
-        <SectionHeader
-          eyebrow="From the Journal"
-          title="A Running Local Guide"
-          align="center"
-        >
-          <p>
-            Things to do nearby, restaurant spotlights, and life at the estate.
-          </p>
+      <div class="suites-head">
+        <SectionHeader eyebrow="From the Journal" title="A Running Local Guide" align="left">
+          <p>Things to do nearby, restaurant spotlights, and life at the estate.</p>
         </SectionHeader>
-        <Button href="/journal" variant="ghost" class="journal-head__cta"
-          >Read the Journal</Button
-        >
+        <Button href="/journal" variant="ghost" class="suites-head__cta">Read the Journal</Button>
       </div>
-      {
-        /* Journal posts as an alternating editorial zigzag: text one side,
-          image the other, flipping on every row. */
-      }
-      <div class="jzig">
+      <CardCarousel label="Journal stories">
         {
-          journalTeasers.map((a, i) => (
-            <a
-              class:list={["jrow", { "jrow--reverse": i % 2 === 0 }]}
-              href={`/journal/${a.slug}`}
-              data-reveal
-              data-reveal-delay={i * 0.05}
-            >
-              <div class="jrow__media">
+          journalTeasers.map((a) => (
+            <a class="jcard carousel__slide" href={`/journal/${a.slug}`}>
+              <div class="jcard__media hoist">
                 <Image
                   src={a.image}
                   alt={a.imageAlt}
-                  widths={[600, 900, 1300]}
-                  sizes="(max-width: 860px) 92vw, 48vw"
+                  widths={[420, 640, 900]}
+                  sizes="(max-width: 860px) 80vw, 28vw"
                   loading="lazy"
                 />
               </div>
-              <div class="jrow__body">
-                <span class="eyebrow eyebrow--gold">{a.category}</span>
-                <h2 class="jrow__title">{a.title}</h2>
-                <p class="jrow__excerpt">{a.excerpt}</p>
-                <span class="jrow__more">Read the story →</span>
-              </div>
+              <p class="jcard__cat">{a.category}</p>
+              <h3 class="jcard__title">{a.title}</h3>
+              <p class="jcard__more">Read the story <span aria-hidden="true">↗</span></p>
             </a>
           ))
         }
-      </div>
+      </CardCarousel>
     </div>
   </section>
 
-  <!-- TESTIMONIALS — editorial reviews: left title, headline stats row, and a
-       horizontal card carousel divided by table-style rules. -->
+  <!-- WEDDINGS & EVENTS — full-width photo carousel (Masseto). -->
+  <section class="section bg-ivory weddings" aria-labelledby="weddings-title">
+    <div class="wrap">
+      <div class="weddings__head">
+        <SectionHeader
+          eyebrow="Weddings &amp; Events"
+          title="Weddings Under the Tuscan Sun"
+          align="left"
+          class="weddings__header"
+        >
+          <p>
+            Ceremonies on the hilltop terrace, cocktail hour rolling straight
+            into sunset, and a reception that spills from the marble into the
+            vineyard rows — with the sea and the islands on the horizon.
+          </p>
+        </SectionHeader>
+        <Button href="/weddings-events" variant="primary" class="weddings__cta">Explore Weddings</Button>
+      </div>
+      <CardCarousel label="Wedding moments">
+        {
+          weddingSlides.map((w) => (
+            <figure class="wslide">
+              <div class="wslide__media hoist">
+                <Image
+                  src={w.image}
+                  alt={w.alt}
+                  widths={[560, 900, 1300]}
+                  sizes="(max-width: 860px) 88vw, 42vw"
+                  loading="lazy"
+                />
+              </div>
+              <figcaption class="wslide__cap">{w.caption}</figcaption>
+            </figure>
+          ))
+        }
+      </CardCarousel>
+    </div>
+  </section>
+
+  <!-- REVIEWS — stats + carousel. -->
   <section class="section bg-ivory reviews" aria-labelledby="reviews-title">
     <div class="wrap">
-      <p class="reviews__eyebrow">Reviews</p>
-      <Reveal as="h2" id="reviews-title" class="reviews__title">
+      <Reveal as="p" class="eyebrow">Reviews</Reveal>
+      <Reveal as="h2" id="reviews-title" class="reviews__title" delay={0.05}>
         What Our Guests Say<br />About Their Stay
       </Reveal>
 
-      <ul class="reviews__stats statband__row statband__row--table" data-reveal data-reveal-delay={0.1}>
+      <ul class="reviews__stats statband__row" data-reveal data-reveal-delay={0.1}>
         {
           reviewStats.map((s) => (
             <li class="statband__stat">
-              <span class="statband__value" data-count={s.value}>
-                {s.value}
-              </span>
+              <span class="statband__value" data-count={s.value}>{s.value}</span>
               <span class="statband__label">{s.label}</span>
             </li>
           ))
@@ -539,336 +438,104 @@ const featureGroups = [
     </div>
   </section>
 
-  <!-- WEDDINGS & EVENTS — editorial teaser: oversized headline, meta + copy +
-       actions, and a staggered three-photo strip linking to /weddings-events. -->
-  <section class="section bg-ivory weddings" aria-labelledby="weddings-title">
-    <div class="wrap weddings__split">
-      <div class="weddings__intro">
-        <Reveal as="p" class="eyebrow eyebrow--diamond weddings__eyebrow"
-          >Weddings &amp; Events</Reveal
-        >
-        <Reveal
-          as="h2"
-          delay={0.05}
-          class="weddings__title"
-          id="weddings-title"
-        >
-          Weddings Under<br /><em>the Tuscan Sun</em>
+  <!-- FAQ — ink accordion (Masseto). -->
+  <section class="section bg-dark faq-section" aria-labelledby="faq-title">
+    <div class="wrap faq-section__grid">
+      <div class="faq-section__head">
+        <Reveal as="p" class="eyebrow">FAQ</Reveal>
+        <Reveal as="h2" id="faq-title" delay={0.05}>Your Questions<br />Answered</Reveal>
+        <Reveal as="p" class="faq-section__note" delay={0.1}>
+          Have more unanswered questions? Feel free to send an enquiry to
+          <a href={`mailto:${contact.email}`}>{contact.email}</a>
         </Reveal>
-
-        <div class="weddings__lead">
-          <Reveal as="p" class="weddings__copy" delay={0.1}>
-            Ceremonies on the hilltop terrace, cocktail hour rolling straight
-            into sunset, and a reception that spills from the marble into the
-            vineyard rows — with the sea and the islands on the horizon.
-          </Reveal>
-          <Reveal class="weddings__actions" delay={0.14}>
-            <Button href="/weddings-events" variant="primary"
-              >Explore Weddings</Button
-            >
-          </Reveal>
-        </div>
       </div>
-
-      <div class="weddings__gallery">
-        <figure class="wtile wtile--1" data-reveal data-reveal-delay={0.05}>
-          <Image
-            src={photos.weddingVeil}
-            alt="Bride and groom beneath a veil in the golden Tuscan light"
-            widths={[420, 640, 900]}
-            sizes="(max-width: 860px) 92vw, 30vw"
-            loading="lazy"
-          />
-        </figure>
-        <figure class="wtile wtile--2" data-reveal data-reveal-delay={0.12}>
-          <Image
-            src={photos.weddingDance}
-            alt="A couple's first dance, gown lit against the dark"
-            widths={[420, 640, 900]}
-            sizes="(max-width: 860px) 92vw, 30vw"
-            loading="lazy"
-          />
-        </figure>
-        <figure class="wtile wtile--3" data-reveal data-reveal-delay={0.19}>
-          <Image
-            src={photos.weddingBouquet}
-            alt="Bride holding an illuminated bouquet beside the groom"
-            widths={[420, 640, 900]}
-            sizes="(max-width: 860px) 92vw, 30vw"
-            loading="lazy"
-          />
-        </figure>
-      </div>
+      <FaqAccordion items={homeFaqs} />
     </div>
   </section>
 
   <!-- FINAL CTA -->
-  <section class="finalcta">
-    <BackgroundVideo video="aerialTownGolden" />
-    <div class="finalcta__content wrap">
-      <Reveal as="p" class="eyebrow eyebrow--gold"
-        >Book direct for the best rate</Reveal
-      >
-      <Reveal as="h2" delay={0.05}>Come Sit on the Hill for a While</Reveal>
-      <Reveal delay={0.1}
-        ><p class="finalcta__sub">Five suites. One view.</p></Reveal
-      >
-      <Reveal delay={0.15}>
-        <Button href={bookingHref} variant="primary">Check Availability</Button>
-      </Reveal>
-    </div>
-  </section>
+  <CtaBanner
+    eyebrow="Book direct for the best rate"
+    title="Come Sit on the Hill<br />for a While"
+    sub="Five suites. One view."
+    ctaLabel="Check Availability"
+    ctaHref={bookingHref}
+  >
+    <BackgroundVideo slot="media" video="aerialTownGolden" />
+  </CtaBanner>
 </BaseLayout>
 
 <style>
-  /* Section header with a link that sits on the title's baseline, then the grid. */
-  .suites-head {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    margin-bottom: var(--space-group);
-  }
-  .suites-head :global(.sechead) {
-    /* header owns the bottom margin now */
-    margin-bottom: 0;
-  }
-  .suites-head__cta {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-  /* ---- Suites: metro mosaic ----
-     4 equal columns, 2 equal rows. The signature suite (cell 0) claims a 2×2
-     hero tile on the left; the four supporting suites fill a clean 2×2 grid
-     on the right — no gaps.
-
-       [ 0 0 1 2 ]
-       [ 0 0 3 4 ]                                                        */
-  .suites-metro {
+  /* ── OVERVIEW ─────────────────────────────────────────────────────────── */
+  .overview__grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, minmax(8.8rem, 1fr));
-    gap: clamp(1rem, 1.8vw, 1.6rem);
+    grid-template-columns: minmax(10rem, 0.55fr) 1.45fr;
+    gap: clamp(2rem, 5vw, 6rem);
+    align-items: start;
   }
-  .suites-metro__cell {
-    display: flex;
-    min-width: 0;
+  .overview :global(.overview__statement) {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 1.1rem + 2.2vw, 3.1rem);
+    line-height: 1.28;
+    letter-spacing: 0.01em;
+    color: var(--text-on-dark);
+    max-width: 26ch;
   }
-  .suites-metro__cell > :global(.suite) {
-    width: 100%;
+  .overview :global(.overview__statement em) {
+    font-style: italic;
   }
-  /* Signature suite: big hero tile spanning the left half. */
-  .suites-metro__cell--0 {
-    grid-column: 1 / 3;
-    grid-row: 1 / 3;
-  }
-  .suites-metro__cell--1 {
-    grid-column: 3;
-    grid-row: 1;
-  }
-  .suites-metro__cell--2 {
-    grid-column: 4;
-    grid-row: 1;
-  }
-  .suites-metro__cell--3 {
-    grid-column: 3;
-    grid-row: 2;
-  }
-  .suites-metro__cell--4 {
-    grid-column: 4;
-    grid-row: 2;
-  }
-
-  /* Every card fills its tile; images grow to consume the tile height. */
-  .suites-metro__cell :global(.suite__media) {
-    aspect-ratio: auto;
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-
-  /* Tablet: 2 columns; hero spans the full width on top, then a 2×2 grid. */
-  @media (max-width: 1000px) {
-    .suites-metro {
-      grid-template-columns: repeat(2, 1fr);
-      grid-template-rows: auto;
-      grid-auto-rows: 1fr;
-    }
-    .suites-metro__cell--0 {
-      grid-column: 1 / 3;
-      grid-row: auto;
-    }
-    .suites-metro__cell--1,
-    .suites-metro__cell--2,
-    .suites-metro__cell--3,
-    .suites-metro__cell--4 {
-      grid-column: auto;
-      grid-row: auto;
-    }
-    .suites-metro__cell :global(.suite__media) {
-      aspect-ratio: 4 / 5;
-      flex: 0 0 auto;
-    }
-    .suites-metro__cell--0 :global(.suite__media) {
-      aspect-ratio: 16 / 10;
-    }
-  }
-  /* Phone: single column stack. */
-  @media (max-width: 560px) {
-    .suites-metro {
-      grid-template-columns: 1fr;
-    }
-    .suites-metro__cell--0 {
-      grid-column: 1;
-    }
-    .suites-metro__cell :global(.suite__media),
-    .suites-metro__cell--0 :global(.suite__media) {
-      aspect-ratio: 4 / 3;
-    }
-  }
-  @media (max-width: 900px) {
-    .suites-head__cta {
-      margin-bottom: 1.5rem;
-    }
-  }
-
-  /* Tighten the first two sections under the hero.
-     NOTE: .features is rendered by the FeatureBar component, so it doesn't
-     carry this page's scope hash — the whole selector must be :global(). */
-  :global(.features + .section) {
-    padding-top: clamp(2rem, 4vw, 3.5rem);
-  }
-
-  /* "Beyond the Villa" heading: dial back to a real h2 size (site-wide h2s
-     were bumped up to h1 scale). This one title only. */
-  :global(.beyond-head h2) {
-    font-size: var(--fs-h2);
-  }
-  /* Welcome split leads straight into the Massa Marittima band — no bottom gap. */
-  :global(.features + .section.split) {
-    padding-bottom: 0;
-  }
-
-  /* "15 minutes to" banner: full-bleed image (native 1280×520 ≈ 32/13)
-     with a forest scrim on the left and the text panel overlaid. */
-  .townband {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 1280 / 520;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    /* Sits flush against the Welcome split above and the Experience below. */
-    margin-block: 0;
-  }
-  .townband__bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
-  }
-  /* Dark gradient anchored left so the text stays legible over the sky. */
-  .townband__scrim {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: radial-gradient(
-      ellipse 60% 75% at 50% 50%,
-      rgba(47, 63, 53, 0.62) 0%,
-      rgba(47, 63, 53, 0.42) 45%,
-      rgba(47, 63, 53, 0.12) 75%,
-      rgba(47, 63, 53, 0) 100%
-    );
-  }
-  .townband__inner {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-  .townband__panel {
-    color: var(--c-ivory);
-    max-width: 52ch;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  .townband__title {
-    font-size: var(--fs-h2);
-    margin-top: 0.6rem;
-  }
-  .townband__body {
+  .overview :global(.overview__copy) {
+    margin-top: clamp(1.5rem, 3vw, 2.4rem);
+    max-width: 58ch;
+    font-size: 0.95rem;
+    line-height: 1.75;
     color: var(--text-on-dark-muted);
-    font-size: 1rem;
-    line-height: 1.65;
-    max-width: 46ch;
   }
-  .townband__cta {
-    margin-top: 1.8rem;
-    align-self: center;
+  .overview__meta {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
+    gap: 1.25rem;
+    max-width: 46rem;
   }
-  /* On narrow screens the image is too short to fit the copy; let it grow
-     taller and cover the full width behind a stronger scrim. */
-  @media (max-width: 820px) {
-    .townband {
-      aspect-ratio: auto;
-      min-height: 30rem;
-    }
-    .townband__scrim {
-      background: linear-gradient(
-        180deg,
-        rgba(47, 63, 53, 0.55) 0%,
-        rgba(47, 63, 53, 0.82) 55%,
-        rgba(47, 63, 53, 0.9) 100%
-      );
-    }
-    .townband__panel {
-      max-width: none;
+  .overview__meta > div {
+    border-top: 1px solid var(--line-on-dark);
+    padding-top: 0.8rem;
+  }
+  .overview__meta dt {
+    font-size: 0.64rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-on-dark-muted);
+    margin-bottom: 0.35rem;
+  }
+  .overview__meta dd {
+    font-size: 0.92rem;
+    color: var(--text-on-dark);
+  }
+  .overview :global(.overview__actions) {
+    margin-top: clamp(1.8rem, 3vw, 2.5rem);
+  }
+  @media (max-width: 860px) {
+    .overview__grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
     }
   }
 
-  /* Welcome section: transparent PNG shown free — no arch mask, no frame. */
-  .welcome-cutout {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    filter: drop-shadow(0 30px 50px rgba(47, 63, 53, 0.18));
-  }
-
-  /* The welcome split leads straight into the stat band — drop its bottom
-     padding (only for the split directly above the band) so the numbers sit
-     close under the intro. */
-  :global(.split:has(+ .statband)) {
-    padding-bottom: 0;
-  }
-  .statband {
-    padding-block: clamp(0.8rem, 1.6vw, 1.28rem) clamp(3rem, 6vw, 5rem);
-  }
-  /* Match the HomeGallery inset: centered max-width with gutter margins so the
-     table doesn't run to the viewport edges on wide screens. */
-  .statband > .wrap {
-    width: min(100% - 2 * var(--gutter), 1500px);
-    margin-inline: auto;
-    padding-inline: 0;
-  }
+  /* ── STAT ROW (shared by Features + Reviews) ─────────────────────────── */
   .statband__row {
     list-style: none;
-    margin: 0;
+    margin: clamp(1.6rem, 3vw, 2.4rem) 0 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 0;
+    border: 1px solid var(--line);
   }
   .statband__row--four {
     grid-template-columns: repeat(4, 1fr);
-  }
-  /* Table variant — a framed full-width row: hairline rules on all four sides
-     so the columns read like a clean table. */
-  .statband__row--table {
-    border: 1px solid var(--line);
   }
   .statband__stat {
     display: flex;
@@ -876,161 +543,70 @@ const featureGroups = [
     align-items: center;
     text-align: center;
     gap: 0.5rem;
-    padding: 0.9rem clamp(0.75rem, 1.5vw, 1.5rem);
+    padding: clamp(1.5rem, 2.8vw, 2.3rem) clamp(0.75rem, 1.5vw, 1.5rem);
     position: relative;
-    cursor: default;
   }
-  /* Hover: the whole stat lifts a touch and the number warms to the accent. */
-  .statband__value {
-    transition:
-      transform var(--dur-fast) var(--ease-out),
-      color var(--dur-fast) var(--ease-out);
-  }
-  .statband__label {
-    transition: color var(--dur-fast) var(--ease-out);
-  }
-  .statband__stat:hover .statband__value {
-    transform: translateY(-4px);
-    color: var(--accent-deep);
-  }
-  .statband__stat:hover .statband__label {
-    color: var(--c-charcoal);
-  }
-  /* A soft gold underline grows in on hover. */
-  .statband__stat::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    width: 0;
-    height: 2px;
-    background: var(--accent);
-    transform: translateX(-50%);
-    transition: width var(--dur) var(--ease-out);
-  }
-  .statband__stat:hover::after {
-    width: clamp(2rem, 4vw, 3rem);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .statband__value,
-    .statband__label,
-    .statband__stat::after {
-      transition: none;
-    }
-    .statband__stat:hover .statband__value {
-      transform: none;
-    }
-  }
-  /* Hairline dividers between columns (not before the first). */
   .statband__stat:not(:first-child)::before {
     content: "";
     position: absolute;
     left: 0;
-    top: 10%;
-    bottom: 10%;
+    top: 0;
+    bottom: 0;
     width: 1px;
     background: var(--line);
   }
-  /* Table variant: dividers span the full cell height to close the grid. */
-  .statband__row--table .statband__stat {
-    padding-block: clamp(1.4rem, 2.6vw, 2.1rem);
-  }
-  .statband__row--table .statband__stat:not(:first-child)::before {
-    top: 0;
-    bottom: 0;
-  }
   .statband__value {
     font-family: var(--font-display);
-    font-size: clamp(1.9rem, 1.4rem + 1.6vw, 2.7rem);
+    font-size: clamp(2rem, 1.4rem + 2vw, 3.2rem);
     line-height: 1;
-    color: var(--c-forest);
+    color: var(--text);
   }
   .statband__label {
     font-family: var(--font-body);
     font-size: var(--fs-eyebrow);
+    font-weight: 500;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--text-muted);
     max-width: 14ch;
     line-height: 1.35;
   }
-
   @media (max-width: 760px) {
-    .statband__row {
-      grid-template-columns: repeat(3, 1fr);
-      gap: clamp(1.6rem, 4vw, 2.4rem) 0;
-    }
-    .statband__stat:nth-child(3n + 1)::before {
-      display: none;
-    }
-    /* Four-stat variant: two per row on tablets. */
     .statband__row--four {
       grid-template-columns: repeat(2, 1fr);
-    }
-    .statband__row--four .statband__stat:nth-child(3n + 1)::before {
-      display: block;
     }
     .statband__row--four .statband__stat:nth-child(2n + 1)::before {
       display: none;
     }
-    /* Table variant on tablet: 2x2 grid, no row gap, add a row divider so the
-       cells stay fully framed. */
-    .statband__row--table.statband__row--four {
-      gap: 0;
-    }
-    .statband__row--table .statband__stat:nth-child(2n + 1)::before {
-      display: none;
-    }
-    .statband__row--table .statband__stat:nth-child(n + 3) {
+    .statband__row--four .statband__stat:nth-child(n + 3) {
       border-top: 1px solid var(--line);
     }
   }
-  @media (max-width: 460px) {
-    .statband__row {
-      grid-template-columns: repeat(2, 1fr);
+  @media (max-width: 440px) {
+    .reviews__stats.statband__row {
+      grid-template-columns: 1fr;
     }
-    .statband__stat::before {
+    .reviews__stats .statband__stat:not(:first-child)::before {
       display: none;
     }
-    .statband__stat:not(:nth-child(2n + 1))::before {
-      display: block;
+    .reviews__stats .statband__stat:not(:first-child) {
+      border-top: 1px solid var(--line);
     }
   }
 
-  /* ── Features & Amenities — full-width hover-reveal columns ── */
-  .amenities-section {
-    /* Pulled up close under the welcome, with clear breathing room before the
-       next section so the accordion never collides with the CTA below. */
-    padding-block: clamp(1rem, 2vw, 1.6rem) clamp(3.5rem, 7vw, 6rem);
-  }
-  .amenities {
-    margin-top: 0;
-    /* Match the HomeGallery / statband inset. */
-    width: min(100% - 2 * var(--gutter), 1500px);
-    margin-inline: auto;
-    padding-inline: 0;
-  }
-  .amenities__eyebrow {
-    font-family: var(--font-body);
-    font-size: var(--fs-eyebrow);
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
-    color: var(--accent-deep);
-    margin: 0 0 clamp(1rem, 2vw, 1.5rem);
-  }
+  /* ── FEATURES & AMENITIES — hairline grid of "+" rows ────────────────── */
   .amenities__groups {
+    margin-top: 1px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     align-items: start;
     border: 1px solid var(--line);
-    border-radius: 2px;
-    overflow: hidden;
+    border-top: 0;
   }
   .amenity {
     position: relative;
     outline: none;
   }
-  /* Vertical hairline dividers between columns (not on the first column). */
   .amenity:not(:nth-child(4n + 1))::before {
     content: "";
     position: absolute;
@@ -1040,78 +616,71 @@ const featureGroups = [
     width: 1px;
     background: var(--line);
   }
-  /* Horizontal hairline between the two rows (cells 5–8). */
   .amenity:nth-child(n + 5) {
     border-top: 1px solid var(--line);
   }
   .amenity__summary {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: clamp(1rem, 2vw, 1.35rem) clamp(1.1rem, 2.2vw, 1.6rem);
+    gap: 0.8rem;
+    padding: clamp(1.1rem, 2vw, 1.5rem) clamp(1.1rem, 2.2vw, 1.6rem);
     cursor: pointer;
     user-select: none;
     transition: background var(--dur-fast) var(--ease-out);
   }
   .amenity:hover .amenity__summary,
   .amenity:focus-visible .amenity__summary {
-    background: rgba(38, 36, 31, 0.03);
+    background: var(--surface-sunk);
   }
   .amenity:focus-visible .amenity__summary {
-    outline: 2px solid var(--accent-deep);
+    outline: 2px solid var(--accent);
     outline-offset: -2px;
   }
   .amenity__title {
-    font-family: var(--font-display);
-    font-size: clamp(1.05rem, 0.85rem + 0.6vw, 1.35rem);
-    line-height: 1.1;
-    color: var(--c-forest);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text);
     flex: 1;
   }
   .amenity__count {
     font-family: var(--font-body);
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-size: 0.68rem;
     color: var(--text-muted);
-    background: rgba(38, 36, 31, 0.05);
-    border-radius: 999px;
-    padding: 0.2em 0.6em;
-    min-width: 1.6em;
-    text-align: center;
   }
   .amenity__icon {
     position: relative;
-    width: 14px;
-    height: 14px;
+    width: 11px;
+    height: 11px;
     flex-shrink: 0;
   }
   .amenity__icon::before,
   .amenity__icon::after {
     content: "";
     position: absolute;
-    background: var(--accent-deep);
+    background: var(--accent);
     transition: transform var(--dur) var(--ease-out);
   }
   .amenity__icon::before {
     top: 50%;
     left: 0;
     width: 100%;
-    height: 1.5px;
+    height: 1px;
     transform: translateY(-50%);
   }
   .amenity__icon::after {
     left: 50%;
     top: 0;
-    width: 1.5px;
+    width: 1px;
     height: 100%;
     transform: translateX(-50%);
   }
-  /* + becomes − on hover/focus. */
   .amenity:hover .amenity__icon::after,
   .amenity:focus-visible .amenity__icon::after {
     transform: translateX(-50%) scaleY(0);
   }
-  /* Smooth height reveal using the 0fr → 1fr grid trick. */
   .amenity__panel {
     display: grid;
     grid-template-rows: 0fr;
@@ -1127,7 +696,7 @@ const featureGroups = [
     padding: 0 clamp(1.1rem, 2.2vw, 1.6rem);
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.5rem;
     min-height: 0;
     overflow: hidden;
     opacity: 0;
@@ -1139,22 +708,10 @@ const featureGroups = [
     opacity: 1;
   }
   .amenity__item {
-    position: relative;
-    padding-left: 1.25rem;
     font-family: var(--font-body);
-    font-size: 0.95rem;
-    line-height: 1.4;
-    color: var(--c-charcoal);
-  }
-  .amenity__item::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.55em;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--accent);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text-muted);
   }
   @media (prefers-reduced-motion: reduce) {
     .amenity__summary,
@@ -1169,7 +726,6 @@ const featureGroups = [
     .amenities__groups {
       grid-template-columns: repeat(2, 1fr);
     }
-    /* Reset the vertical dividers; add a full grid look with row borders. */
     .amenity:nth-child(2n)::before {
       display: block;
     }
@@ -1200,359 +756,354 @@ const featureGroups = [
     }
   }
 
-  /* Beyond the Villa list */
-  .beyond__grid {
+  /* ── SUITES — header row + metro mosaic ──────────────────────────────── */
+  .suites-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: var(--space-group);
+  }
+  .suites-head :global(.sechead) {
+    margin-bottom: 0;
+  }
+  .suites-head__cta {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    margin-bottom: 0.4rem;
+  }
+  .suites-metro {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1px;
-    background: var(--line-on-dark);
-    border: 1px solid var(--line-on-dark);
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(1.25rem, 2vw, 2rem) clamp(1rem, 1.8vw, 1.6rem);
+  }
+  .suites-metro__cell {
+    display: flex;
+    min-width: 0;
+  }
+  .suites-metro__cell > :global(.suite) {
+    width: 100%;
+  }
+  .suites-metro__cell--0 {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+  }
+  .suites-metro__cell--1 { grid-column: 3; grid-row: 1; }
+  .suites-metro__cell--2 { grid-column: 4; grid-row: 1; }
+  .suites-metro__cell--3 { grid-column: 3; grid-row: 2; }
+  .suites-metro__cell--4 { grid-column: 4; grid-row: 2; }
+
+  /* Featured tile: taller media to fill its double row. */
+  .suites-metro__cell--0 :global(.suite__media) {
+    aspect-ratio: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  @media (max-width: 1000px) {
+    .suites-metro {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: auto;
+      grid-auto-rows: auto;
+    }
+    .suites-metro__cell--0 {
+      grid-column: 1 / 3;
+      grid-row: auto;
+    }
+    .suites-metro__cell--1,
+    .suites-metro__cell--2,
+    .suites-metro__cell--3,
+    .suites-metro__cell--4 {
+      grid-column: auto;
+      grid-row: auto;
+    }
+    .suites-metro__cell--0 :global(.suite__media) {
+      aspect-ratio: 16 / 10;
+      flex: 0 0 auto;
+    }
+  }
+  @media (max-width: 560px) {
+    .suites-metro {
+      grid-template-columns: 1fr;
+    }
+    .suites-metro__cell--0 {
+      grid-column: 1;
+    }
+    .suites-metro__cell :global(.suite__media),
+    .suites-metro__cell--0 :global(.suite__media) {
+      aspect-ratio: 4 / 3;
+    }
+    .suites-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+  }
+
+  /* ── TOWNBAND — full-bleed Massa Marittima banner ────────────────────── */
+  .townband {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1280 / 520;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    margin-block: 0;
+  }
+  .townband__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+  .townband__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(
+      ellipse 60% 75% at 50% 50%,
+      rgba(22, 20, 18, 0.6) 0%,
+      rgba(22, 20, 18, 0.4) 45%,
+      rgba(22, 20, 18, 0.12) 75%,
+      rgba(22, 20, 18, 0) 100%
+    );
+  }
+  .townband__inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .townband__panel {
+    color: var(--c-ivory);
+    max-width: 52ch;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+  .townband__title {
+    font-size: var(--fs-h2);
+  }
+  .townband__body {
+    color: rgba(244, 241, 234, 0.85);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    max-width: 46ch;
+  }
+  .townband__cta {
+    margin-top: 1rem;
+  }
+  @media (max-width: 820px) {
+    .townband {
+      aspect-ratio: auto;
+      min-height: 30rem;
+    }
+    .townband__scrim {
+      background: linear-gradient(
+        180deg,
+        rgba(22, 20, 18, 0.55) 0%,
+        rgba(22, 20, 18, 0.8) 55%,
+        rgba(22, 20, 18, 0.9) 100%
+      );
+    }
+  }
+
+  /* ── HISTORY ─────────────────────────────────────────────────────────── */
+  .history__cta {
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  /* ── BEYOND THE VILLA — hairline index list ──────────────────────────── */
+  .beyond :global(.sechead) {
+    max-width: 64ch;
+  }
+  .beyond :global(.sechead h2) {
+    max-width: 34ch;
+  }
+  .beyond__list {
+    border-top: 1px solid var(--line);
   }
   .beyond__item a {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 2rem 1.8rem;
-    background: var(--c-forest);
-    transition: background var(--dur) var(--ease-out);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    padding: clamp(1.4rem, 2.8vw, 2.2rem) 0.25rem;
+    border-bottom: 1px solid var(--line);
+    transition: background var(--dur-fast) var(--ease-out);
   }
   .beyond__item a:hover {
-    background: rgba(196, 122, 90, 0.14); /* terracotta wash on hover */
+    background: var(--surface-sunk);
+  }
+  .beyond__num {
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    color: var(--text-muted);
+    flex: 0 0 auto;
   }
   .beyond__name {
     font-family: var(--font-display);
-    font-size: 1.3rem;
+    font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2.4rem);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    line-height: 1.1;
+    flex: 1;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .beyond__item a:hover .beyond__name {
+    color: var(--accent);
   }
   .beyond__arrow {
-    color: var(--accent);
-    transition: transform var(--dur-fast) var(--ease-out);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast);
   }
   .beyond__item a:hover .beyond__arrow {
-    transform: translateX(6px);
+    transform: translate(3px, -3px);
+    color: var(--accent);
   }
 
-  /* Journal section header — centered, with the CTA sitting below the intro. */
-  .journal-head {
+  /* ── JOURNAL cards ───────────────────────────────────────────────────── */
+  .jcard {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-bottom: var(--space-group);
-  }
-  .journal-head :global(.sechead) {
-    margin-bottom: 1.5rem;
-  }
-  .journal-head__cta {
-    align-self: center;
-  }
-
-  /* Journal — alternating editorial rows (text / image, flipping each row). */
-  .jzig {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(3rem, 6vw, 6rem);
-  }
-  .jrow {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: clamp(2rem, 5vw, 5rem);
     color: var(--text);
   }
-  /* Flip odd rows: image on the left, text on the right. */
-  .jrow--reverse .jrow__media {
-    order: 2;
-  }
-  .jrow__media {
-    position: relative;
+  .jcard__media {
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-soft);
+    background: var(--surface-sunk);
   }
-  .jrow__media :global(img) {
+  .jcard__media :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform var(--dur) var(--ease-out);
   }
-  .jrow:hover .jrow__media :global(img) {
-    transform: scale(1.05);
-  }
-  .jrow__body {
-    max-width: 46ch;
-  }
-  .jrow__title {
-    margin-top: 0.7rem;
-    font-size: var(--fs-h2);
-    line-height: 1.14;
-  }
-  .jrow__excerpt {
-    margin-top: 1rem;
-    color: var(--text-muted);
-    font-size: 1.02rem;
-    line-height: 1.65;
-  }
-  .jrow__more {
-    display: inline-block;
-    margin-top: 1.5rem;
-    font-size: 0.74rem;
+  .jcard__cat {
+    margin-top: 1.1rem;
+    font-size: 0.64rem;
+    font-weight: 500;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--accent-deep);
-    position: relative;
+    color: var(--accent);
   }
-  .jrow__more::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 100%;
-    height: 1px;
-    background: currentColor;
-    transform: scaleX(1);
-    transform-origin: left;
-    transition: transform var(--dur) var(--ease-out);
+  .jcard__title {
+    margin-top: 0.5rem;
+    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+    line-height: 1.2;
+    max-width: 22ch;
+    transition: color var(--dur-fast) var(--ease-out);
   }
-  .jrow:hover .jrow__more::after {
-    transform: scaleX(0);
-    transform-origin: right;
+  .jcard:hover .jcard__title {
+    color: var(--accent);
   }
-
-  @media (max-width: 860px) {
-    .jrow {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-    /* On mobile keep image first for every row for a consistent rhythm. */
-    .jrow--reverse .jrow__media {
-      order: 0;
-    }
-    .jrow__body {
-      max-width: none;
-    }
+  .jcard__more {
+    margin-top: 0.9rem;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
   }
 
-  /* ── WEDDINGS & EVENTS — editorial teaser ────────────────────────────── */
-  /* Two columns: text intro left, photo gallery right (fills the empty space). */
-  .weddings__split {
-    display: grid;
-    grid-template-columns: 0.92fr 1.08fr;
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: center;
+  /* ── WEDDINGS carousel ───────────────────────────────────────────────── */
+  .weddings__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: var(--space-group);
   }
-  .weddings__intro {
-    align-self: center;
+  .weddings__head :global(.sechead) {
+    margin-bottom: 0;
   }
-  .weddings__eyebrow {
+  .weddings__cta {
+    flex: 0 0 auto;
     margin-bottom: 0.4rem;
   }
-  /* Oversized display headline, hero-scale. Sits left, two lines. */
-  .weddings__title {
-    font-size: var(--fs-h1);
-    line-height: var(--lh-tight);
-    letter-spacing: -0.01em;
-    margin-bottom: clamp(1.5rem, 3vw, 2.4rem);
-  }
-  .weddings__title em {
-    font-style: italic;
-    color: var(--accent-deep);
-  }
-  /* Copy + action, left-aligned to match the other section intros. */
-  .weddings__lead {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: clamp(1.5rem, 3vw, 2.2rem);
-  }
-  .weddings__copy {
-    color: var(--text-muted);
-    font-size: 1.05rem;
-    line-height: 1.7;
-    max-width: 52ch;
-  }
-  .weddings__actions {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.1rem;
-  }
-
-  /* Staggered three-photo strip. */
-  .weddings__gallery {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(1rem, 2.5vw, 2rem);
-    align-items: start;
-  }
-  .wtile {
-    position: relative;
+  .wslide {
     margin: 0;
-    overflow: hidden;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-soft);
-    /* Entrance animation: fade + rise, staggered per tile. */
-    opacity: 0;
-    transform: translateY(40px);
-    animation: wtile-in 0.9s var(--ease-out) forwards;
+    flex: 0 0 clamp(18rem, 42vw, 38rem);
   }
-  .wtile :global(img) {
-    display: block;
+  .wslide__media {
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background: var(--surface-sunk);
+  }
+  .wslide__media :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform var(--dur) var(--ease-out);
   }
-  .wtile:hover :global(img) {
-    transform: scale(1.04);
-  }
-  /* Different heights + vertical offsets for editorial rhythm.
-     Heights reduced ~15% (wider aspect ratios). */
-  .wtile--1 {
-    aspect-ratio: 3 / 3.4;
-    margin-top: clamp(1rem, 2.5vw, 2.4rem);
-    animation-delay: 0.05s;
-  }
-  .wtile--2 {
-    aspect-ratio: 4 / 4.25;
-    animation-delay: 0.15s;
-  }
-  .wtile--2 :global(img) {
-    object-position: center 30%;
-  }
-  .wtile--3 {
-    aspect-ratio: 3 / 3.4;
-    margin-top: clamp(0.8rem, 2vw, 1.6rem);
-    animation-delay: 0.25s;
-  }
-
-  @keyframes wtile-in {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .wtile {
-      animation: none;
-      opacity: 1;
-      transform: none;
-    }
-  }
-  /* Third tile reads black-and-white. */
-  .wtile--3 :global(img) {
-    filter: grayscale(1) contrast(1.04);
-  }
-
-  @media (max-width: 900px) {
-    .weddings__split {
-      grid-template-columns: 1fr;
-      gap: clamp(2rem, 6vw, 3.5rem);
-    }
-  }
-  @media (max-width: 860px) {
-    .weddings__gallery {
-      grid-template-columns: 1fr 1fr;
-    }
-    .wtile--1,
-    .wtile--2,
-    .wtile--3 {
-      margin-top: 0;
-    }
-    .wtile--3 {
-      grid-column: 1 / -1;
-      aspect-ratio: 16 / 10;
-    }
-  }
-  @media (max-width: 520px) {
-    .weddings__gallery {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  /* Final CTA */
-  .finalcta {
-    position: relative;
-    min-height: 78svh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: var(--c-ivory);
-    overflow: hidden;
-  }
-  .finalcta__content {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-  .finalcta__content h2 {
-    font-size: clamp(2.5rem, 1.5rem + 4vw, 5rem);
-    max-width: 18ch;
-  }
-  .finalcta__sub {
-    color: var(--text-on-dark-muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
-  }
-
-  /* ── Reviews — editorial guest reviews (left title · stats · card carousel) ── */
-  .reviews > .wrap {
-    /* Match the HomeGallery / statband inset. */
-    width: min(100% - 2 * var(--gutter), 1500px);
-    margin-inline: auto;
-    padding-inline: 0;
-  }
-  .reviews__eyebrow {
-    font-family: var(--font-body);
-    font-size: var(--fs-eyebrow);
+  .wslide__cap {
+    margin-top: 0.9rem;
+    font-size: 0.66rem;
+    font-weight: 500;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin: 0 0 clamp(1.4rem, 3vw, 2.2rem);
-  }
-  .reviews__eyebrow::before {
-    content: "";
-    width: 1.1rem;
-    height: 2px;
-    background: currentColor;
-    opacity: 0.7;
-  }
-  .reviews__title {
-    font-family: var(--font-display);
-    font-size: var(--fs-h2);
-    line-height: var(--lh-tight);
-    letter-spacing: -0.01em;
-    text-transform: uppercase;
-    color: var(--c-charcoal);
-    max-width: 20ch;
-    margin: 0 0 clamp(2rem, 4vw, 3rem);
-  }
-  /* Stats row: 3 equal columns (override the base 6-col grid). */
-  .reviews__stats.statband__row {
-    grid-template-columns: repeat(3, 1fr);
-    margin-bottom: clamp(2.5rem, 5vw, 4rem);
   }
   @media (max-width: 640px) {
-    .reviews__stats.statband__row {
-      grid-template-columns: repeat(3, 1fr);
+    .weddings__head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
     }
   }
-  @media (max-width: 440px) {
-    .reviews__stats.statband__row {
+
+  /* ── REVIEWS ─────────────────────────────────────────────────────────── */
+  .reviews :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.6rem);
+  }
+  .reviews :global(.reviews__title) {
+    max-width: 20ch;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+  }
+  .reviews__stats.statband__row {
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    border-bottom: 0;
+  }
+
+  /* ── FAQ ─────────────────────────────────────────────────────────────── */
+  .faq-section__grid {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.8fr) 1.4fr;
+    gap: clamp(2.5rem, 6vw, 7rem);
+    align-items: start;
+  }
+  .faq-section__head {
+    position: sticky;
+    top: clamp(6rem, 12vh, 8rem);
+  }
+  .faq-section__head :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
+  .faq-section :global(.faq-section__note) {
+    margin-top: clamp(1.5rem, 3vw, 2.2rem);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text-on-dark-muted);
+    max-width: 34ch;
+  }
+  .faq-section :global(.faq-section__note a) {
+    color: var(--text-on-dark);
+    border-bottom: 1px solid var(--line-on-dark);
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .faq-section :global(.faq-section__note a:hover) {
+    border-color: currentColor;
+  }
+  @media (max-width: 900px) {
+    .faq-section__grid {
       grid-template-columns: 1fr;
+      gap: 2rem;
     }
-    .reviews__stats .statband__stat:not(:first-child)::before {
-      display: none;
-    }
-    .reviews__stats .statband__stat:not(:first-child) {
-      border-top: 1px solid var(--line);
+    .faq-section__head {
+      position: static;
     }
   }
 </style>

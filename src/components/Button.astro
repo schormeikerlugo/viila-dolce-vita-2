@@ -1,6 +1,9 @@
 ---
 /**
- * Button — primary / secondary / ghost variants, straight from the brand guide.
+ * Button — Tuscan Editorial variants.
+ * - primary  → filled ink (ivory when onDark)
+ * - secondary→ 1px hairline outline
+ * - ghost    → uppercase text link with underline + ↗ arrow
  * Renders an <a> when `href` is given, otherwise a <button>.
  */
 interface Props {
@@ -27,27 +30,27 @@ const classes = ["btn", `btn--${variant}`, onDark ? "btn--on-dark" : "", classNa
 
 <Tag class={classes} href={href} {...rest}>
   <span class="btn__label"><slot /></span>
-  {variant === "ghost" && <span class="btn__arrow" aria-hidden="true">→</span>}
+  {variant === "ghost" && <span class="btn__arrow" aria-hidden="true">↗</span>}
 </Tag>
 
 <style>
   .btn {
-    --btn-fg: var(--c-charcoal);
-    --btn-bg: var(--accent);
-    --btn-border: transparent;
+    --btn-fg: var(--c-ivory);
+    --btn-bg: var(--c-ink);
+    --btn-border: var(--c-ink);
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.95rem 1.9rem;
+    padding: 1rem 2.1rem;
     font-family: var(--font-body);
-    font-size: var(--fs-small);
+    font-size: 0.72rem;
     font-weight: 500;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--btn-fg);
     background: var(--btn-bg);
     border: 1px solid var(--btn-border);
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     cursor: pointer;
     transition:
       background var(--dur-fast) var(--ease-out),
@@ -55,32 +58,29 @@ const classes = ["btn", `btn--${variant}`, onDark ? "btn--on-dark" : "", classNa
       border-color var(--dur-fast) var(--ease-out);
   }
 
-  /* Primary — filled gold */
-  .btn--primary {
-    --btn-bg: var(--accent);
-    --btn-fg: var(--c-forest);
-  }
+  /* Primary — filled ink */
   .btn--primary:hover {
-    --btn-bg: var(--accent-deep);
-    --btn-fg: var(--c-ivory);
+    --btn-bg: transparent;
+    --btn-fg: var(--c-ink);
   }
 
-  /* Secondary — outlined */
+  /* Secondary — hairline outline */
   .btn--secondary {
     --btn-bg: transparent;
-    --btn-fg: var(--c-charcoal);
-    --btn-border: var(--c-charcoal);
+    --btn-fg: var(--c-ink);
+    --btn-border: var(--line-strong);
   }
   .btn--secondary:hover {
-    --btn-bg: var(--c-charcoal);
+    --btn-bg: var(--c-ink);
     --btn-fg: var(--c-ivory);
+    --btn-border: var(--c-ink);
   }
 
-  /* Ghost — text + arrow, underline reveal */
+  /* Ghost — text + ↗ arrow, underline reveal */
   .btn--ghost {
     --btn-bg: transparent;
-    --btn-fg: var(--accent-deep);
-    padding-inline: 0;
+    --btn-fg: var(--c-ink);
+    padding: 0;
     border: 0;
     position: relative;
   }
@@ -91,7 +91,7 @@ const classes = ["btn", `btn--${variant}`, onDark ? "btn--on-dark" : "", classNa
     content: "";
     position: absolute;
     left: 0;
-    bottom: -4px;
+    bottom: -5px;
     width: 100%;
     height: 1px;
     background: currentColor;
@@ -99,23 +99,45 @@ const classes = ["btn", `btn--${variant}`, onDark ? "btn--on-dark" : "", classNa
     transform-origin: left;
     transition: transform var(--dur) var(--ease-out);
   }
-  .btn--ghost:hover .btn__arrow {
-    transform: translateX(4px);
+  .btn--ghost:hover .btn__label::after {
+    transform: scaleX(0);
+    transform-origin: right;
+  }
+  .btn--ghost:hover {
+    --btn-fg: var(--accent);
   }
   .btn__arrow {
+    font-size: 0.85em;
     transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .btn--ghost:hover .btn__arrow {
+    transform: translate(2px, -2px);
   }
 
   /* On dark surfaces */
+  .btn--on-dark.btn--primary {
+    --btn-bg: var(--c-ivory);
+    --btn-fg: var(--c-ink);
+    --btn-border: var(--c-ivory);
+  }
+  .btn--on-dark.btn--primary:hover {
+    --btn-bg: transparent;
+    --btn-fg: var(--c-ivory);
+  }
   .btn--on-dark.btn--secondary {
     --btn-fg: var(--c-ivory);
-    --btn-border: rgba(247, 244, 238, 0.55);
+    --btn-border: rgba(244, 241, 234, 0.45);
   }
   .btn--on-dark.btn--secondary:hover {
     --btn-bg: var(--c-ivory);
-    --btn-fg: var(--c-forest);
+    --btn-fg: var(--c-ink);
+    --btn-border: var(--c-ivory);
   }
   .btn--on-dark.btn--ghost {
-    --btn-fg: var(--accent);
+    --btn-fg: var(--c-ivory);
+  }
+  .btn--on-dark.btn--ghost:hover {
+    --btn-fg: var(--c-ivory);
+    opacity: 0.8;
   }
 </style>

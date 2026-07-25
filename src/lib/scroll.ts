@@ -60,11 +60,11 @@ function initReveals() {
     const delay = parseFloat(el.dataset.revealDelay ?? "0");
     gsap.fromTo(
       el,
-      { opacity: 0, y: 28 },
+      { opacity: 0, y: 18 },
       {
         opacity: 1,
         y: 0,
-        duration: 0.9,
+        duration: 0.8,
         delay,
         ease: "power3.out",
         scrollTrigger: {
@@ -104,17 +104,18 @@ function initSectionReveals() {
       return;
     }
 
-    // FADE IN — a soft fade + gentle rise as the section enters view.
-    gsap.set(el, { opacity: 0, y: 40 });
+    // FADE IN — a quiet fade + subtle rise as the section enters view.
+    // Editorial restraint: sections reveal once and stay revealed.
+    gsap.set(el, { opacity: 0, y: 24 });
     gsap.to(el, {
       opacity: 1,
       y: 0,
-      duration: 1.2,
+      duration: 1,
       ease: "power2.out",
       scrollTrigger: {
         trigger: el,
         start: "top 90%",
-        toggleActions: "play none none reverse",
+        toggleActions: "play none none none",
       },
     });
   });

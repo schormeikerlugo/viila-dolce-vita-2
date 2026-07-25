@@ -3,10 +3,13 @@
  * Packages & Rates — nightly rates, experience packages, wedding tiers.
  * All data from packages.ts (content.md). Rates are starting points to be
  * confirmed with ownership (see Docs).
+ * Tuscan Editorial: hairline tables (SpecTable), no cards, single accent.
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "../components/PageHero.astro";
 import SectionHeader from "../components/SectionHeader.astro";
+import SpecTable from "../components/SpecTable.astro";
+import CtaBanner from "../components/CtaBanner.astro";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
 import { photos } from "../data/media";
@@ -19,6 +22,26 @@ import {
   weddingTiers,
   weddingTiersNote,
 } from "../data/packages";
+
+// SpecTable rows — experience packages, led by their Italian names.
+const packageRows = packages.map((p) => ({
+  title: p.italian,
+  note: p.name,
+  specs: [
+    { label: "Duration", value: p.nights },
+    { label: "Includes", value: p.includes.join(" · ") },
+    { label: "Price", value: p.price },
+  ],
+}));
+
+// SpecTable rows — wedding tiers on the ink ground.
+const tierRows = weddingTiers.map((t) => ({
+  title: t.tier,
+  specs: [
+    { label: "Guests", value: `${t.guests} guests` },
+    { label: "Includes", value: t.includes },
+  ],
+}));
 ---
 
 <BaseLayout
@@ -31,30 +54,39 @@ import {
     subtitle={packagesIntro}
     image={photos.valdorciaMist}
     imageAlt="Misty Tuscan hills at dawn"
+    meta={[
+      { label: "Suites", value: String(rates.length) },
+      { label: "Experience Packages", value: String(packages.length) },
+      { label: "Wedding Tiers", value: String(weddingTiers.length) },
+    ]}
   />
 
-  <!-- NIGHTLY RATES -->
-  <section class="section split--stone">
+  <!-- NIGHTLY RATES — editorial hairline table -->
+  <section class="section bg-sunk" aria-label="Nightly rates by suite">
     <div class="wrap">
-      <SectionHeader eyebrow="Nightly Rates by Suite" title="What a Night Costs, by Season" align="left" />
-      <div class="rate-scroll">
+      <SectionHeader
+        eyebrow="Nightly Rates by Suite"
+        title="What a Night Costs, by Season"
+        align="left"
+      />
+      <div class="rate-scroll" data-reveal tabindex="0">
         <table class="rate-table">
           <thead>
             <tr>
-              <th>Suite</th>
-              <th>{rateColumns.low}</th>
-              <th>{rateColumns.shoulder}</th>
-              <th>{rateColumns.peak}</th>
+              <th scope="col">Suite</th>
+              <th scope="col">{rateColumns.low}</th>
+              <th scope="col">{rateColumns.shoulder}</th>
+              <th scope="col">{rateColumns.peak}</th>
             </tr>
           </thead>
           <tbody>
             {
               rates.map((r) => (
                 <tr>
-                  <td class="rate-suite">{r.suite}</td>
+                  <th scope="row" class="rate-suite">{r.suite}</th>
                   <td>{r.low}</td>
                   <td>{r.shoulder}</td>
-                  <td class="rate-peak">{r.peak}</td>
+                  <td>{r.peak}</td>
                 </tr>
               ))
             }
@@ -64,220 +96,135 @@ import {
     </div>
   </section>
 
-  <!-- EXPERIENCE PACKAGES -->
-  <section class="section bg-ivory">
+  <!-- EXPERIENCE PACKAGES — spec rows with hairlines -->
+  <section class="section bg-ivory" aria-label="Experience packages">
     <div class="wrap">
-      <SectionHeader eyebrow="Experience Packages" title="Bundled, Named, Priced" align="center">
+      <SectionHeader
+        eyebrow="Experience Packages"
+        title="Bundled, Named, Priced"
+        align="left"
+      >
         <p>Five ways to spend your stay, each built around a different rhythm.</p>
       </SectionHeader>
-      <div class="pkg-grid">
-        {
-          packages.map((p) => (
-            <article class="pkg card" data-reveal>
-              <div class="pkg__head">
-                <p class="pkg__it">{p.italian}</p>
-                <h3 class="pkg__name">{p.name}</h3>
-                <p class="pkg__nights">{p.nights}</p>
-              </div>
-              <ul class="pkg__includes">
-                {p.includes.map((it) => <li>{it}</li>)}
-              </ul>
-              <p class="pkg__price">{p.price}</p>
-              <Button href={bookingHref} variant="ghost">Enquire</Button>
-            </article>
-          ))
-        }
+      <SpecTable rows={packageRows} />
+      <div class="section-foot" data-reveal data-reveal-delay={0.1}>
+        <Button href={bookingHref} variant="ghost">Enquire</Button>
       </div>
     </div>
   </section>
 
-  <!-- WEDDING TIERS -->
-  <section class="section bg-dark">
-    <div class="wrap">
-      <SectionHeader eyebrow="Wedding Tiers" title="Three Ways to Celebrate" align="center" onDark>
-        <p style="color:var(--text-on-dark-muted)">{weddingTiersNote}</p>
-      </SectionHeader>
-      <div class="tiers">
-        {
-          weddingTiers.map((t, i) => (
-            <article class:list={["tier", { "tier--mid": i === 1 }]} data-reveal>
-              <h3 class="tier__name">{t.tier}</h3>
-              <p class="tier__guests">{t.guests} guests</p>
-              <hr class="rule" />
-              <p class="tier__inc">{t.includes}</p>
-            </article>
-          ))
-        }
+  <!-- WEDDING TIERS — ink ground -->
+  <section class="section bg-dark" aria-labelledby="tiers-title">
+    <div class="wrap tiers__grid">
+      <div class="tiers__head">
+        <Reveal as="p" class="eyebrow">Wedding Tiers</Reveal>
+        <h2 id="tiers-title" data-reveal data-reveal-delay={0.05}>Three Ways to Celebrate</h2>
+        <Reveal as="p" class="tiers__note" delay={0.1}>{weddingTiersNote}</Reveal>
+        <Reveal delay={0.15} class="tiers__cta">
+          <Button href="/contact" variant="secondary" onDark>Request a Wedding Quote</Button>
+        </Reveal>
       </div>
-      <div class="center-cta">
-        <Button href="/contact" variant="secondary" onDark>Request a Wedding Quote</Button>
-      </div>
+      <SpecTable rows={tierRows} onDark />
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="section bg-ivory">
-    <div class="wrap wrap--narrow" style="text-align:center">
-      <SectionHeader eyebrow="Book Direct" title="The Best Rate Is Always Here" align="center">
-        <p>Reserve directly with us — no third parties, no markup.</p>
-      </SectionHeader>
-      <Reveal delay={0.15}>
-        <Button href={bookingHref} variant="primary">Check Availability</Button>
-      </Reveal>
-    </div>
-  </section>
+  <!-- CLOSING CTA -->
+  <CtaBanner
+    eyebrow="Book Direct"
+    title="The Best Rate<br />Is Always Here"
+    sub="Reserve directly with us — no third parties, no markup."
+    ctaLabel="Check Availability"
+    ctaHref={bookingHref}
+    image={photos.terraceTableView}
+    imageAlt="The loggia terrace with the hills opening out beyond"
+  />
 </BaseLayout>
 
 <style>
-  .lead {
-    font-family: var(--font-display);
-    font-size: clamp(1.2rem, 0.9rem + 1.2vw, 1.8rem);
-    line-height: 1.5;
-    color: var(--c-forest);
-  }
-
+  /* ── Nightly rates table — filetes 1px, Archivo data ─────────────────── */
   .rate-scroll {
     overflow-x: auto;
+  }
+  .rate-scroll:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
   .rate-table {
     width: 100%;
     border-collapse: collapse;
     min-width: 640px;
+    border-top: 1px solid var(--line);
   }
   .rate-table th,
   .rate-table td {
     text-align: left;
-    padding: 1rem 1rem;
+    vertical-align: top;
+    padding: clamp(1rem, 2vw, 1.4rem) 1rem;
     border-bottom: 1px solid var(--line);
   }
-  .rate-table th {
-    font-family: var(--font-body);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking-caps);
-    font-size: var(--fs-eyebrow);
-    color: var(--accent-deep);
+  .rate-table th:first-child,
+  .rate-table td:first-child {
+    padding-left: 0.25rem;
   }
-  .rate-table td {
-    font-family: var(--font-display);
-    font-size: 1.15rem;
+  .rate-table thead th {
+    font-family: var(--font-body);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .rate-table tbody td {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
   }
   .rate-suite {
-    font-family: var(--font-body) !important;
-    font-size: 0.95rem !important;
-    max-width: 22ch;
-  }
-  .rate-peak {
-    color: var(--accent-deep);
-  }
-
-  /* Packages */
-  .pkg-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(1.5rem, 2.5vw, 2.2rem);
-  }
-  /* Base look (border, radius, background, hover lift) comes from .card */
-  .pkg {
-    padding: 1.8rem 1.8rem 2rem;
-  }
-  .pkg__it {
-    font-family: var(--font-display);
-    font-style: italic;
-    color: var(--accent-deep);
-    font-size: 1.1rem;
-  }
-  .pkg__name {
-    font-size: 1.5rem;
-    margin: 0.2rem 0;
-  }
-  .pkg__nights {
-    font-size: var(--fs-eyebrow);
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 1.2rem;
-  }
-  .pkg__includes {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1.5rem;
-    display: grid;
-    gap: 0.55rem;
-    flex: 1;
-  }
-  .pkg__includes li {
-    position: relative;
-    padding-left: 1.4rem;
+    font-family: var(--font-body);
     font-size: 0.92rem;
-    color: var(--text-muted);
-  }
-  .pkg__includes li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.55em;
-    width: 7px;
-    height: 7px;
-    border: 1px solid var(--accent-deep);
-    transform: rotate(45deg);
-  }
-  .pkg__price {
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    color: var(--c-forest);
-    margin-bottom: 1.2rem;
+    font-weight: 500;
+    color: var(--text);
+    max-width: 26ch;
   }
 
-  /* Wedding tiers */
-  .tiers {
+  /* ── Enquire foot link ────────────────────────────────────────────────── */
+  .section-foot {
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  /* ── Wedding tiers — sticky head + dark spec table ────────────────────── */
+  .tiers__grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(1.5rem, 2.5vw, 2.2rem);
+    grid-template-columns: minmax(16rem, 0.8fr) 1.4fr;
+    gap: clamp(2.5rem, 6vw, 7rem);
+    align-items: start;
   }
-  .tier {
-    border: 1px solid var(--line-on-dark);
-    border-radius: var(--radius);
-    padding: 2rem 1.8rem;
-    background: rgba(243, 238, 230, 0.04);
+  .tiers__head {
+    position: sticky;
+    top: clamp(6rem, 12vh, 8rem);
   }
-  .tier--mid {
-    border-color: var(--accent);
-    background: rgba(196, 122, 90, 0.1); /* terracotta tint on the featured tier */
+  .tiers__head :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
   }
-  .tier__name {
-    font-size: 1.7rem;
-    color: var(--accent);
-  }
-  .tier__guests {
-    font-size: var(--fs-eyebrow);
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
+  .tiers__head :global(.tiers__note) {
+    margin-top: clamp(1.5rem, 3vw, 2.2rem);
+    font-size: 0.85rem;
+    line-height: 1.7;
     color: var(--text-on-dark-muted);
-    margin-top: 0.3rem;
+    max-width: 38ch;
   }
-  .tier .rule {
-    margin: 1.2rem 0;
-  }
-  .tier__inc {
-    color: var(--text-on-dark-muted);
-    font-size: 0.95rem;
-  }
-  .center-cta {
-    display: flex;
-    justify-content: center;
-    margin-top: 3rem;
+  .tiers__head :global(.tiers__cta) {
+    margin-top: clamp(1.8rem, 3vw, 2.5rem);
   }
 
-  @media (max-width: 1000px) {
-    .pkg-grid,
-    .tiers {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  @media (max-width: 620px) {
-    .pkg-grid,
-    .tiers {
+  @media (max-width: 900px) {
+    .tiers__grid {
       grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .tiers__head {
+      position: static;
     }
   }
 </style>

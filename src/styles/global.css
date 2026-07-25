@@ -3,16 +3,11 @@
    Import order: fonts -> tokens -> reset -> base -> utilities
    ========================================================================== */
 
-/* Display: Cormorant Garamond (high-contrast editorial serif). */
-@import "@fontsource/cormorant-garamond/400.css";
-@import "@fontsource/cormorant-garamond/500.css";
-@import "@fontsource/cormorant-garamond/600.css";
-@import "@fontsource/cormorant-garamond/400-italic.css";
-@import "@fontsource/cormorant-garamond/500-italic.css";
-/* Body: Inter. */
-@import "@fontsource/inter/300.css";
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
+/* Display: Bodoni Moda (variable, high-contrast didone). */
+@import "@fontsource-variable/bodoni-moda/wght.css";
+@import "@fontsource-variable/bodoni-moda/wght-italic.css";
+/* Body: Archivo (variable grotesque). */
+@import "@fontsource-variable/archivo/wght.css";
 
 @import "./tokens.css";
 
@@ -65,25 +60,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Subtle global film grain — a warm tactile layer over the whole page.
-   Fixed, non-interactive, blended into the parchment. Zero network cost. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-overlay);
-  pointer-events: none;
-  background-image: var(--grain);
-  background-size: 140px 140px;
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-}
-@media (prefers-reduced-motion: reduce) {
-  body::after {
-    display: none;
-  }
-}
-
 img,
 picture,
 video,
@@ -112,28 +88,35 @@ ol {
 }
 
 /* ---------- Typography ---------- */
+/* Display headings: uppercase Bodoni — the Masseto signature. */
 h1,
 h2,
 h3,
 h4 {
   font-family: var(--font-display);
-  /* Cormorant is lighter than Playfair, so headings carry 600 for presence. */
-  font-weight: 600;
+  font-weight: 500;
   line-height: var(--lh-tight);
-  letter-spacing: 0.002em;
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
 }
 
 h1 {
   font-size: var(--fs-h1);
 }
 h2 {
-  font-size: var(--fs-h1);
+  font-size: var(--fs-h2);
   line-height: var(--lh-snug);
 }
 h3 {
   font-size: var(--fs-h3);
   line-height: var(--lh-snug);
-  font-weight: 500;
+}
+/* Italic accents inside display headings keep the didone's warmth. */
+h1 em,
+h2 em,
+h3 em {
+  font-style: italic;
+  font-weight: 450;
 }
 
 p {
@@ -146,35 +129,57 @@ em,
 }
 
 /* ---------- Reusable text classes ---------- */
+/* Eyebrow: "↳ LABEL" — small grotesque caps with the return-arrow marker. */
 .eyebrow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6rem;
   font-family: var(--font-body);
   font-size: var(--fs-eyebrow);
   font-weight: 500;
   letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
-  color: var(--accent-deep);
+  color: var(--text-muted);
+}
+.eyebrow::before {
+  content: "\21B3"; /* ↳ */
+  font-family: var(--font-body);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.bg-dark .eyebrow,
+.bg-charcoal .eyebrow {
+  color: var(--text-on-dark-muted);
 }
 .eyebrow--gold {
   color: var(--accent);
 }
-/* Eyebrow preceded by a small 45deg diamond — the "Geometry" signature. */
+/* Legacy diamond signature → now renders the same arrow eyebrow. */
 .eyebrow--diamond {
   display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
+  align-items: baseline;
+  gap: 0.6rem;
 }
-.eyebrow--diamond::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  transform: rotate(45deg);
-  border: 1px solid currentColor;
-  flex: 0 0 auto;
+
+/* Slash eyebrow — "/ Rooms" (Tonelli). Use for page-level meta labels. */
+.slash-label {
+  font-family: var(--font-body);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.slash-label::before {
+  content: "/ ";
+  color: var(--accent);
 }
 
 .lead {
-  font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
-  line-height: 1.55;
+  font-size: clamp(1.05rem, 0.98rem + 0.4vw, 1.3rem);
+  line-height: 1.6;
   color: var(--text-muted);
 }
 .bg-dark .lead,
@@ -182,19 +187,16 @@ em,
   color: var(--text-on-dark-muted);
 }
 
-/* Amber hairline used under eyebrows/headings. */
+/* Short accent hairline used under eyebrows/headings. */
 .rule {
-  width: 3.5rem;
+  width: 2.75rem;
   height: 1px;
   background: var(--accent);
   border: 0;
   margin: 1.25rem 0;
 }
 
-/* ---------- Diamond divider (the "Geometry" signature) ----------
-   A thin full-width hairline with a small 45deg diamond centered on it.
-   Echoes the brand's diamond ornament in the reference proposal.
-   Usage: <div class="divider"></div>  (or .divider--dark on cypress). */
+/* ---------- Divider — a plain full-width hairline. ---------- */
 .divider {
   position: relative;
   height: 1px;
@@ -202,25 +204,9 @@ em,
   background: var(--line);
   margin-block: clamp(2.5rem, 5vw, 4.5rem);
 }
-.divider::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 8px;
-  height: 8px;
-  transform: translate(-50%, -50%) rotate(45deg);
-  background: var(--bg);
-  border: 1px solid var(--accent-deep);
-}
 .divider--dark {
   background: var(--line-on-dark);
 }
-.divider--dark::before {
-  background: var(--bg-dark);
-  border-color: var(--accent);
-}
-/* Short centered variant for use under headings. */
 .divider--short {
   width: min(9rem, 40%);
   margin-inline: auto;
@@ -259,39 +245,33 @@ em,
   background: var(--bg);
   color: var(--text);
 }
-/* Subtle sunk surface — for pages that are otherwise all-ivory, to give
-   text-heavy sections a quiet change of ground instead of flat repetition. */
+/* Subtle sunk surface — quiet change of ground for text-heavy sections. */
 .bg-sunk {
   background: var(--surface-sunk);
   color: var(--text);
 }
-/* Warm terracotta-tinted ground for measured accent bands. */
 .bg-warm {
   background: var(--surface-warm);
   color: var(--text);
 }
 
 /* ---------- Editorial card (single source of truth) ----------
-   Replaces the repeated "border + radius + translateY(-5px) + colored shadow"
-   pattern. Cards sit flat and calm; on hover the border warms and it lifts a
-   hair — no floating "pop". */
+   Flat and calm: a hairline frame, no shadow, no lift. On hover only the
+   frame darkens and the ground warms a breath. */
 .card {
   position: relative;
   display: flex;
   flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
   overflow: hidden;
   transition:
     border-color var(--dur) var(--ease-out),
-    box-shadow var(--dur) var(--ease-out),
-    transform var(--dur) var(--ease-out);
+    background var(--dur) var(--ease-out);
 }
 .card:hover {
-  border-color: rgba(196, 122, 90, 0.55); /* warm terracotta hairline */
-  box-shadow: var(--shadow-card);
-  transform: translateY(-3px);
+  border-color: var(--line-strong);
+  background: var(--c-ivory);
 }
 /* Card whose whole surface is a link */
 a.card {
@@ -310,7 +290,7 @@ a.card {
 .hoist:hover :global(img),
 .hoist:hover img,
 :hover > .hoist :global(img) {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 /* Eyebrow rule rhythm helper */
@@ -322,6 +302,65 @@ a.card {
 .intro-left {
   max-width: 46ch;
   margin-bottom: var(--space-group);
+}
+
+/* ---------- Carousel control — "Prev ————●———— Next" (Tonelli) ----------
+   Markup:
+   <div class="ctl">
+     <button class="ctl__btn" data-prev>Prev</button>
+     <div class="ctl__track"><span class="ctl__thumb"></span></div>
+     <button class="ctl__btn" data-next>Next</button>
+   </div>                                                                   */
+.ctl {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 2rem);
+  width: min(28rem, 100%);
+  margin-inline: auto;
+}
+.ctl__btn {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease-out);
+  cursor: pointer;
+}
+.ctl__btn:hover {
+  color: var(--text);
+}
+.bg-dark .ctl__btn,
+.bg-charcoal .ctl__btn {
+  color: var(--text-on-dark-muted);
+}
+.bg-dark .ctl__btn:hover,
+.bg-charcoal .ctl__btn:hover {
+  color: var(--text-on-dark);
+}
+.ctl__track {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.bg-dark .ctl__track,
+.bg-charcoal .ctl__track {
+  background: var(--line-on-dark);
+}
+.ctl__thumb {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  height: 3px;
+  width: 22%;
+  background: var(--text);
+  transition: left var(--dur) var(--ease-out), width var(--dur) var(--ease-out);
+}
+.bg-dark .ctl__thumb,
+.bg-charcoal .ctl__thumb {
+  background: var(--text-on-dark);
 }
 
 /* ---------- Accessibility ---------- */
@@ -347,10 +386,9 @@ a.card {
   left: 1rem;
   top: -3rem;
   z-index: var(--z-overlay);
-  background: var(--c-forest);
+  background: var(--c-ink);
   color: var(--c-ivory);
   padding: 0.6rem 1rem;
-  border-radius: var(--radius-sm);
   transition: top var(--dur-fast) var(--ease-out);
 }
 .skip-link:focus {
@@ -360,7 +398,7 @@ a.card {
 /* ---------- Reviews card carousel (React island) ----------
    Styles live here (not inside the JSX) so they apply during SSR before the
    island hydrates — the content is always visible, never dependent on JS.
-   Editorial layout: framed card carousel with side arrows + table rules. */
+   Editorial layout: hairline-framed card carousel + table rules. */
 .tc {
   position: relative;
   display: grid;
@@ -369,7 +407,6 @@ a.card {
   gap: clamp(0.5rem, 1.5vw, 1.25rem);
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 2px;
 }
 .tc__viewport {
   overflow: hidden;
@@ -400,17 +437,18 @@ a.card {
   width: 100%;
 }
 .tc-card__stars {
-  font-size: 1rem;
-  letter-spacing: 0.25em;
-  color: var(--c-charcoal);
+  font-size: 0.85rem;
+  letter-spacing: 0.3em;
+  color: var(--accent);
   line-height: 1;
 }
 .tc-card__quote {
-  font-family: var(--font-body);
-  font-size: clamp(1rem, 0.96rem + 0.4vw, 1.2rem);
-  line-height: 1.7;
-  color: var(--text-muted);
-  max-width: 60ch;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.15rem, 1rem + 0.7vw, 1.6rem);
+  line-height: 1.5;
+  color: var(--text);
+  max-width: 56ch;
   margin: 0;
   flex: 1;
 }
@@ -422,62 +460,64 @@ a.card {
 }
 .tc-card__name {
   font-family: var(--font-body);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--c-charcoal);
+  color: var(--text);
 }
 .tc-card__country {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--text-muted);
 }
 /* Side arrows sit inside the framed row, separated by a hairline rule. */
 .tc__nav {
-  align-self: center;
-  width: clamp(2.4rem, 4vw, 3rem);
-  height: clamp(2.4rem, 4vw, 3rem);
-  margin: clamp(1rem, 2.5vw, 2rem);
-  border-radius: 50%;
-  border: 1px solid var(--line);
+  align-self: stretch;
+  width: clamp(3rem, 5vw, 4rem);
+  margin: 0;
+  border-radius: 0;
+  border: 0;
   background: transparent;
-  color: var(--c-charcoal);
-  font-size: 1.5rem;
+  color: var(--text-muted);
+  font-size: 1.4rem;
   line-height: 1;
   cursor: pointer;
   transition:
     background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
+    color var(--dur-fast) var(--ease-out);
+}
+.tc__nav:first-child {
+  border-right: 1px solid var(--line);
+}
+.tc__nav:last-of-type {
+  border-left: 1px solid var(--line);
 }
 .tc__nav:hover {
-  background: var(--accent);
-  color: var(--c-forest);
-  border-color: var(--accent);
+  background: var(--c-ink);
+  color: var(--c-ivory);
 }
 /* Dots below the framed row. */
 .tc__dots {
   grid-column: 1 / -1;
   display: flex;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   padding: clamp(1rem, 2vw, 1.5rem);
   border-top: 1px solid var(--line);
 }
 .tc__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(38, 36, 31, 0.18);
-  transition: background 0.3s, transform 0.3s;
+  width: 1.6rem;
+  height: 2px;
+  border-radius: 0;
+  background: rgba(22, 20, 18, 0.18);
+  transition: background 0.3s;
   cursor: pointer;
 }
 .tc__dot.is-active {
-  background: var(--accent);
-  transform: scale(1.3);
+  background: var(--c-ink);
 }
 @media (max-width: 640px) {
   .tc {
@@ -495,7 +535,7 @@ a.card {
 /* Elements marked [data-reveal] start hidden; scroll.ts animates them in. */
 [data-reveal] {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(20px);
   will-change: opacity, transform;
 }
 .is-ready [data-reveal] {

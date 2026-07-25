@@ -1,102 +1,110 @@
 /* ==========================================================================
    Villa Dolce Vita — Design Tokens
-   Art direction: "Vineyard Geometry" (Proposal 46)
-   Palette: Parchment · Cypress Green · Vineyard Green · Amber Gold ·
-            Terracotta Earth · Warm Taupe
+   Art direction: "Tuscan Editorial" — luxury villa redesign.
+   References: Villa di Masseto (ivory/ink, eyebrow markers, dense grids)
+             + Tonelli Design (1px rules, spec tables, giant footer wordmark).
+   Palette: Ivory · Ink · Warm Stone · a single burnished-terracotta accent.
    Every color / type / spacing value used across the site is defined here.
    ========================================================================== */
 
 :root {
-  /* --- Brand colors (Vineyard Geometry palette) --- */
-  --c-parchment: #f3eee6; /* warm parchment — primary light surface */
-  --c-cypress: #2f3f35; /* cypress green — primary dark surface */
-  --c-vineyard: #6a7f5e; /* vineyard green — vegetal mid accent */
-  --c-amber: #c9974d; /* amber gold — primary accent / CTAs */
-  --c-terracotta: #c47a5a; /* terracotta earth — warm accent (measured) */
-  --c-taupe: #b8aa9a; /* warm taupe — muted borders / captions */
-  --c-charcoal: #26241f; /* warm near-black — body text on light */
+  /* --- Brand colors (Tuscan Editorial palette) --- */
+  --c-ivory: #f4f1ea; /* warm ivory — primary light surface */
+  --c-ivory-deep: #eae5da; /* sunken ivory — tables / quiet bands */
+  --c-ink: #161412; /* warm near-black — primary dark surface + text */
+  --c-ink-soft: #262320; /* raised surface on ink */
+  --c-stone: #6e6759; /* warm stone — secondary copy on ivory (AA) */
+  --c-stone-light: #a49b8c; /* pale stone — captions, muted borders */
+  --c-accent: #a5673e; /* burnished terracotta — THE single accent */
 
   /* Legacy aliases (kept so existing selectors don't break) --------------- */
-  --c-forest: var(--c-cypress);
-  --c-ivory: var(--c-parchment);
-  --c-stone: var(--c-taupe);
-  --c-bronze: var(--c-terracotta);
-  --c-gold: var(--c-amber);
+  --c-parchment: var(--c-ivory);
+  --c-cypress: var(--c-ink);
+  --c-vineyard: var(--c-stone);
+  --c-amber: var(--c-accent);
+  --c-terracotta: var(--c-accent);
+  --c-taupe: var(--c-stone-light);
+  --c-charcoal: var(--c-ink);
+  --c-forest: var(--c-ink);
+  --c-gold: var(--c-accent);
+  --c-bronze: var(--c-accent);
 
   /* --- Semantic roles --- */
-  --bg: var(--c-parchment);
-  --bg-dark: var(--c-cypress);
-  --bg-charcoal: var(--c-charcoal);
-  --text: var(--c-charcoal);
-  --text-muted: #6b6558; /* warm taupe-grey for secondary copy */
-  --text-on-dark: var(--c-parchment);
-  --text-on-dark-muted: #c4c1b2; /* soft parchment-grey on cypress */
+  --bg: var(--c-ivory);
+  --bg-dark: var(--c-ink);
+  --bg-charcoal: var(--c-ink);
+  --text: var(--c-ink);
+  --text-muted: var(--c-stone);
+  --text-on-dark: var(--c-ivory);
+  --text-on-dark-muted: #b6afa2; /* soft ivory-grey on ink */
 
-  --accent: var(--c-amber); /* primary accent — amber gold */
-  --accent-deep: var(--c-terracotta); /* warm accent — terracotta */
-  --accent-veg: var(--c-vineyard); /* vegetal accent — vineyard green */
+  --accent: var(--c-accent);
+  --accent-deep: var(--c-accent);
+  --accent-veg: var(--c-stone);
 
-  --line: rgba(38, 36, 31, 0.14);
-  --line-strong: rgba(38, 36, 31, 0.26);
-  --line-on-dark: rgba(243, 238, 230, 0.18);
+  --line: rgba(22, 20, 18, 0.14);
+  --line-strong: rgba(22, 20, 18, 0.32);
+  --line-on-dark: rgba(244, 241, 234, 0.16);
 
   /* --- Typography --- */
-  /* Display: Cormorant Garamond — high-contrast, editorial serif.
-     Body: Inter — refined, neutral sans. */
-  --font-display: "Cormorant Garamond", "Playfair Display", Georgia, serif;
-  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  /* Display: Bodoni Moda — high-contrast didone, set in uppercase.
+     Body: Archivo — neutral grotesque for copy, labels and data. */
+  --font-display: "Bodoni Moda Variable", "Bodoni Moda", Didot,
+    "Playfair Display", Georgia, serif;
+  --font-body: "Archivo Variable", "Archivo", "Helvetica Neue", system-ui,
+    -apple-system, sans-serif;
 
-  /* Fluid type scale. Cormorant runs narrower + lighter than Playfair, so the
-     display sizes are pushed up ~10-15% to hold the same presence. */
-  --fs-h1: clamp(3.1rem, 1.7rem + 6vw, 6.4rem);
-  --fs-h2: clamp(2.3rem, 1.4rem + 3.6vw, 4.1rem);
-  --fs-h3: clamp(1.5rem, 1.1rem + 1.6vw, 2.2rem);
-  --fs-body: clamp(1rem, 0.96rem + 0.2vw, 1.1rem);
+  /* Fluid type scale — display sizes tuned for uppercase Bodoni. */
+  --fs-h1: clamp(2.7rem, 1.5rem + 5vw, 5.6rem);
+  --fs-h2: clamp(2rem, 1.3rem + 2.8vw, 3.6rem);
+  --fs-h3: clamp(1.35rem, 1.05rem + 1.2vw, 1.9rem);
+  --fs-body: clamp(0.98rem, 0.94rem + 0.2vw, 1.06rem);
   --fs-small: 0.78rem;
-  --fs-eyebrow: 0.72rem;
+  --fs-eyebrow: 0.7rem;
 
-  --lh-tight: 1.04;
-  --lh-snug: 1.2;
+  --lh-tight: 1.05;
+  --lh-snug: 1.18;
   --lh-body: 1.7;
 
-  --tracking-eyebrow: 0.3em;
-  --tracking-caps: 0.16em;
+  --tracking-eyebrow: 0.18em;
+  --tracking-caps: 0.14em;
+  --tracking-display: 0.02em;
 
   /* --- Layout (FULL-WIDTH first: sections span 100vw, small side gutters) --- */
-  --gutter: clamp(1.6rem, 4.5vw, 4rem);
+  --gutter: clamp(1.4rem, 4vw, 4rem);
   --content-max: 1680px;
   --measure: 62ch;
 
   /* Editorial vertical rhythm — generous, premium. */
-  --section-y: clamp(5rem, 8vw, 8.5rem);
+  --section-y: clamp(5.5rem, 9vw, 10rem);
   --space-group: clamp(2.5rem, 4vw, 4rem);
   --space-element: clamp(1rem, 1.5vw, 1.5rem);
 
   /* --- Radii, borders, shadows --- */
-  /* Editorial language: near-straight corners; the arch is the only real curve. */
-  --radius-sm: 3px;
-  --radius: 4px;
-  --radius-arch: 50% 50% 0 0 / 34% 34% 0 0;
+  /* Editorial language: strictly rectangular. No rounded corners anywhere. */
+  --radius-sm: 0px;
+  --radius: 0px;
+  --radius-arch: 0px;
 
-  /* Elevation: soft, low, warm — tinted with cypress, never a colored "pop". */
-  --shadow-soft: 0 18px 50px -34px rgba(47, 63, 53, 0.5);
-  --shadow-card: 0 24px 60px -44px rgba(38, 36, 31, 0.5);
+  /* Elevation: none. Hierarchy is drawn with 1px rules, not shadows. */
+  --shadow-soft: none;
+  --shadow-card: none;
 
-  /* Card surface: a hair warmer than the page so cards read on parchment. */
-  --surface: #fbf8f1;
-  --surface-sunk: #ece6da;
-  /* Terracotta-tinted surface for warm accent bands / highlighted tiers. */
-  --surface-warm: #efe2d6;
+  /* Card surfaces sit on hairlines, a breath warmer than the page. */
+  --surface: #f8f5ee;
+  --surface-sunk: var(--c-ivory-deep);
+  --surface-warm: #ede7d9;
 
-  /* --- Decorative: subtle film grain (data-URI SVG noise, zero network cost) --- */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  /* --- Decorative --- */
+  /* Film grain retired — surfaces stay clean and flat. */
+  --grain: none;
 
   /* --- Motion --- */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
-  --dur-fast: 0.35s;
-  --dur: 0.6s;
-  --dur-slow: 1s;
+  --dur-fast: 0.3s;
+  --dur: 0.55s;
+  --dur-slow: 0.9s;
 
   /* --- Z-index scale --- */
   --z-nav: 100;

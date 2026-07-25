@@ -2,12 +2,12 @@
 /**
  * Gallery — the visual archive of the estate and its surroundings.
  *
- * Structure ported from the Magic-Mushroom-Institute gallery:
- *   centered header + live count · search box · scrollable category chips ·
- *   CSS-columns masonry (per-image aspect-ratio) · full lightbox with
- *   prev/next, keyboard nav, counter and download.
- * Adapted to Villa Dolce Vita's LIGHT theme (parchment background) and to
- * local, build-optimized images (astro:assets) instead of a remote DB.
+ * "Tuscan Editorial" reskin: split PageHero, a left-aligned archive header
+ * with the "/ Visual Archive" slash-label + live count, square hairline
+ * filter chips and search, and a dense UNIFORM grid (Masseto): 5 columns,
+ * 4/3 tiles, 0.6rem gaps — no shadows, no radius, no hover-lift; only the
+ * quiet image zoom. Full lightbox with prev/next, keyboard nav, counter
+ * and download, restyled on hairlines.
  */
 import { Image } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -21,12 +21,9 @@ const total = galleryItems.length;
 // Label lookup so chips + captions read nicely ("Around Tuscany", not "tuscany").
 const catLabel = Object.fromEntries(galleryCategories.map((c) => [c.id, c.label]));
 
-// Per-image aspect ratio (width/height), used both for the masonry tile height
-// and for the CSS `aspect-ratio` so the columns balance without layout jumps.
 const items = galleryItems.map((item) => ({
   ...item,
   label: catLabel[item.cat] ?? item.cat,
-  ratio: `${item.image.width}/${item.image.height}`,
 }));
 ---
 
@@ -44,22 +41,33 @@ const items = galleryItems.map((item) => ({
 
   <section class="section bg-ivory gal-section">
     <div class="wrap">
-      <header class="gal-head" data-reveal>
-        <Reveal as="p" class="eyebrow eyebrow--diamond">Visual Archive</Reveal>
-        <Reveal as="h2" delay={0.05}>A Curated Collection</Reveal>
-        <Reveal delay={0.1}><hr class="rule" /></Reveal>
-        <Reveal as="p" class="gal-count" delay={0.12}>
-          — <span data-gal-count>{total}</span> photographs
+      <!-- Archive header — editorial, left-aligned, on a hairline. -->
+      <header class="gal-head">
+        <Reveal as="p" class="slash-label">Visual Archive</Reveal>
+        <Reveal as="p" class="gal-count" delay={0.05}>
+          <span data-gal-count>{total}</span> photographs
         </Reveal>
       </header>
 
-      <!-- Controls: search + category chips -->
-      <div class="gal-controls gal-controls--center" data-reveal>
+      <!-- Controls: category chips + search -->
+      <div class="gal-controls" data-reveal>
+        <div class="gal-chips" role="group" aria-label="Filter by category">
+          <button type="button" class="gal-chip is-active" data-cat="" aria-pressed="true">
+            All
+          </button>
+          {
+            galleryCategories.map((c) => (
+              <button type="button" class="gal-chip" data-cat={c.id} aria-pressed="false">
+                {c.label}
+              </button>
+            ))
+          }
+        </div>
         <div class="gal-search">
           <svg
             class="gal-search__icon"
-            width="18"
-            height="18"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -80,22 +88,10 @@ const items = galleryItems.map((item) => ({
             aria-label="Search photographs by description"
           />
         </div>
-        <div class="gal-chips" role="group" aria-label="Filter by category">
-          <button type="button" class="gal-chip is-active" data-cat="" aria-pressed="true">
-            All
-          </button>
-          {
-            galleryCategories.map((c) => (
-              <button type="button" class="gal-chip" data-cat={c.id} aria-pressed="false">
-                {c.label}
-              </button>
-            ))
-          }
-        </div>
       </div>
     </div>
 
-    <!-- Full-bleed masonry grid (CSS columns) -->
+    <!-- Full-bleed uniform grid (Masseto) -->
     <div class="wp-grid" id="gal-grid">
       {
         items.map((item) => (
@@ -105,11 +101,10 @@ const items = galleryItems.map((item) => ({
             data-cat={item.cat}
             data-title={item.alt.toLowerCase()}
             data-credit={item.label}
-            style={`--ratio:${item.ratio}`}
           >
             <button
               type="button"
-              class="wp-item__link"
+              class="wp-item__link hoist"
               aria-label={`View ${item.alt}`}
               aria-haspopup="dialog"
               data-lb-open
@@ -121,21 +116,6 @@ const items = galleryItems.map((item) => ({
                 sizes="(max-width: 760px) 50vw, (max-width: 1100px) 33vw, 20vw"
                 loading="lazy"
               />
-              <span class="wp-item__dl" aria-hidden="true">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.3-4.3" />
-                </svg>
-              </span>
               <figcaption class="wp-item__cap">
                 <span class="wp-item__title">{item.alt}</span>
                 <span class="wp-item__credit">{item.label}</span>
@@ -162,7 +142,7 @@ const items = galleryItems.map((item) => ({
       <div class="gal-lb__backdrop" data-lb-close></div>
 
       <button type="button" class="gal-lb__btn gal-lb__close" data-lb-close aria-label="Close">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
 
       <button
@@ -171,7 +151,7 @@ const items = galleryItems.map((item) => ({
         data-lb-prev
         aria-label="Previous photograph"
       >
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
       </button>
 
       <figure class="gal-lb__figure">
@@ -189,7 +169,7 @@ const items = galleryItems.map((item) => ({
               data-lb-download
               aria-label="Download full-resolution photograph"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
               <span>Download</span>
             </button>
           </span>
@@ -202,51 +182,86 @@ const items = galleryItems.map((item) => ({
         data-lb-next
         aria-label="Next photograph"
       >
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </button>
     </div>
   </section>
 </BaseLayout>
 
 <style is:global>
-  /* ─── Section header ─── */
+  /* ─── Archive header — slash-label + count on a hairline ─── */
+  .gal-section {
+    padding-top: clamp(3rem, 6vw, 5rem);
+  }
   .gal-head {
-    text-align: center;
-    max-width: 56ch;
-    margin-inline: auto;
-  }
-  .gal-head .eyebrow {
-    justify-content: center;
-  }
-  .gal-head :global(.rule) {
-    margin-inline: auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
   }
   .gal-count {
-    margin: 0.8rem auto 0;
-    font-size: 0.8rem;
-    letter-spacing: 0.14em;
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--text-muted);
   }
 
-  /* ─── Controls: search + category chips ─── */
+  /* ─── Controls: chips + search ─── */
   .gal-controls {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin: clamp(2rem, 4vw, 3rem) 0 clamp(1.6rem, 3vw, 2.4rem);
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    margin: clamp(1.4rem, 2.5vw, 2rem) 0 clamp(1.6rem, 3vw, 2.4rem);
     flex-wrap: wrap;
   }
-  .gal-controls--center {
-    flex-direction: column;
+  .gal-chips {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 1.4rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
   }
+  .gal-chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    line-height: 1;
+    padding: 0.55rem 1.1rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  .gal-chip:hover {
+    border-color: var(--line-strong);
+  }
+  .gal-chip.is-active {
+    background: var(--c-ink);
+    border-color: var(--c-ink);
+    color: var(--c-ivory);
+  }
+
   .gal-search {
     position: relative;
     flex: 0 0 auto;
-    width: min(480px, 100%);
+    width: min(320px, 100%);
   }
   .gal-search__icon {
     position: absolute;
@@ -258,72 +273,29 @@ const items = galleryItems.map((item) => ({
   }
   .gal-search__input {
     width: 100%;
-    background: var(--surface);
+    background: transparent;
     border: 1px solid var(--line);
-    border-radius: 999px;
+    border-radius: 0;
     color: var(--text);
-    font-family: inherit;
-    font-size: 0.9rem;
-    padding: 0.7rem 1rem 0.7rem 2.7rem;
-    transition:
-      border-color var(--dur-fast) var(--ease-out),
-      box-shadow var(--dur-fast) var(--ease-out),
-      background var(--dur-fast) var(--ease-out);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    padding: 0.65rem 1rem 0.65rem 2.5rem;
+    transition: border-color var(--dur-fast) var(--ease-out);
   }
   .gal-search__input::placeholder {
     color: var(--text-muted);
   }
   .gal-search__input:focus {
     outline: none;
-    border-color: var(--accent);
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(201, 151, 77, 0.22);
+    border-color: var(--c-ink);
   }
 
-  .gal-chips {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    width: 100%;
-    max-width: 100%;
-  }
-  .gal-chip {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    min-height: 38px;
-    background: transparent;
-    border: 1px solid var(--line);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    line-height: 1;
-    padding: 0.55rem 1.1rem;
-    border-radius: 999px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition:
-      background var(--dur-fast) var(--ease-out),
-      border-color var(--dur-fast) var(--ease-out),
-      color var(--dur-fast) var(--ease-out);
-  }
-  .gal-chip:hover {
-    border-color: var(--c-forest);
-  }
-  .gal-chip.is-active {
-    background: var(--c-forest);
-    border-color: var(--c-forest);
-    color: var(--c-ivory);
-  }
   @media (max-width: 760px) {
     .gal-chips {
       flex-wrap: nowrap;
       overflow-x: auto;
       justify-content: flex-start;
+      width: 100%;
       padding-bottom: 4px;
       scrollbar-width: thin;
       -webkit-overflow-scrolling: touch;
@@ -333,28 +305,28 @@ const items = galleryItems.map((item) => ({
     }
   }
 
-  /* ─── Full-bleed masonry grid (CSS columns) ─── */
+  /* ─── Full-bleed uniform grid (Masseto) ─── */
   .wp-grid {
     width: 100vw;
     margin-left: calc(50% - 50vw);
     padding: 0 var(--gutter);
-    column-count: 5;
-    column-gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.6rem;
   }
   @media (max-width: 1400px) {
     .wp-grid {
-      column-count: 4;
+      grid-template-columns: repeat(4, 1fr);
     }
   }
   @media (max-width: 1100px) {
     .wp-grid {
-      column-count: 3;
+      grid-template-columns: repeat(3, 1fr);
     }
   }
   @media (max-width: 760px) {
     .wp-grid {
-      column-count: 2;
-      column-gap: 0.6rem;
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 
@@ -369,24 +341,13 @@ const items = galleryItems.map((item) => ({
     position: relative;
     display: block;
     width: 100%;
-    margin: 0 0 1rem;
-    border-radius: var(--radius);
+    margin: 0;
+    background: var(--surface-sunk);
     overflow: hidden;
-    background: var(--surface);
-    box-shadow: var(--shadow-soft);
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-    transition:
-      box-shadow var(--dur) var(--ease-out),
-      transform var(--dur) var(--ease-out);
   }
   /* `display: block` outranks UA `[hidden] { display: none }`; force it. */
   .wp-item[hidden] {
     display: none;
-  }
-  .wp-item:hover {
-    box-shadow: var(--shadow-card);
-    transform: translateY(-3px);
   }
 
   .wp-item__link {
@@ -397,7 +358,7 @@ const items = galleryItems.map((item) => ({
     border: 0;
     background: none;
     cursor: zoom-in;
-    aspect-ratio: var(--ratio, 4 / 3);
+    aspect-ratio: 4 / 3;
     overflow: hidden;
   }
   .wp-item__link img {
@@ -405,65 +366,36 @@ const items = galleryItems.map((item) => ({
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.5s var(--ease-out);
-  }
-  .wp-item:hover .wp-item__link img {
-    transform: scale(1.04);
-  }
-
-  .wp-item__dl {
-    position: absolute;
-    top: 0.8rem;
-    right: 0.8rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(38, 36, 31, 0.55);
-    backdrop-filter: blur(6px);
-    color: var(--c-ivory);
-    opacity: 0;
-    transform: translateY(-4px);
-    transition:
-      opacity var(--dur) var(--ease-out),
-      transform var(--dur) var(--ease-out);
   }
 
   .wp-item__cap {
     position: absolute;
     inset: auto 0 0 0;
-    padding: 2.2rem 1rem 0.85rem;
+    padding: 2.2rem 0.9rem 0.8rem;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
     text-align: left;
-    background: linear-gradient(to top, rgba(38, 36, 31, 0.82) 0%, rgba(38, 36, 31, 0) 100%);
+    background: linear-gradient(to top, rgba(22, 20, 18, 0.78) 0%, rgba(22, 20, 18, 0) 100%);
     opacity: 0;
-    transform: translateY(8px);
-    transition:
-      opacity var(--dur) var(--ease-out),
-      transform var(--dur) var(--ease-out);
+    transition: opacity var(--dur) var(--ease-out);
   }
   .wp-item:hover .wp-item__cap,
-  .wp-item:focus-within .wp-item__cap,
-  .wp-item:hover .wp-item__dl,
-  .wp-item:focus-within .wp-item__dl {
+  .wp-item:focus-within .wp-item__cap {
     opacity: 1;
-    transform: translateY(0);
   }
   .wp-item__title {
     font-family: var(--font-display);
     font-style: italic;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     line-height: 1.3;
     color: var(--c-ivory);
   }
   .wp-item__credit {
-    font-size: 10px;
-    color: rgba(243, 238, 230, 0.7);
-    letter-spacing: 0.12em;
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: var(--text-on-dark-muted);
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
   }
 
@@ -483,9 +415,7 @@ const items = galleryItems.map((item) => ({
   .gal-lb__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(24, 26, 22, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(22, 20, 18, 0.94);
     animation: gal-lb-fade var(--dur-fast) var(--ease-out) both;
   }
   .gal-lb__figure {
@@ -495,22 +425,21 @@ const items = galleryItems.map((item) => ({
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.9rem;
+    gap: 0;
     max-width: 100%;
     max-height: 100%;
-    animation: gal-lb-pop var(--dur-fast) var(--ease-out) both;
+    animation: gal-lb-fade var(--dur-fast) var(--ease-out) both;
   }
   .gal-lb__img {
     display: block;
     max-width: min(90vw, 1400px);
-    max-height: 82vh;
+    max-height: 80vh;
     width: auto;
     height: auto;
     object-fit: contain;
-    border-radius: var(--radius);
-    box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
-    background: var(--surface);
+    background: var(--c-ink-soft);
   }
+  /* Caption bar sits under the image on a single hairline. */
   .gal-lb__bar {
     display: flex;
     align-items: center;
@@ -519,11 +448,14 @@ const items = galleryItems.map((item) => ({
     width: min(90vw, 1400px);
     max-width: 100%;
     flex-wrap: wrap;
+    padding-top: 0.9rem;
+    margin-top: 0.9rem;
+    border-top: 1px solid var(--line-on-dark);
   }
   .gal-lb__meta {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
     min-width: 0;
   }
   .gal-lb__title {
@@ -533,9 +465,10 @@ const items = galleryItems.map((item) => ({
     color: var(--c-ivory);
   }
   .gal-lb__credit {
-    font-size: 10px;
-    color: rgba(243, 238, 230, 0.7);
-    letter-spacing: 0.12em;
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: var(--text-on-dark-muted);
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
   }
   .gal-lb__actions {
@@ -545,31 +478,34 @@ const items = galleryItems.map((item) => ({
     flex: 0 0 auto;
   }
   .gal-lb__count {
-    font-size: 0.72rem;
-    color: rgba(243, 238, 230, 0.7);
-    letter-spacing: 0.08em;
+    font-size: 0.66rem;
+    font-weight: 500;
+    color: var(--text-on-dark-muted);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
     white-space: nowrap;
   }
+  /* Square hairline buttons — the editorial control language. */
   .gal-lb__btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 1px solid rgba(243, 238, 230, 0.2);
-    background: rgba(38, 36, 31, 0.55);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--line-on-dark);
+    border-radius: 0;
+    background: transparent;
     color: var(--c-ivory);
     cursor: pointer;
-    font-family: inherit;
+    font-family: var(--font-body);
     transition:
       background var(--dur-fast) var(--ease-out),
       border-color var(--dur-fast) var(--ease-out),
-      transform var(--dur-fast) var(--ease-out);
+      color var(--dur-fast) var(--ease-out);
   }
   .gal-lb__btn:hover {
-    background: rgba(201, 151, 77, 0.5);
-    border-color: var(--accent);
+    background: var(--c-ivory);
+    border-color: var(--c-ivory);
+    color: var(--c-ink);
   }
   .gal-lb__btn:focus-visible {
     outline: 2px solid var(--accent);
@@ -582,7 +518,6 @@ const items = galleryItems.map((item) => ({
     right: clamp(0.75rem, 2vw, 1.5rem);
     width: 44px;
     height: 44px;
-    border-radius: 50%;
   }
   .gal-lb__nav {
     position: absolute;
@@ -591,10 +526,6 @@ const items = galleryItems.map((item) => ({
     transform: translateY(-50%);
     width: 52px;
     height: 52px;
-    border-radius: 50%;
-  }
-  .gal-lb__nav:hover {
-    transform: translateY(-50%) scale(1.06);
   }
   .gal-lb__prev {
     left: clamp(0.5rem, 2vw, 1.5rem);
@@ -603,18 +534,16 @@ const items = galleryItems.map((item) => ({
     right: clamp(0.5rem, 2vw, 1.5rem);
   }
   .gal-lb__dl {
-    border-radius: 999px;
     padding: 0.55rem 1.1rem;
-    font-size: 0.8rem;
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
   }
 
   @keyframes gal-lb-fade {
     from { opacity: 0; }
     to { opacity: 1; }
-  }
-  @keyframes gal-lb-pop {
-    from { opacity: 0; transform: scale(0.96); }
-    to { opacity: 1; transform: scale(1); }
   }
 
   body.gal-lb-open {
@@ -636,22 +565,15 @@ const items = galleryItems.map((item) => ({
       width: 44px;
       height: 44px;
       padding: 0;
-      border-radius: 50%;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .wp-item,
-    .wp-item__link img,
     .wp-item__cap,
-    .wp-item__dl,
     .gal-lb__backdrop,
     .gal-lb__figure {
       transition: none;
       animation: none;
-    }
-    .gal-lb__nav:hover {
-      transform: translateY(-50%);
     }
   }
 </style>

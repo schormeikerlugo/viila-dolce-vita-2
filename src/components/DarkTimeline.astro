@@ -1,0 +1,113 @@
+---
+/**
+ * DarkTimeline — Masseto "Centuries of History" section body.
+ * A sticky serif title column on the left; on the right, era-labelled entries
+ * separated by hairlines. Render inside a `.bg-dark` section.
+ */
+import Reveal from "./Reveal.astro";
+
+export interface TimelineEntry {
+  era: string;
+  text: string;
+}
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  entries: TimelineEntry[];
+  class?: string;
+}
+const { eyebrow, title, entries, class: className = "" } = Astro.props;
+---
+
+<div class:list={["timeline", className]}>
+  <div class="timeline__head">
+    {eyebrow && <Reveal as="p" class="eyebrow">{eyebrow}</Reveal>}
+    <Reveal as="h2" delay={0.05} class="timeline__title" set:html={title} />
+    <slot name="head" />
+  </div>
+
+  <ol class="timeline__list">
+    {
+      entries.map((entry, i) => (
+        <li class="timeline__entry" data-reveal data-reveal-delay={Math.min(i * 0.05, 0.25)}>
+          <p class="timeline__era">{entry.era}</p>
+          <p class="timeline__text" set:html={entry.text} />
+        </li>
+      ))
+    }
+  </ol>
+
+  <slot name="foot" />
+</div>
+
+<style>
+  .timeline {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.9fr) 1.4fr;
+    gap: clamp(2.5rem, 6vw, 7rem);
+    align-items: start;
+  }
+  .timeline__head {
+    position: sticky;
+    top: clamp(6rem, 12vh, 8rem);
+  }
+  .timeline__head :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
+  .timeline :global(.timeline__title) {
+    font-size: var(--fs-h2);
+    max-width: 14ch;
+  }
+  .timeline__list {
+    grid-column: 2;
+  }
+  .timeline__entry {
+    display: grid;
+    grid-template-columns: minmax(8rem, 11rem) 1fr;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    padding-block: clamp(1.6rem, 3vw, 2.4rem);
+    border-top: 1px solid var(--line-on-dark);
+  }
+  .timeline__entry:last-child {
+    border-bottom: 1px solid var(--line-on-dark);
+  }
+  .timeline__era {
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-top: 0.3rem;
+  }
+  .timeline__text {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--text-on-dark-muted);
+    max-width: 58ch;
+  }
+  .timeline__text :global(strong),
+  .timeline__text :global(b) {
+    color: var(--text-on-dark);
+    font-weight: 500;
+  }
+
+  @media (max-width: 900px) {
+    .timeline {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .timeline__head {
+      position: static;
+    }
+    .timeline__list {
+      grid-column: 1;
+    }
+  }
+  @media (max-width: 560px) {
+    .timeline__entry {
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+    }
+  }
+</style>

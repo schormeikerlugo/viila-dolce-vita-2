@@ -1,15 +1,18 @@
 ---
 /**
- * Contact — direct contact channels, the alcohol disclaimer, and the note
- * about the sanctuary animals. All copy from content.md / site.ts.
+ * Contact — direct contact channels, the alcohol disclaimer, the note about
+ * the sanctuary animals, and the full FAQ. All copy from content.md / site.ts.
+ * Tuscan Editorial: Tonelli split — channel meta rows with hairlines on the
+ * left, the image + booking CTA on the right, FAQ on ink to close.
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
-import PageHero from "../components/PageHero.astro";
-import SectionHeader from "../components/SectionHeader.astro";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
+import FaqAccordion from "../components/FaqAccordion.astro";
+import { Image } from "astro:assets";
 import { photos } from "../data/media";
 import { contact, notices, bookingHref } from "../data/site";
+import { faqs } from "../data/faq";
 
 const channels = [
   {
@@ -43,107 +46,275 @@ const channels = [
   title="Contact Us"
   description="Get in touch by WhatsApp, email or Instagram. Villa Dolce Vita, Podere Seccatoi, Massa Marittima, Tuscany."
 >
-  <PageHero
-    eyebrow="Contact Us"
-    title="Don't Hesitate to Get in Touch"
-    image={photos.hillsPinkDawn}
-    imageAlt="The estate hills at dawn"
-  />
+  <!-- SPLIT — channels left, image + CTA right -->
+  <section class="chero" aria-label="Contact channels">
+    <div class="wrap chero__grid">
+      <div class="chero__content">
+        <p class="slash-label chero__label">Contact Us</p>
+        <h1 class="chero__title">Don't Hesitate to Get in Touch</h1>
+        <p class="chero__intro">
+          Two people actually live here — you'll be talking to us, not a call
+          centre.
+        </p>
 
-  <!-- CHANNELS -->
-  <section class="section bg-ivory">
-    <div class="wrap">
-      <SectionHeader eyebrow="Get in Touch" title="However You'd Like to Reach Us" align="center">
-        <p>Two people actually live here — you'll be talking to us, not a call centre.</p>
-      </SectionHeader>
-      <div class="channels">
-        {
-          channels.map((c) => (
-            <a class:list={["channel", "card", { "channel--primary": c.label === "WhatsApp" }]} href={c.href} target="_blank" rel="noopener" data-reveal>
-              <span class="channel__label">{c.label}</span>
-              <span class="channel__value">{c.value}</span>
-              <span class="channel__note">{c.note}</span>
-            </a>
-          ))
-        }
+        <ul class="channels">
+          {
+            channels.map((c, i) => (
+              <li data-reveal data-reveal-delay={Math.min(i * 0.05, 0.2)}>
+                <a class="channel" href={c.href} target="_blank" rel="noopener">
+                  <span class="channel__label">{c.label}</span>
+                  <span class="channel__main">
+                    <span class="channel__value">{c.value}</span>
+                    <span class="channel__note">{c.note}</span>
+                  </span>
+                  <span class="channel__arrow" aria-hidden="true">↗</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
       </div>
-      <div class="center-cta">
-        <Button href={bookingHref} variant="primary">Check Availability</Button>
+
+      <div class="chero__side">
+        <div class="chero__media hoist" data-reveal>
+          <Image
+            src={photos.hillsPinkDawn}
+            alt="The estate hills at dawn"
+            widths={[640, 960, 1280, 1920]}
+            sizes="(max-width: 900px) 100vw, 42vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+        <Reveal class="chero__cta" delay={0.1}>
+          <Button href={bookingHref} variant="primary">Check Availability</Button>
+        </Reveal>
       </div>
     </div>
   </section>
 
-  <!-- NOTICES -->
-  <section class="section split--stone">
+  <!-- NOTICES — hairline columns -->
+  <section class="section bg-sunk" aria-label="Guest notices">
     <div class="wrap notices">
       <article class="notice" data-reveal>
         <p class="eyebrow">Alcohol Disclaimer</p>
         <p class="notice__body">{notices.alcohol}</p>
       </article>
-      <article class="notice" data-reveal>
+      <article class="notice" data-reveal data-reveal-delay={0.08}>
         <p class="eyebrow">A Note for Our Guests</p>
         <p class="notice__body">{notices.animals}</p>
       </article>
     </div>
   </section>
+
+  <!-- FAQ — ink accordion -->
+  <section class="section bg-dark faq-section" aria-labelledby="faq-title">
+    <div class="wrap faq-section__grid">
+      <div class="faq-section__head">
+        <Reveal as="p" class="eyebrow">FAQ</Reveal>
+        <h2 id="faq-title" data-reveal data-reveal-delay={0.05}>
+          Your Questions<br />Answered
+        </h2>
+        <p class="faq-section__note" data-reveal data-reveal-delay={0.1}>
+          Have more unanswered questions? Feel free to send an enquiry to
+          <a href={`mailto:${contact.email}`}>{contact.email}</a>
+        </p>
+      </div>
+      <FaqAccordion items={faqs} />
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .channels {
+  /* ── Split hero — Tonelli ─────────────────────────────────────────────── */
+  .chero {
+    padding-top: clamp(6rem, 10vw, 8.5rem);
+    padding-bottom: clamp(3rem, 6vw, 5rem);
+    background: var(--bg);
+    color: var(--text);
+  }
+  .chero__grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: clamp(1.5rem, 2.5vw, 2.2rem);
+    grid-template-columns: 1.2fr 1fr;
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: start;
   }
-  /* Base look (border, radius, background, hover lift) comes from .card */
+  .chero__label {
+    margin-bottom: clamp(1rem, 2vw, 1.6rem);
+  }
+  .chero__title {
+    font-size: clamp(2.2rem, 1.3rem + 3.4vw, 4.2rem);
+    max-width: 14ch;
+  }
+  .chero__intro {
+    margin-top: clamp(1.2rem, 2.5vw, 2rem);
+    max-width: 46ch;
+    font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.08rem);
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+
+  /* Channel rows — meta rows with 1px filetes */
+  .channels {
+    list-style: none;
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .channels li {
+    border-bottom: 1px solid var(--line);
+  }
   .channel {
-    gap: 0.4rem;
-    padding: 2rem 2.2rem;
+    display: grid;
+    grid-template-columns: minmax(7rem, 10rem) 1fr auto;
+    gap: clamp(1rem, 3vw, 3rem);
+    align-items: baseline;
+    padding: clamp(1.3rem, 2.5vw, 1.9rem) 0.25rem;
+    color: var(--text);
   }
-  /* Subtle emphasis for the fastest channel (WhatsApp) */
-  .channel--primary {
-    border-color: var(--accent);
+  .channel:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
   .channel__label {
-    font-size: var(--fs-eyebrow);
+    font-size: 0.66rem;
+    font-weight: 500;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--accent-deep);
+    color: var(--text-muted);
+  }
+  .channel__main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
   }
   .channel__value {
     font-family: var(--font-display);
-    font-size: 1.4rem;
-    color: var(--c-forest);
+    font-size: clamp(1.05rem, 0.95rem + 0.6vw, 1.5rem);
+    line-height: 1.25;
+    color: var(--text);
+    transition: color var(--dur-fast) var(--ease-out);
+    overflow-wrap: anywhere;
+  }
+  .channel:hover .channel__value {
+    color: var(--accent);
   }
   .channel__note {
+    font-size: 0.82rem;
+    line-height: 1.5;
     color: var(--text-muted);
-    font-size: 0.9rem;
   }
-  .center-cta {
-    display: flex;
-    justify-content: center;
-    margin-top: 3rem;
+  .channel__arrow {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  .channel:hover .channel__arrow {
+    transform: translate(2px, -2px);
+    color: var(--accent);
   }
 
+  /* Right side — image + booking CTA */
+  .chero__side {
+    display: flex;
+    flex-direction: column;
+  }
+  .chero__media {
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background: var(--surface-sunk);
+  }
+  .chero__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .chero__side :global(.chero__cta) {
+    margin-top: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  /* ── Notices ──────────────────────────────────────────────────────────── */
   .notices {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: clamp(2rem, 5vw, 4rem);
   }
   .notice {
-    border-left: 2px solid var(--accent-deep);
-    padding-left: 1.6rem;
+    border-top: 1px solid var(--line);
+    padding-top: clamp(1.2rem, 2.5vw, 1.8rem);
   }
   .notice__body {
-    color: var(--c-charcoal);
-    opacity: 0.85;
-    margin-top: 0.8rem;
-    line-height: 1.7;
+    color: var(--text-muted);
+    margin-top: 0.9rem;
+    font-size: 0.92rem;
+    line-height: 1.75;
+    max-width: 58ch;
   }
 
-  @media (max-width: 800px) {
-    .channels,
-    .notices {
+  /* ── FAQ on ink ───────────────────────────────────────────────────────── */
+  .faq-section__grid {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.8fr) 1.4fr;
+    gap: clamp(2.5rem, 6vw, 7rem);
+    align-items: start;
+  }
+  .faq-section__head {
+    position: sticky;
+    top: clamp(6rem, 12vh, 8rem);
+  }
+  .faq-section__head :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
+  .faq-section__note {
+    margin-top: clamp(1.5rem, 3vw, 2.2rem);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text-on-dark-muted);
+    max-width: 34ch;
+  }
+  .faq-section__note a {
+    color: var(--text-on-dark);
+    border-bottom: 1px solid var(--line-on-dark);
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .faq-section__note a:hover {
+    border-color: currentColor;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .channel__value,
+    .channel__arrow,
+    .faq-section__note a {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .chero__grid {
       grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+    .chero__media {
+      aspect-ratio: 16 / 10;
+    }
+    .faq-section__grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .faq-section__head {
+      position: static;
+    }
+  }
+  @media (max-width: 560px) {
+    .channel {
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem 1.25rem;
+    }
+    .channel__label {
+      grid-column: 1 / -1;
     }
   }
 </style>

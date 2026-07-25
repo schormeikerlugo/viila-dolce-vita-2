@@ -1,8 +1,9 @@
 ---
 /**
- * PageHero — hero for interior pages: a full-bleed image with the eyebrow,
- * title and (optional) intro centred over it. The intro can be passed as the
- * `subtitle` prop or via the default slot for richer markup.
+ * PageHero — interior page opener (Tonelli split):
+ * a large image on the left, and a text block on the right carrying the
+ * "/ Page" slash-label, the uppercase display title, the intro, and an
+ * optional meta-row of label/value pairs separated by hairlines.
  */
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
@@ -13,120 +14,136 @@ interface Props {
   subtitle?: string;
   image: ImageMetadata;
   imageAlt?: string;
+  /** Optional meta row: label/value pairs rendered under a hairline. */
+  meta?: { label: string; value: string }[];
 }
-const { eyebrow, title, subtitle, image, imageAlt = "" } = Astro.props;
+const { eyebrow, title, subtitle, image, imageAlt = "", meta = [] } = Astro.props;
 const hasSlot = Astro.slots.has("default");
 ---
 
 <section class="pagehero">
-  <div class="pagehero__media">
-    <Image
-      src={image}
-      alt={imageAlt}
-      widths={[768, 1280, 1920, 2560]}
-      sizes="100vw"
-      loading="eager"
-      fetchpriority="high"
-    />
-    <div class="pagehero__overlay" aria-hidden="true"></div>
-  </div>
-  <div class="pagehero__content wrap">
-    {eyebrow && (
-      <p class="eyebrow eyebrow--gold pagehero__eyebrow">
-        <span class="pagehero__diamond" aria-hidden="true"></span>{eyebrow}
-      </p>
-    )}
-    <h1>{title}</h1>
-    {subtitle && <p class="pagehero__sub">{subtitle}</p>}
-    {hasSlot && (
-      <div class="pagehero__sub">
-        <slot />
-      </div>
-    )}
+  <div class="pagehero__grid wrap">
+    <div class="pagehero__media" data-parallax-scope>
+      <Image
+        src={image}
+        alt={imageAlt}
+        widths={[768, 1280, 1920, 2560]}
+        sizes="(max-width: 900px) 100vw, 58vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </div>
+
+    <div class="pagehero__content">
+      {eyebrow && <p class="slash-label pagehero__eyebrow">{eyebrow}</p>}
+      <h1 set:html={title} />
+      {subtitle && <p class="pagehero__sub">{subtitle}</p>}
+      {
+        hasSlot && (
+          <div class="pagehero__sub">
+            <slot />
+          </div>
+        )
+      }
+      {
+        meta.length > 0 && (
+          <dl class="pagehero__meta">
+            {meta.map((m) => (
+              <div class="pagehero__metacell">
+                <dt>{m.label}</dt>
+                <dd>{m.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+    </div>
   </div>
 </section>
 
 <style>
   .pagehero {
-    position: relative;
-    min-height: 72svh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: var(--c-ivory);
-    overflow: hidden;
+    padding-top: clamp(6rem, 10vw, 8.5rem);
+    padding-bottom: clamp(3rem, 6vw, 5rem);
+    background: var(--bg);
+    color: var(--text);
+  }
+  .pagehero__grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: start;
   }
   .pagehero__media {
-    position: absolute;
-    inset: 0;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
   }
   .pagehero__media :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
-  .pagehero__overlay {
-    position: absolute;
-    inset: 0;
-    /* A touch stronger/centred so the centred copy stays legible. */
-    background: radial-gradient(
-        ellipse 90% 90% at 50% 50%,
-        rgba(47, 63, 53, 0.42) 0%,
-        rgba(47, 63, 53, 0.58) 100%
-      ),
-      linear-gradient(
-        to bottom,
-        rgba(38, 36, 31, 0.5) 0%,
-        rgba(47, 63, 53, 0.28) 45%,
-        rgba(38, 36, 31, 0.62) 100%
-      );
-  }
   .pagehero__content {
-    position: relative;
-    z-index: 2;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding-block: clamp(6rem, 12vw, 9rem);
-    /* Constrain the centred column. */
-    max-width: 62rem;
+    padding-top: clamp(0.5rem, 2vw, 2rem);
+  }
+  .pagehero__eyebrow {
+    margin-bottom: clamp(1rem, 2vw, 1.6rem);
   }
   .pagehero__content h1 {
-    max-width: 20ch;
-    text-shadow: 0 2px 30px rgba(0, 0, 0, 0.4);
-  }
-  .pagehero__content .eyebrow {
-    margin-bottom: 1rem;
-  }
-  /* Small diamond ornament preceding the eyebrow — the "Geometry" motif. */
-  .pagehero__eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.7rem;
-    justify-content: center;
-  }
-  .pagehero__diamond {
-    width: 7px;
-    height: 7px;
-    transform: rotate(45deg);
-    border: 1px solid var(--accent);
-    display: inline-block;
+    font-size: clamp(2.2rem, 1.3rem + 3.4vw, 4.2rem);
+    max-width: 16ch;
   }
   .pagehero__sub {
-    margin-top: 1.6rem;
-    margin-inline: auto;
-    max-width: 56ch;
-    text-align: center;
-    font-size: clamp(1rem, 0.95rem + 0.3vw, 1.2rem);
-    line-height: 1.6;
-    color: rgba(243, 238, 230, 0.9);
-    text-shadow: 0 1px 20px rgba(0, 0, 0, 0.35);
+    margin-top: clamp(1.2rem, 2.5vw, 2rem);
+    max-width: 46ch;
+    font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.08rem);
+    line-height: 1.7;
+    color: var(--text-muted);
   }
   .pagehero__sub :global(p) {
     margin: 0;
   }
   .pagehero__sub :global(p + p) {
     margin-top: 0.9rem;
+  }
+
+  /* Meta row — Tonelli "Room Type / Featuring / Dimensions". */
+  .pagehero__meta {
+    margin-top: auto;
+    padding-top: clamp(2rem, 4vw, 3.5rem);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(8rem, 100%), 1fr));
+    gap: 1.25rem;
+  }
+  .pagehero__metacell {
+    border-top: 1px solid var(--line);
+    padding-top: 0.8rem;
+  }
+  .pagehero__metacell dt {
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+  }
+  .pagehero__metacell dd {
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+
+  @media (max-width: 900px) {
+    .pagehero {
+      padding-top: 5.5rem;
+    }
+    .pagehero__grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .pagehero__media {
+      aspect-ratio: 16 / 10;
+    }
   }
 </style>

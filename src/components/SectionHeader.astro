@@ -1,7 +1,7 @@
 ---
 /**
- * SectionHeader — centered eyebrow + heading + optional intro, with the gold
- * rule. Used to introduce list/grid sections.
+ * SectionHeader — "↳ EYEBROW" marker + uppercase display heading + optional
+ * intro. Left-aligned editorial default; centered variant available.
  */
 import Reveal from "./Reveal.astro";
 
@@ -16,35 +16,39 @@ const { eyebrow, title, align = "center", class: className = "" } = Astro.props;
 ---
 
 <header class:list={["sechead", `sechead--${align}`, className]}>
-  {eyebrow && <Reveal as="p" class="eyebrow eyebrow--diamond">{eyebrow}</Reveal>}
+  {eyebrow && <Reveal as="p" class="eyebrow">{eyebrow}</Reveal>}
   <Reveal as="h2" delay={0.05}>{title}</Reveal>
-  <Reveal delay={0.1}><hr class="rule" /></Reveal>
   <slot />
 </header>
 
 <style>
   .sechead {
-    max-width: 54ch;
+    max-width: 60ch;
     margin-bottom: var(--space-group);
   }
+  .sechead :global(.eyebrow) {
+    margin-bottom: clamp(1rem, 2vw, 1.6rem);
+  }
   .sechead--left {
-    max-width: 46ch;
+    max-width: 52ch;
   }
   .sechead--center {
-    max-width: 56ch;
+    max-width: 62ch;
     margin-inline: auto;
     text-align: center;
   }
-  .sechead--center .rule {
-    margin-inline: auto;
-  }
-  /* Center the diamond-eyebrow inline-flex within centered headers. */
-  .sechead--center :global(.eyebrow--diamond) {
+  .sechead--center :global(.eyebrow) {
     justify-content: center;
   }
-  .sechead :global(p:not(.eyebrow)) {
-    color: var(--text-muted);
+  .sechead :global(h2) {
+    max-width: 24ch;
+  }
+  .sechead--center :global(h2) {
     margin-inline: auto;
+  }
+  .sechead :global(p:not(.eyebrow)) {
+    margin-top: clamp(1rem, 2vw, 1.5rem);
+    color: var(--text-muted);
   }
   .sechead--center :global(p) {
     margin-inline: auto;
