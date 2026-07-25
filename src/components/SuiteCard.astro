@@ -13,13 +13,18 @@ interface Props {
   featured?: boolean;
   /** Horizontal compact row: small image + minimal copy (supporting list). */
   compact?: boolean;
+  /** Framed card: hairline border + raised surface behind the copy. */
+  panel?: boolean;
 }
-const { suite, featured = false, compact = false } = Astro.props;
+const { suite, featured = false, compact = false, panel = false } = Astro.props;
 const href = `/suites#${suite.slug}`;
 ---
 
 <article
-  class:list={["suite", { "suite--featured": featured, "suite--compact": compact }]}
+  class:list={[
+    "suite",
+    { "suite--featured": featured, "suite--compact": compact, "suite--panel": panel },
+  ]}
   data-reveal
 >
   <a
@@ -162,6 +167,23 @@ const href = `/suites#${suite.slug}`;
   }
   .suite--featured .suite__tagline {
     font-size: 0.95rem;
+  }
+
+  /* ---- Panel (framed card with its own surface) ---- */
+  .suite--panel {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .suite--panel:hover {
+    border-color: rgba(22, 20, 18, 0.32);
+  }
+  .suite--panel .suite__media {
+    /* Image bleeds to the frame; hairline separates it from the copy. */
+    border-bottom: 1px solid var(--line);
+  }
+  .suite--panel .suite__body {
+    padding: 1.15rem 1.25rem 1.25rem;
   }
 
   /* ---- Compact (horizontal supporting row) ---- */

@@ -37,19 +37,27 @@ const { eyebrow, video, booking = false } = Astro.props;
     }
   </div>
 
-  <div class="hero__bar wrap">
-    <p class="hero__meta">{eyebrow ?? "Tuscany, Italy"}</p>
-    <p class="hero__scrollcue" aria-hidden="true">Scroll</p>
-    {
-      booking ? (
-        <a class="hero__book" href={bookingHref}>
-          Check Availability <span aria-hidden="true">↗</span>
-        </a>
-      ) : (
-        <span class="hero__meta hero__meta--right">Est. Maremma</span>
-      )
-    }
-  </div>
+  {
+    Astro.slots.has("bar") ? (
+      <div class="hero__bookbar wrap">
+        <slot name="bar" />
+      </div>
+    ) : (
+      <div class="hero__bar wrap">
+        <p class="hero__meta">{eyebrow ?? "Tuscany, Italy"}</p>
+        <p class="hero__scrollcue" aria-hidden="true">
+          Scroll
+        </p>
+        {booking ? (
+          <a class="hero__book" href={bookingHref}>
+            Check Availability <span aria-hidden="true">↗</span>
+          </a>
+        ) : (
+          <span class="hero__meta hero__meta--right">Est. Maremma</span>
+        )}
+      </div>
+    )
+  }
 </section>
 <span id="after-hero"></span>
 
@@ -195,6 +203,21 @@ const { eyebrow, video, booking = false } = Astro.props;
     opacity: 0.85;
   }
 
+  /* Booking composer pinned to the hero's lower edge. */
+  .hero__bookbar {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    right: 0;
+    bottom: clamp(1.5rem, 4vw, 3rem);
+  }
+  /* Frosted glass so the ink fields stay legible over the video. */
+  .hero__bookbar :global(.bookbar) {
+    background: rgba(22, 20, 18, 0.28);
+    backdrop-filter: blur(10px) saturate(1.1);
+    -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  }
+
   /* ── Entrance choreography ──────────────────────────────────────────── */
   .hero__title {
     opacity: 0;
@@ -218,7 +241,8 @@ const { eyebrow, video, booking = false } = Astro.props;
   .hero__actions {
     animation-delay: 1.3s;
   }
-  .hero__bar {
+  .hero__bar,
+  .hero__bookbar {
     opacity: 0;
     animation: hero-fade 0.9s var(--ease-out) 1.5s forwards;
   }
@@ -239,7 +263,8 @@ const { eyebrow, video, booking = false } = Astro.props;
     .hero__eyebrow,
     .hero__sub,
     .hero__actions,
-    .hero__bar {
+    .hero__bar,
+    .hero__bookbar {
       animation: none;
       opacity: 1;
       transform: none;
