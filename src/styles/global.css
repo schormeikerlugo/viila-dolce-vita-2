@@ -357,86 +357,121 @@ a.card {
   top: 1rem;
 }
 
-/* ---------- Testimonial carousel (React island) ----------
+/* ---------- Reviews card carousel (React island) ----------
    Styles live here (not inside the JSX) so they apply during SSR before the
-   island hydrates — the content is always visible, never dependent on JS. */
+   island hydrates — the content is always visible, never dependent on JS.
+   Editorial layout: framed card carousel with side arrows + table rules. */
 .tc {
   position: relative;
-  max-width: 60ch;
-  margin-inline: auto;
-  text-align: center;
-  color: var(--text-on-dark);
-  /* Reserve space so the section never collapses if the island is slow to
-     hydrate or an animation is mid-flight — content is always readable. */
-  min-height: 18rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: stretch;
+  gap: clamp(0.5rem, 1.5vw, 1.25rem);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+.tc__viewport {
+  overflow: hidden;
+  min-height: 20rem;
+}
+.tc__track {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  transition: transform var(--dur) var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tc__track {
+    transition: none;
+  }
+}
+.tc__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  display: flex;
+}
+.tc-card {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: clamp(1rem, 2vw, 1.6rem);
+  padding: clamp(2rem, 4vw, 3.5rem) clamp(1.5rem, 5vw, 4.5rem);
+  width: 100%;
 }
-.tc__quote {
-  margin: 0;
-  opacity: 1; /* visible by default; animation is only an enhancement */
-  animation: tcfade 0.8s var(--ease-out);
+.tc-card__stars {
+  font-size: 1rem;
+  letter-spacing: 0.25em;
+  color: var(--c-charcoal);
+  line-height: 1;
 }
-@keyframes tcfade {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.tc__mark {
-  font-family: var(--font-display);
-  font-size: 4rem;
-  line-height: 0;
-  color: var(--accent);
-  display: block;
-  height: 2.2rem;
-}
-.tc__quote p {
-  font-family: var(--font-display);
-  font-size: clamp(1.25rem, 1rem + 1.2vw, 1.9rem);
-  line-height: 1.4;
-  font-style: italic;
-  max-width: none;
-  margin-inline: auto;
-  color: var(--text-on-dark);
-}
-.tc__author {
-  margin-top: 1.8rem;
+.tc-card__quote {
   font-family: var(--font-body);
-  font-size: 0.74rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: clamp(1rem, 0.96rem + 0.4vw, 1.2rem);
+  line-height: 1.7;
+  color: var(--text-muted);
+  max-width: 60ch;
+  margin: 0;
+  flex: 1;
+}
+.tc-card__author {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  color: var(--accent);
+  margin-top: auto;
 }
-.tc__meta {
-  color: var(--text-on-dark-muted);
-  letter-spacing: 0.1em;
+.tc-card__name {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--c-charcoal);
 }
-.tc__controls {
-  margin-top: 2.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
+.tc-card__country {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
+/* Side arrows sit inside the framed row, separated by a hairline rule. */
+.tc__nav {
+  align-self: center;
+  width: clamp(2.4rem, 4vw, 3rem);
+  height: clamp(2.4rem, 4vw, 3rem);
+  margin: clamp(1rem, 2.5vw, 2rem);
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--c-charcoal);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.tc__nav:hover {
+  background: var(--accent);
+  color: var(--c-forest);
+  border-color: var(--accent);
+}
+/* Dots below the framed row. */
 .tc__dots {
+  grid-column: 1 / -1;
   display: flex;
+  justify-content: center;
   gap: 0.6rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border-top: 1px solid var(--line);
 }
 .tc__dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(201, 151, 77, 0.35);
+  background: rgba(38, 36, 31, 0.18);
   transition: background 0.3s, transform 0.3s;
   cursor: pointer;
 }
@@ -444,25 +479,16 @@ a.card {
   background: var(--accent);
   transform: scale(1.3);
 }
-.tc__arrows {
-  display: flex;
-  gap: 0.5rem;
-}
-.tc__arrows button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--line-on-dark);
-  color: var(--text-on-dark);
-  font-size: 1.4rem;
-  line-height: 1;
-  transition: background 0.3s, color 0.3s;
-  cursor: pointer;
-}
-.tc__arrows button:hover {
-  background: var(--accent);
-  color: var(--c-forest);
-  border-color: var(--accent);
+@media (max-width: 640px) {
+  .tc {
+    grid-template-columns: 1fr;
+  }
+  .tc__nav {
+    display: none;
+  }
+  .tc__viewport {
+    min-height: 22rem;
+  }
 }
 
 /* ---------- Scroll-reveal base state ---------- */

@@ -1,7 +1,8 @@
 /**
- * TestimonialCarousel — React island. Fading quote carousel with prev/next
- * and autoplay (pauses on hover / when tab hidden / reduced motion).
- * Styling matches the brand guide's quote card.
+ * TestimonialCarousel — React island. Horizontal card carousel of guest
+ * reviews (stars · quote · author · country), divided by table-style rules.
+ * Autoplay advances one card at a time (pauses on hover / tab hidden /
+ * reduced motion). Styling lives in global.css so cards are visible during SSR.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Testimonial } from "../data/testimonials";
@@ -9,6 +10,15 @@ import type { Testimonial } from "../data/testimonials";
 interface Props {
   items: Testimonial[];
   interval?: number;
+}
+
+function Stars({ rating = 5 }: { rating?: number }) {
+  const r = Math.max(0, Math.min(5, Math.round(rating)));
+  return (
+    <span className="tc-card__stars" aria-label={`${r} out of 5 stars`}>
+      {"★★★★★".slice(0, r)}
+    </span>
+  );
 }
 
 export default function TestimonialCarousel({ items, interval = 6500 }: Props) {
@@ -23,15 +33,14 @@ export default function TestimonialCarousel({ items, interval = 6500 }: Props) {
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce || paused) return;
+    if (reduce || paused || items.length <= 1) return;
     timer.current = window.setTimeout(() => go(1), interval);
     return () => {
       if (timer.current) window.clearTimeout(timer.current);
     };
-  }, [index, paused, go, interval]);
+  }, [index, paused, go, interval, items.length]);
 
-  const active = items[index];
-  if (!active) return null;
+  if (!items.length) return null;
 
   return (
     <div
@@ -39,40 +48,58 @@ export default function TestimonialCarousel({ items, interval = 6500 }: Props) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <blockquote key={index} className="tc__quote">
-        <span className="tc__mark" aria-hidden="true">
-          &ldquo;
-        </span>
-        <p>{active.quote}</p>
-        <footer className="tc__author">
-          <span>{active.author}</span>
-          {active.meta && <span className="tc__meta">{active.meta}</span>}
-        </footer>
-      </blockquote>
+      <button
+        type="button"
+        className="tc__nav tc__nav--prev"
+        aria-label="Previous review"
+        onClick={() => go(-1)}
+      >
+        ‹
+      </button>
 
-      <div className="tc__controls">
-        <div className="tc__dots" role="tablist" aria-label="Testimonials">
-          {items.map((_, i) => (
-            <button
-              key={i}
-              role="tab"
-              aria-selected={i === index}
-              aria-label={`Testimonial ${i + 1}`}
-              className={`tc__dot ${i === index ? "is-active" : ""}`}
-              onClick={() => setIndex(i)}
-            />
+      <div className="tc__viewport">
+        <ul
+          className="tc__track"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          {items.map((t, i) => (
+            <li className="tc__slide" key={i} aria-hidden={i !== index}>
+              <article className="tc-card">
+                <Stars rating={t.rating} />
+                <p className="tc-card__quote">{t.quote}</p>
+                <footer className="tc-card__author">
+                  <span className="tc-card__name">&ndash;{t.author}</span>
+                  {t.location && (
+                    <span className="tc-card__country">{t.location}</span>
+                  )}
+                </footer>
+              </article>
+            </li>
           ))}
-        </div>
-        <div className="tc__arrows">
-          <button aria-label="Previous" onClick={() => go(-1)}>
-            ‹
-          </button>
-          <button aria-label="Next" onClick={() => go(1)}>
-            ›
-          </button>
-        </div>
+        </ul>
       </div>
 
+      <button
+        type="button"
+        className="tc__nav tc__nav--next"
+        aria-label="Next review"
+        onClick={() => go(1)}
+      >
+        ›
+      </button>
+
+      <div className="tc__dots" role="tablist" aria-label="Reviews">
+        {items.map((_, i) => (
+          <button
+            key={i}
+            role="tab"
+            aria-selected={i === index}
+            aria-label={`Review ${i + 1}`}
+            className={`tc__dot ${i === index ? "is-active" : ""}`}
+            onClick={() => setIndex(i)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

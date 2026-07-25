@@ -167,6 +167,13 @@ const estateStats = [
   { value: "24", label: "Guests Max" },
 ];
 
+// Reviews — headline stats shown above the guest review carousel.
+const reviewStats = [
+  { value: "15+", label: "Years on the Market" },
+  { value: "90+", label: "Groups Hosted" },
+  { value: "98%", label: "Satisfaction Rate" },
+];
+
 // Full feature list, grouped into accordion sections for a tidy, scannable UX.
 // Everything beyond the four headline stats lives here.
 const featureGroups = [
@@ -299,6 +306,16 @@ const featureGroups = [
     </div>
   </section>
 
+  <!-- GALLERY — 60/40 teaser: the villa and its surroundings, curated from the
+       suites + the /gallery archive, linking out to the full gallery. -->
+  <HomeGallery
+    eyebrow="Gallery"
+    title="The Property"
+    items={homeGalleryItems}
+    href="/gallery"
+    cta="View full gallery"
+  />
+
   <script>
     // Count-up: animate each stat from 0 to its target the first time the band
     // scrolls into view. Respects prefers-reduced-motion (shows final value).
@@ -313,9 +330,12 @@ const featureGroups = [
       ).matches;
 
       const run = (el: HTMLElement) => {
-        const target = parseInt(el.dataset.count || "0", 10);
+        const raw = el.dataset.count || "0";
+        const target = parseInt(raw, 10);
+        // Preserve any non-numeric suffix ("+", "%") so "15+" / "98%" survive.
+        const suffix = raw.replace(/^-?\d+/, "");
         if (reduce || !Number.isFinite(target)) {
-          el.textContent = String(target);
+          el.textContent = raw;
           return;
         }
         const duration = 1600;
@@ -324,9 +344,9 @@ const featureGroups = [
         const ease = (t: number) => 1 - Math.pow(1 - t, 3);
         const tick = (now: number) => {
           const p = Math.min((now - start) / duration, 1);
-          el.textContent = String(Math.round(ease(p) * target));
+          el.textContent = String(Math.round(ease(p) * target)) + suffix;
           if (p < 1) requestAnimationFrame(tick);
-          else el.textContent = String(target);
+          else el.textContent = raw;
         };
         requestAnimationFrame(tick);
       };
@@ -411,16 +431,6 @@ const featureGroups = [
     </div>
   </section>
 
-  <!-- GALLERY — 60/40 teaser: the villa and its surroundings, curated from the
-       suites + the /gallery archive, linking out to the full gallery. -->
-  <HomeGallery
-    eyebrow="Gallery"
-    title="The Property"
-    items={homeGalleryItems}
-    href="/gallery"
-    cta="View full gallery"
-  />
-
   <!-- BEYOND THE VILLA -->
   <section class="section bg-dark beyond">
     <div class="wrap">
@@ -503,15 +513,28 @@ const featureGroups = [
     </div>
   </section>
 
-  <!-- TESTIMONIALS -->
-  <section class="section bg-charcoal testimonials">
+  <!-- TESTIMONIALS — editorial reviews: left title, headline stats row, and a
+       horizontal card carousel divided by table-style rules. -->
+  <section class="section bg-ivory reviews" aria-labelledby="reviews-title">
     <div class="wrap">
-      <SectionHeader
-        eyebrow="What Guests Say"
-        title="Kind Words"
-        align="center"
-        onDark
-      />
+      <p class="reviews__eyebrow">Reviews</p>
+      <Reveal as="h2" id="reviews-title" class="reviews__title">
+        What Our Guests Say<br />About Their Stay
+      </Reveal>
+
+      <ul class="reviews__stats statband__row statband__row--table" data-reveal data-reveal-delay={0.1}>
+        {
+          reviewStats.map((s) => (
+            <li class="statband__stat">
+              <span class="statband__value" data-count={s.value}>
+                {s.value}
+              </span>
+              <span class="statband__label">{s.label}</span>
+            </li>
+          ))
+        }
+      </ul>
+
       <TestimonialCarousel client:load items={testimonials} />
     </div>
   </section>
@@ -824,6 +847,13 @@ const featureGroups = [
   .statband {
     padding-block: clamp(0.8rem, 1.6vw, 1.28rem) clamp(3rem, 6vw, 5rem);
   }
+  /* Match the HomeGallery inset: centered max-width with gutter margins so the
+     table doesn't run to the viewport edges on wide screens. */
+  .statband > .wrap {
+    width: min(100% - 2 * var(--gutter), 1500px);
+    margin-inline: auto;
+    padding-inline: 0;
+  }
   .statband__row {
     list-style: none;
     margin: 0;
@@ -975,6 +1005,10 @@ const featureGroups = [
   }
   .amenities {
     margin-top: 0;
+    /* Match the HomeGallery / statband inset. */
+    width: min(100% - 2 * var(--gutter), 1500px);
+    margin-inline: auto;
+    padding-inline: 0;
   }
   .amenities__eyebrow {
     font-family: var(--font-body);
@@ -1463,5 +1497,62 @@ const featureGroups = [
     text-transform: uppercase;
     font-size: 0.85rem;
     margin-bottom: 1rem;
+  }
+
+  /* ── Reviews — editorial guest reviews (left title · stats · card carousel) ── */
+  .reviews > .wrap {
+    /* Match the HomeGallery / statband inset. */
+    width: min(100% - 2 * var(--gutter), 1500px);
+    margin-inline: auto;
+    padding-inline: 0;
+  }
+  .reviews__eyebrow {
+    font-family: var(--font-body);
+    font-size: var(--fs-eyebrow);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 clamp(1.4rem, 3vw, 2.2rem);
+  }
+  .reviews__eyebrow::before {
+    content: "";
+    width: 1.1rem;
+    height: 2px;
+    background: currentColor;
+    opacity: 0.7;
+  }
+  .reviews__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-h2);
+    line-height: var(--lh-tight);
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--c-charcoal);
+    max-width: 20ch;
+    margin: 0 0 clamp(2rem, 4vw, 3rem);
+  }
+  /* Stats row: 3 equal columns (override the base 6-col grid). */
+  .reviews__stats.statband__row {
+    grid-template-columns: repeat(3, 1fr);
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  }
+  @media (max-width: 640px) {
+    .reviews__stats.statband__row {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 440px) {
+    .reviews__stats.statband__row {
+      grid-template-columns: 1fr;
+    }
+    .reviews__stats .statband__stat:not(:first-child)::before {
+      display: none;
+    }
+    .reviews__stats .statband__stat:not(:first-child) {
+      border-top: 1px solid var(--line);
+    }
   }
 </style>
