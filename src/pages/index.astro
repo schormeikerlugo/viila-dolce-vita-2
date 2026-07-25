@@ -32,41 +32,191 @@ const orderedSuites = [...suites].sort((a, b) => b.fromNight - a.fromNight);
 // mixing suites + /gallery surroundings, linking out to the full archive.
 const gal = (slug: string) => galleryItems.find((g) => g.slug === slug)!;
 const homeGalleryItems = [
-  { image: gal("villa-aerial-golden").image, alt: "Villa Dolce Vita from above in the golden Tuscan light", caption: "The estate at golden hour" },
-  { image: suitePhotos.roma[0], alt: "Roma suite interior", caption: "Roma suite" },
-  { image: gal("pool-afternoon").image, alt: "The villa with its pool and lawn on a bright afternoon", caption: "The pool" },
-  { image: suitePhotos.napoli[0], alt: "Napoli suite interior", caption: "Napoli suite" },
-  { image: gal("terrace-table-view").image, alt: "The loggia terrace with the hills opening out beyond", caption: "Terrace view" },
-  { image: suitePhotos.positano[0], alt: "Positano suite interior", caption: "Positano suite" },
-  { image: gal("cypress-road-hills").image, alt: "A white road winding between cypresses and green hills", caption: "Cypress road" },
-  { image: suitePhotos.roma[2], alt: "Roma suite detail", caption: "Roma suite" },
-  { image: gal("hills-pink-dawn").image, alt: "Pink dawn light over the Tuscan hills", caption: "Hills at dawn" },
-  { image: suitePhotos.napoli[2], alt: "Napoli suite detail", caption: "Napoli suite" },
-  { image: gal("vineyard-wine-sunset").image, alt: "Wine and grapes on an old barrel at sunset", caption: "Wine at sunset" },
-  { image: suitePhotos.milano[0], alt: "Milano suite interior", caption: "Milano suite" },
-  { image: gal("massa-marittima-piazza").image, alt: "The cathedral square of Massa Marittima under a summer sky", caption: "Massa Marittima" },
-  { image: suitePhotos.positano[2], alt: "Positano suite detail", caption: "Positano suite" },
-  { image: gal("valdorcia-mist").image, alt: "Morning mist settling into the folds of the Val d'Orcia", caption: "Val d'Orcia" },
-  { image: suitePhotos.roma[4], alt: "Roma suite bathroom", caption: "Roma suite" },
-  { image: gal("horseman").image, alt: "A buttero and his horse in the morning field", caption: "Morning ride" },
-  { image: suitePhotos.napoli[4], alt: "Napoli suite bedroom", caption: "Napoli suite" },
-  { image: gal("piazza-dinner").image, alt: "Dinner tables filling the piazza at dusk", caption: "Dinner in the piazza" },
-  { image: suitePhotos.positano[3], alt: "Positano suite view", caption: "Positano suite" },
-  { image: gal("estate-vineyards-aerial").image, alt: "The estate and its vineyards seen from above", caption: "Estate & vineyards" },
-  { image: suitePhotos.roma[3], alt: "Roma suite living area", caption: "Roma suite" },
-  { image: gal("olive-grove-walk").image, alt: "A slow walk through the olive grove", caption: "Olive grove" },
-  { image: suitePhotos.napoli[5], alt: "Napoli suite detail", caption: "Napoli suite" },
-  { image: gal("stringlight-toast").image, alt: "Glasses raised under the string lights", caption: "Under the lights" },
+  {
+    image: gal("villa-aerial-golden").image,
+    alt: "Villa Dolce Vita from above in the golden Tuscan light",
+    caption: "The estate at golden hour",
+  },
+  {
+    image: suitePhotos.roma[0],
+    alt: "Roma suite interior",
+    caption: "Roma suite",
+  },
+  {
+    image: gal("pool-afternoon").image,
+    alt: "The villa with its pool and lawn on a bright afternoon",
+    caption: "The pool",
+  },
+  {
+    image: suitePhotos.napoli[0],
+    alt: "Napoli suite interior",
+    caption: "Napoli suite",
+  },
+  {
+    image: gal("terrace-table-view").image,
+    alt: "The loggia terrace with the hills opening out beyond",
+    caption: "Terrace view",
+  },
+  {
+    image: suitePhotos.positano[0],
+    alt: "Positano suite interior",
+    caption: "Positano suite",
+  },
+  {
+    image: gal("cypress-road-hills").image,
+    alt: "A white road winding between cypresses and green hills",
+    caption: "Cypress road",
+  },
+  {
+    image: suitePhotos.roma[2],
+    alt: "Roma suite detail",
+    caption: "Roma suite",
+  },
+  {
+    image: gal("hills-pink-dawn").image,
+    alt: "Pink dawn light over the Tuscan hills",
+    caption: "Hills at dawn",
+  },
+  {
+    image: suitePhotos.napoli[2],
+    alt: "Napoli suite detail",
+    caption: "Napoli suite",
+  },
+  {
+    image: gal("vineyard-wine-sunset").image,
+    alt: "Wine and grapes on an old barrel at sunset",
+    caption: "Wine at sunset",
+  },
+  {
+    image: suitePhotos.milano[0],
+    alt: "Milano suite interior",
+    caption: "Milano suite",
+  },
+  {
+    image: gal("massa-marittima-piazza").image,
+    alt: "The cathedral square of Massa Marittima under a summer sky",
+    caption: "Massa Marittima",
+  },
+  {
+    image: suitePhotos.positano[2],
+    alt: "Positano suite detail",
+    caption: "Positano suite",
+  },
+  {
+    image: gal("valdorcia-mist").image,
+    alt: "Morning mist settling into the folds of the Val d'Orcia",
+    caption: "Val d'Orcia",
+  },
+  {
+    image: suitePhotos.roma[4],
+    alt: "Roma suite bathroom",
+    caption: "Roma suite",
+  },
+  {
+    image: gal("horseman").image,
+    alt: "A buttero and his horse in the morning field",
+    caption: "Morning ride",
+  },
+  {
+    image: suitePhotos.napoli[4],
+    alt: "Napoli suite bedroom",
+    caption: "Napoli suite",
+  },
+  {
+    image: gal("piazza-dinner").image,
+    alt: "Dinner tables filling the piazza at dusk",
+    caption: "Dinner in the piazza",
+  },
+  {
+    image: suitePhotos.positano[3],
+    alt: "Positano suite view",
+    caption: "Positano suite",
+  },
+  {
+    image: gal("estate-vineyards-aerial").image,
+    alt: "The estate and its vineyards seen from above",
+    caption: "Estate & vineyards",
+  },
+  {
+    image: suitePhotos.roma[3],
+    alt: "Roma suite living area",
+    caption: "Roma suite",
+  },
+  {
+    image: gal("olive-grove-walk").image,
+    alt: "A slow walk through the olive grove",
+    caption: "Olive grove",
+  },
+  {
+    image: suitePhotos.napoli[5],
+    alt: "Napoli suite detail",
+    caption: "Napoli suite",
+  },
+  {
+    image: gal("stringlight-toast").image,
+    alt: "Glasses raised under the string lights",
+    caption: "Under the lights",
+  },
 ];
 
-// Estate at a glance — six headline stats shown beneath the welcome.
+// Estate at a glance — four headline stats shown beneath the welcome.
 const estateStats = [
   { value: "50", label: "Acre Hillside Estate" },
-  { value: "7", label: "Elegant Bedrooms" },
-  { value: "7", label: "Marble Bathrooms" },
+  { value: "2", label: "Stone Structures" },
   { value: "5", label: "Premium Suites" },
-  { value: "1", label: "Outdoor Pool" },
-  { value: "24", label: "Sleeps Up To" },
+  { value: "24", label: "Guests Max" },
+];
+
+// Full feature list, grouped into accordion sections for a tidy, scannable UX.
+// Everything beyond the four headline stats lives here.
+const featureGroups = [
+  {
+    title: "Bedrooms & Beds",
+    items: [
+      "7 Elegant Bedrooms",
+      "5 King Size Beds",
+      "2 Queen Size Beds",
+      "5 Premium Sofa Beds",
+    ],
+  },
+  {
+    title: "Bathrooms & Living",
+    items: [
+      "7 Marble Bathrooms with High-End Finishing",
+      "5 Living Rooms & Fully Equipped Kitchens",
+    ],
+  },
+  {
+    title: "Views & Pool",
+    items: ["Sea, Island & Forest Views", "1 Outdoor Pool"],
+  },
+  {
+    title: "Wellness",
+    items: [
+      "Fully Equipped Outdoor Gym & Shaded Yoga Platform",
+      "4-Person Outdoor Barrel Sauna",
+    ],
+  },
+  {
+    title: "Dining",
+    items: [
+      "Daily Breakfast Service",
+      "3 Chef-Cooked Dinners Per Week",
+      "Food & Grocery Delivery",
+    ],
+  },
+  {
+    title: "Service",
+    items: ["On-Site Concierge", "Animal Sanctuary — 3 Rescue Dogs & 7 Cats"],
+  },
+  {
+    title: "Entertainment",
+    items: ["5 Big Screen TVs with Netflix & Amazon Prime", "Foosball Table"],
+  },
+  {
+    title: "Connectivity",
+    items: ["Starlink Satellite Internet"],
+  },
 ];
 ---
 
@@ -79,7 +229,7 @@ const estateStats = [
   <!-- WELCOME -->
   <SplitSection
     eyebrow="Welcome to Villa Dolce Vita"
-    title="A Timeless Escape in the Heart of Tuscany"
+    title="50 Acre Hillside Estate in Tuscany"
     reverse
   >
     <Image
@@ -93,34 +243,60 @@ const estateStats = [
       data-mouse-parallax="14"
     />
     <p>
-      After years in corporate America, Linda and Frank traded the fast-paced life for the
-      rolling hills of Tuscany. What they built is a ten-hectare estate of olive groves,
-      vineyards, and open pastures, home to a handful of rescued animals and five private
-      suites, perched high enough to see the sea.
-    </p>
-    <p>
-      It isn't quite a hotel and it isn't quite a farmhouse. It's somewhere in between, run by
-      two people who actually live here, for guests who want the real version of a Tuscan
-      escape rather than the postcard.
+      Set high on the Maremma hills, Villa Dolce Vita looks out past olive
+      groves and forest to the sea, Elba and Corsica beyond. Two stone houses,
+      five large suites, up to 24 guests.
     </p>
     <div class="actions">
       <Button href="/our-story" variant="ghost">Read our story</Button>
     </div>
   </SplitSection>
 
-  <!-- ESTATE AT A GLANCE — six headline stats in a single full-width row
-       beneath the welcome, divided by hairline rules. -->
+  <!-- ESTATE AT A GLANCE — four headline stats as a full-width table row
+       beneath the welcome, with framing rules on all sides. -->
   <section class="statband bg-ivory" aria-label="The estate at a glance">
-    <ul class="statband__row wrap" data-reveal data-reveal-delay={0.1}>
-      {
-        estateStats.map((s) => (
-          <li class="statband__stat">
-            <span class="statband__value" data-count={s.value}>{s.value}</span>
-            <span class="statband__label">{s.label}</span>
-          </li>
-        ))
-      }
-    </ul>
+    <div class="wrap">
+      <ul class="statband__row statband__row--four statband__row--table" data-reveal data-reveal-delay={0.1}>
+        {
+          estateStats.map((s) => (
+            <li class="statband__stat">
+              <span class="statband__value" data-count={s.value}>
+                {s.value}
+              </span>
+              <span class="statband__label">{s.label}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- FEATURES & AMENITIES — full-width hover-reveal columns, pulled up close
+       under the welcome to avoid excess height. -->
+  <section class="amenities-section bg-ivory" aria-label="Features and amenities">
+    <div class="amenities wrap" data-reveal data-reveal-delay={0.1}>
+      <p class="amenities__eyebrow">Features &amp; Amenities</p>
+      <div class="amenities__groups">
+        {
+          featureGroups.map((group) => (
+            <div class="amenity" tabindex="0">
+              <div class="amenity__summary">
+                <span class="amenity__title">{group.title}</span>
+                <span class="amenity__count">{group.items.length}</span>
+                <span class="amenity__icon" aria-hidden="true" />
+              </div>
+              <div class="amenity__panel">
+                <ul class="amenity__list">
+                  {group.items.map((item) => (
+                    <li class="amenity__item">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
   </section>
 
   <script>
@@ -132,7 +308,9 @@ const estateStats = [
       );
       if (!values.length) return;
 
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
 
       const run = (el: HTMLElement) => {
         const target = parseInt(el.dataset.count || "0", 10);
@@ -188,11 +366,16 @@ const estateStats = [
         <h2 class="townband__title" id="townband-title">Massa Marittima</h2>
         <hr class="rule" />
         <p class="townband__body">
-          Cobbled streets, medieval charm, and a thousand-year-old cathedral — a fifteen-minute
-          drive from your terrace, with the sea on the horizon. The rare town you can visit on a
-          whim, not a whole day out.
+          Cobbled streets, medieval charm, and a thousand-year-old cathedral — a
+          fifteen-minute drive from your terrace, with the sea on the horizon.
+          The rare town you can visit on a whim, not a whole day out.
         </p>
-        <Button href="/experiences#day-trips" variant="secondary" onDark class="townband__cta">
+        <Button
+          href="/experiences#day-trips"
+          variant="secondary"
+          onDark
+          class="townband__cta"
+        >
           Discover the Town
         </Button>
       </div>
@@ -203,15 +386,23 @@ const estateStats = [
   <section class="section bg-ivory">
     <div class="wrap">
       <div class="suites-head">
-        <SectionHeader eyebrow="The Suites" title="Five Suites, One View" align="center">
+        <SectionHeader
+          eyebrow="The Suites"
+          title="Five Suites, One View"
+          align="center"
+        >
           <p>Sophisticated comfort and genuine charm, curated for real rest.</p>
         </SectionHeader>
-        <Button href="/suites" variant="ghost" class="suites-head__cta">Explore all suites</Button>
+        <Button href="/suites" variant="ghost" class="suites-head__cta"
+          >Explore all suites</Button
+        >
       </div>
       <div class="suites-metro">
         {
           orderedSuites.map((s, i) => (
-            <div class:list={["suites-metro__cell", `suites-metro__cell--${i}`]}>
+            <div
+              class:list={["suites-metro__cell", `suites-metro__cell--${i}`]}
+            >
               <SuiteCard suite={s} featured={i === 0} />
             </div>
           ))
@@ -224,7 +415,7 @@ const estateStats = [
        suites + the /gallery archive, linking out to the full gallery. -->
   <HomeGallery
     eyebrow="Gallery"
-    title="The Villa & Its Surroundings"
+    title="The Property"
     items={homeGalleryItems}
     href="/gallery"
     cta="View full gallery"
@@ -233,10 +424,16 @@ const estateStats = [
   <!-- BEYOND THE VILLA -->
   <section class="section bg-dark beyond">
     <div class="wrap">
-      <SectionHeader eyebrow="Beyond the Villa" title="This Is What There Is to Do Here, Beyond Nothing at All" align="center" onDark class="beyond-head">
+      <SectionHeader
+        eyebrow="Beyond the Villa"
+        title="This Is What There Is to Do Here, Beyond Nothing at All"
+        align="center"
+        onDark
+        class="beyond-head"
+      >
         <p style="color:var(--text-on-dark-muted)">
-          Wine tastings ten minutes away. Horses through the olive groves. A cooking class that
-          ends with a flaming wheel of parmigiano.
+          Wine tastings ten minutes away. Horses through the olive groves. A
+          cooking class that ends with a flaming wheel of parmigiano.
         </p>
       </SectionHeader>
       <ul class="beyond__grid">
@@ -258,13 +455,23 @@ const estateStats = [
   <section class="section bg-ivory">
     <div class="wrap">
       <div class="journal-head">
-        <SectionHeader eyebrow="From the Journal" title="A Running Local Guide" align="center">
-          <p>Things to do nearby, restaurant spotlights, and life at the estate.</p>
+        <SectionHeader
+          eyebrow="From the Journal"
+          title="A Running Local Guide"
+          align="center"
+        >
+          <p>
+            Things to do nearby, restaurant spotlights, and life at the estate.
+          </p>
         </SectionHeader>
-        <Button href="/journal" variant="ghost" class="journal-head__cta">Read the Journal</Button>
+        <Button href="/journal" variant="ghost" class="journal-head__cta"
+          >Read the Journal</Button
+        >
       </div>
-      {/* Journal posts as an alternating editorial zigzag: text one side,
-          image the other, flipping on every row. */}
+      {
+        /* Journal posts as an alternating editorial zigzag: text one side,
+          image the other, flipping on every row. */
+      }
       <div class="jzig">
         {
           journalTeasers.map((a, i) => (
@@ -299,7 +506,12 @@ const estateStats = [
   <!-- TESTIMONIALS -->
   <section class="section bg-charcoal testimonials">
     <div class="wrap">
-      <SectionHeader eyebrow="What Guests Say" title="Kind Words" align="center" onDark />
+      <SectionHeader
+        eyebrow="What Guests Say"
+        title="Kind Words"
+        align="center"
+        onDark
+      />
       <TestimonialCarousel client:load items={testimonials} />
     </div>
   </section>
@@ -309,19 +521,28 @@ const estateStats = [
   <section class="section bg-ivory weddings" aria-labelledby="weddings-title">
     <div class="wrap weddings__split">
       <div class="weddings__intro">
-        <Reveal as="p" class="eyebrow eyebrow--diamond weddings__eyebrow">Weddings &amp; Events</Reveal>
-        <Reveal as="h2" delay={0.05} class="weddings__title" id="weddings-title">
+        <Reveal as="p" class="eyebrow eyebrow--diamond weddings__eyebrow"
+          >Weddings &amp; Events</Reveal
+        >
+        <Reveal
+          as="h2"
+          delay={0.05}
+          class="weddings__title"
+          id="weddings-title"
+        >
           Weddings Under<br /><em>the Tuscan Sun</em>
         </Reveal>
 
         <div class="weddings__lead">
           <Reveal as="p" class="weddings__copy" delay={0.1}>
-            Ceremonies on the hilltop terrace, cocktail hour rolling straight into sunset, and a
-            reception that spills from the marble into the vineyard rows — with the sea and the
-            islands on the horizon.
+            Ceremonies on the hilltop terrace, cocktail hour rolling straight
+            into sunset, and a reception that spills from the marble into the
+            vineyard rows — with the sea and the islands on the horizon.
           </Reveal>
           <Reveal class="weddings__actions" delay={0.14}>
-            <Button href="/weddings-events" variant="primary">Explore Weddings</Button>
+            <Button href="/weddings-events" variant="primary"
+              >Explore Weddings</Button
+            >
           </Reveal>
         </div>
       </div>
@@ -362,9 +583,13 @@ const estateStats = [
   <section class="finalcta">
     <BackgroundVideo video="aerialTownGolden" />
     <div class="finalcta__content wrap">
-      <Reveal as="p" class="eyebrow eyebrow--gold">Book direct for the best rate</Reveal>
+      <Reveal as="p" class="eyebrow eyebrow--gold"
+        >Book direct for the best rate</Reveal
+      >
       <Reveal as="h2" delay={0.05}>Come Sit on the Hill for a While</Reveal>
-      <Reveal delay={0.1}><p class="finalcta__sub">Five suites. One view.</p></Reveal>
+      <Reveal delay={0.1}
+        ><p class="finalcta__sub">Five suites. One view.</p></Reveal
+      >
       <Reveal delay={0.15}>
         <Button href={bookingHref} variant="primary">Check Availability</Button>
       </Reveal>
@@ -414,10 +639,22 @@ const estateStats = [
     grid-column: 1 / 3;
     grid-row: 1 / 3;
   }
-  .suites-metro__cell--1 { grid-column: 3; grid-row: 1; }
-  .suites-metro__cell--2 { grid-column: 4; grid-row: 1; }
-  .suites-metro__cell--3 { grid-column: 3; grid-row: 2; }
-  .suites-metro__cell--4 { grid-column: 4; grid-row: 2; }
+  .suites-metro__cell--1 {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .suites-metro__cell--2 {
+    grid-column: 4;
+    grid-row: 1;
+  }
+  .suites-metro__cell--3 {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .suites-metro__cell--4 {
+    grid-column: 4;
+    grid-row: 2;
+  }
 
   /* Every card fills its tile; images grow to consume the tile height. */
   .suites-metro__cell :global(.suite__media) {
@@ -584,11 +821,7 @@ const estateStats = [
   :global(.split:has(+ .statband)) {
     padding-bottom: 0;
   }
-  /* Estate-at-a-glance — six headline stats in one full-width row beneath the
-     welcome, with hairline dividers between them. */
   .statband {
-    /* Sits close under the welcome; a little breathing room below.
-       Top padding trimmed ~20% to pull the numbers closer to the intro. */
     padding-block: clamp(0.8rem, 1.6vw, 1.28rem) clamp(3rem, 6vw, 5rem);
   }
   .statband__row {
@@ -598,6 +831,14 @@ const estateStats = [
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     gap: 0;
+  }
+  .statband__row--four {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  /* Table variant — a framed full-width row: hairline rules on all four sides
+     so the columns read like a clean table. */
+  .statband__row--table {
+    border: 1px solid var(--line);
   }
   .statband__stat {
     display: flex;
@@ -660,6 +901,14 @@ const estateStats = [
     width: 1px;
     background: var(--line);
   }
+  /* Table variant: dividers span the full cell height to close the grid. */
+  .statband__row--table .statband__stat {
+    padding-block: clamp(1.4rem, 2.6vw, 2.1rem);
+  }
+  .statband__row--table .statband__stat:not(:first-child)::before {
+    top: 0;
+    bottom: 0;
+  }
   .statband__value {
     font-family: var(--font-display);
     font-size: clamp(1.9rem, 1.4rem + 1.6vw, 2.7rem);
@@ -675,6 +924,7 @@ const estateStats = [
     max-width: 14ch;
     line-height: 1.35;
   }
+
   @media (max-width: 760px) {
     .statband__row {
       grid-template-columns: repeat(3, 1fr);
@@ -682,6 +932,27 @@ const estateStats = [
     }
     .statband__stat:nth-child(3n + 1)::before {
       display: none;
+    }
+    /* Four-stat variant: two per row on tablets. */
+    .statband__row--four {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .statband__row--four .statband__stat:nth-child(3n + 1)::before {
+      display: block;
+    }
+    .statband__row--four .statband__stat:nth-child(2n + 1)::before {
+      display: none;
+    }
+    /* Table variant on tablet: 2x2 grid, no row gap, add a row divider so the
+       cells stay fully framed. */
+    .statband__row--table.statband__row--four {
+      gap: 0;
+    }
+    .statband__row--table .statband__stat:nth-child(2n + 1)::before {
+      display: none;
+    }
+    .statband__row--table .statband__stat:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
     }
   }
   @media (max-width: 460px) {
@@ -693,6 +964,205 @@ const estateStats = [
     }
     .statband__stat:not(:nth-child(2n + 1))::before {
       display: block;
+    }
+  }
+
+  /* ── Features & Amenities — full-width hover-reveal columns ── */
+  .amenities-section {
+    /* Pulled up close under the welcome, with clear breathing room before the
+       next section so the accordion never collides with the CTA below. */
+    padding-block: clamp(1rem, 2vw, 1.6rem) clamp(3.5rem, 7vw, 6rem);
+  }
+  .amenities {
+    margin-top: 0;
+  }
+  .amenities__eyebrow {
+    font-family: var(--font-body);
+    font-size: var(--fs-eyebrow);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    margin: 0 0 clamp(1rem, 2vw, 1.5rem);
+  }
+  .amenities__groups {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    align-items: start;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .amenity {
+    position: relative;
+    outline: none;
+  }
+  /* Vertical hairline dividers between columns (not on the first column). */
+  .amenity:not(:nth-child(4n + 1))::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--line);
+  }
+  /* Horizontal hairline between the two rows (cells 5–8). */
+  .amenity:nth-child(n + 5) {
+    border-top: 1px solid var(--line);
+  }
+  .amenity__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: clamp(1rem, 2vw, 1.35rem) clamp(1.1rem, 2.2vw, 1.6rem);
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--dur-fast) var(--ease-out);
+  }
+  .amenity:hover .amenity__summary,
+  .amenity:focus-visible .amenity__summary {
+    background: rgba(38, 36, 31, 0.03);
+  }
+  .amenity:focus-visible .amenity__summary {
+    outline: 2px solid var(--accent-deep);
+    outline-offset: -2px;
+  }
+  .amenity__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 0.85rem + 0.6vw, 1.35rem);
+    line-height: 1.1;
+    color: var(--c-forest);
+    flex: 1;
+  }
+  .amenity__count {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    background: rgba(38, 36, 31, 0.05);
+    border-radius: 999px;
+    padding: 0.2em 0.6em;
+    min-width: 1.6em;
+    text-align: center;
+  }
+  .amenity__icon {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .amenity__icon::before,
+  .amenity__icon::after {
+    content: "";
+    position: absolute;
+    background: var(--accent-deep);
+    transition: transform var(--dur) var(--ease-out);
+  }
+  .amenity__icon::before {
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1.5px;
+    transform: translateY(-50%);
+  }
+  .amenity__icon::after {
+    left: 50%;
+    top: 0;
+    width: 1.5px;
+    height: 100%;
+    transform: translateX(-50%);
+  }
+  /* + becomes − on hover/focus. */
+  .amenity:hover .amenity__icon::after,
+  .amenity:focus-visible .amenity__icon::after {
+    transform: translateX(-50%) scaleY(0);
+  }
+  /* Smooth height reveal using the 0fr → 1fr grid trick. */
+  .amenity__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur) var(--ease-out);
+  }
+  .amenity:hover .amenity__panel,
+  .amenity:focus-visible .amenity__panel {
+    grid-template-rows: 1fr;
+  }
+  .amenity__list {
+    list-style: none;
+    margin: 0;
+    padding: 0 clamp(1.1rem, 2.2vw, 1.6rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  .amenity:hover .amenity__list,
+  .amenity:focus-visible .amenity__list {
+    padding-bottom: clamp(1rem, 2vw, 1.35rem);
+    opacity: 1;
+  }
+  .amenity__item {
+    position: relative;
+    padding-left: 1.25rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--c-charcoal);
+  }
+  .amenity__item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .amenity__summary,
+    .amenity__panel,
+    .amenity__list,
+    .amenity__icon::before,
+    .amenity__icon::after {
+      transition: none;
+    }
+  }
+  @media (max-width: 900px) {
+    .amenities__groups {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    /* Reset the vertical dividers; add a full grid look with row borders. */
+    .amenity:nth-child(2n)::before {
+      display: block;
+    }
+    .amenity:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+  }
+  @media (max-width: 520px) {
+    .amenities__groups {
+      grid-template-columns: 1fr;
+    }
+    .amenity::before {
+      display: none;
+    }
+    .amenity:not(:first-child) {
+      border-top: 1px solid var(--line);
+    }
+    /* No hover on touch — keep every list expanded so nothing is hidden. */
+    .amenity__panel {
+      grid-template-rows: 1fr;
+    }
+    .amenity__list {
+      opacity: 1;
+      padding-bottom: clamp(1rem, 2vw, 1.35rem);
+    }
+    .amenity__icon::after {
+      transform: translateX(-50%) scaleY(0);
     }
   }
 
@@ -994,5 +1464,4 @@ const estateStats = [
     font-size: 0.85rem;
     margin-bottom: 1rem;
   }
-
 </style>

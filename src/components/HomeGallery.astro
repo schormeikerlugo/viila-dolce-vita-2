@@ -128,10 +128,12 @@ const tiles = items.slice(0, limit).map((item) => ({
 <style>
   /* Full-bleed CSS-columns masonry — mirrors the /gallery page grid. */
   .hgal__grid {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
+    /* Contained (not full-bleed): a centered max-width with generous side
+       margins, so the masonry sits inset from the viewport edges (client
+       request) while keeping the 5 columns. */
+    width: min(100% - 2 * var(--gutter), 1500px);
+    margin-inline: auto;
     margin-top: var(--space-group);
-    padding: 0 var(--gutter);
     column-count: 5;
     column-gap: 1rem;
   }
