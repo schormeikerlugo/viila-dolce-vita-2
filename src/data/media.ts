@@ -30,6 +30,7 @@ import valdorciaMist from "../assets/images/AdobeStock_73719062.jpeg";
 import butteriFoal from "../assets/images/AdobeStock_806802471.jpeg";
 import welcomeVilla from "../assets/images/seccion2.png"; // transparent PNG (no background)
 import massaMarittima from "../assets/images/seccion3.png"; // Massa Marittima cathedral + piazza (full-bleed band)
+import contactValleyDusk from "../assets/images/contact-valley-dusk.png"; // dusk over the valley — Contact side image
 
 /* ---- Our Story feature photos (full-resolution originals) ---- */
 import landMaremmaHilltown from "../assets/images/land-maremma-hilltown.jpg"; // The Land — Maremma hilltown over the valley
@@ -47,6 +48,7 @@ import weddingEmbrace from "../assets/images/weddings/wedding-embrace.jpg";     
 export const photos = {
   welcomeVilla,
   massaMarittima,
+  contactValleyDusk,
   landMaremmaHilltown,
   houseTerraceView,
   hilltopRest,
