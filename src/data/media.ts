@@ -44,6 +44,8 @@ import weddingBouquet from "../assets/images/weddings/wedding-bouquet.jpg"; // c
 import weddingCoupleSunset from "../assets/images/weddings/wedding-couple-sunset.jpg"; // bride & groom outdoors at dusk, full-length (wide)
 import weddingSilhouette from "../assets/images/weddings/wedding-silhouette.jpg";       // couple silhouette against glowing light (dramatic, wide)
 import weddingEmbrace from "../assets/images/weddings/wedding-embrace.jpg";             // intimate close-up embrace, warm low light (tall)
+import weddingTerraceHilltop from "../assets/images/weddings/wedding-terrace-hilltop.png"; // hilltop terrace over the valley (Weddings hero)
+import weddingSettingView from "../assets/images/weddings/wedding-setting-view.png";       // set table on the wisteria terrace, valley beyond (The Setting)
 
 export const photos = {
   welcomeVilla,
@@ -58,6 +60,8 @@ export const photos = {
   weddingCoupleSunset,
   weddingSilhouette,
   weddingEmbrace,
+  weddingTerraceHilltop,
+  weddingSettingView,
   restaurantStreet,
   florenceDuomoDusk,
   hillTownValley,
