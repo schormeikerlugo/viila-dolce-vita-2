@@ -8,7 +8,6 @@
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "../components/PageHero.astro";
-import SpecTable from "../components/SpecTable.astro";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
 import { Image } from "astro:assets";
@@ -17,8 +16,10 @@ import { photos, mockups } from "../data/media";
 import { bookingHref, bookingMessageHref, contact } from "../data/site";
 import { galleryItems } from "../data/gallery";
 
-// The premium (highest-rate) suite gets a "Signature" flag.
-const premiumSlug = [...suites].sort((a, b) => b.fromNight - a.fromNight)[0].slug;
+// One canonical order everywhere on the page: by nightly rate, high → low.
+// The top-rate suite (Roma) becomes "Suite 01 — Signature Suite".
+const orderedSuites = [...suites].sort((a, b) => b.fromNight - a.fromNight);
+const premiumSlug = orderedSuites[0].slug;
 
 // Rate range + capacity for the hero meta and closing CTA.
 const lowestRate = Math.min(...suites.map((s) => s.fromNight));
@@ -27,17 +28,6 @@ const totalSleeps = 24;
 
 // Evocative full-bleed background for the mid-page CTA.
 const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image;
-
-// Index rows for the SpecTable (title / tagline / anchor / data).
-const indexRows = suites.map((s) => ({
-  title: s.name,
-  note: s.tagline,
-  href: `#${s.slug}`,
-  specs: [
-    { label: "Sleeps", value: `${s.sleeps} guests` },
-    { label: "From", value: `€${s.fromNight} / night` },
-  ],
-}));
 ---
 
 <BaseLayout
@@ -57,17 +47,26 @@ const indexRows = suites.map((s) => ({
     ]}
   />
 
-  <!-- SUITE INDEX — Tonelli spec table, deep-linking to each suite. -->
+  <!-- SUITE INDEX — compact anchor nav, deep-linking to each suite. -->
   <section class="section bg-ivory suites-index" aria-label="Suite index">
-    <div class="wrap">
-      <Reveal as="p" class="slash-label suites-index__label">Suite Index</Reveal>
-      <SpecTable rows={indexRows} />
+    <div class="wrap suites-index__inner">
+      <Reveal as="p" class="slash-label suites-index__label">Jump to a Suite</Reveal>
+      <nav class="suites-index__nav" aria-label="Jump to a suite" data-reveal>
+        {
+          orderedSuites.map((s) => (
+            <a class="suites-index__chip" href={`#${s.slug}`}>
+              {s.name}
+              <span class="suites-index__from">€{s.fromNight}</span>
+            </a>
+          ))
+        }
+      </nav>
     </div>
   </section>
 
   <!-- SUITES -->
   {
-    suites.map((suite, i) => (
+    orderedSuites.map((suite, i) => (
       <>
       <section
         id={suite.slug}
@@ -142,7 +141,10 @@ const indexRows = suites.map((s) => ({
             <Reveal as="p" class="slash-label suite-detail__kicker">
               {`Suite ${String(i + 1).padStart(2, "0")}${suite.slug === premiumSlug ? " — Signature Suite" : ""}`}
             </Reveal>
-            <Reveal as="h2" delay={0.05}>{suite.name}</Reveal>
+            <Reveal as="div" class="suite-detail__titlerow" delay={0.05}>
+              <h2>{suite.name}</h2>
+              {suite.badge && <span class="suite-detail__badge">{suite.badge}</span>}
+            </Reveal>
             <Reveal delay={0.08}>
               <p class="suite-detail__tagline">{suite.tagline}</p>
             </Reveal>
@@ -159,12 +161,6 @@ const indexRows = suites.map((s) => ({
                   <dt>From</dt>
                   <dd>€{suite.fromNight} / night</dd>
                 </div>
-                {suite.badge && (
-                  <div class="suite-detail__metacell">
-                    <dt>Note</dt>
-                    <dd>{suite.badge}</dd>
-                  </div>
-                )}
               </dl>
             </Reveal>
             <Reveal delay={0.16}>
@@ -193,8 +189,8 @@ const indexRows = suites.map((s) => ({
         </div>
       </section>
 
-      {/* Dynamic CTA band, placed between the 2nd (Roma) and 3rd (Capri) suite. */}
-      {i === 1 && (
+      {/* Dynamic CTA band, placed mid-list (after the 3rd suite) for rhythm. */}
+      {i === 2 && (
         <section class="suites-cta" aria-labelledby="suites-cta-title" data-parallax-scope>
           <div class="suites-cta__media" data-parallax="0.12">
             <Image
@@ -269,13 +265,54 @@ const indexRows = suites.map((s) => ({
 </BaseLayout>
 
 <style>
-  /* ── Suite index ─────────────────────────────────────────────────────── */
+  /* ── Suite index — compact anchor nav ────────────────────────────────── */
   .suites-index {
-    padding-block: clamp(3rem, 6vw, 5.5rem);
+    padding-block: clamp(2.25rem, 4.5vw, 3.5rem);
+    border-bottom: 1px solid var(--line);
+  }
+  .suites-index__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(1rem, 3vw, 2.5rem);
   }
   .suites-index :global(.slash-label) {
-    display: block;
-    margin-bottom: clamp(1.25rem, 2.5vw, 2rem);
+    flex: 0 0 auto;
+    margin: 0;
+  }
+  .suites-index__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 0.75rem;
+  }
+  .suites-index__chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line);
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text);
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  .suites-index__chip:hover {
+    border-color: var(--c-ink);
+    color: var(--accent);
+  }
+  .suites-index__from {
+    font-family: var(--font-body);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    color: var(--text-muted);
+  }
+  .suites-index__chip:hover .suites-index__from {
+    color: var(--accent);
   }
 
   /* ── Suite sections ──────────────────────────────────────────────────── */
@@ -303,6 +340,25 @@ const indexRows = suites.map((s) => ({
   }
   .suite-detail__copy :global(h2) {
     max-width: 14ch;
+  }
+  /* Title + Signature/Honeymoon badge on one baseline row. */
+  .suite-detail__copy :global(.suite-detail__titlerow) {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+  }
+  .suite-detail__badge {
+    flex: 0 0 auto;
+    align-self: center;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    white-space: nowrap;
   }
   .suite-detail__img {
     position: relative;
