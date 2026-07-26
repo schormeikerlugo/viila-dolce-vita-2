@@ -8,7 +8,6 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/Hero.astro";
 import SectionHeader from "../components/SectionHeader.astro";
-import SuiteCard from "../components/SuiteCard.astro";
 import HomeGallery from "../components/HomeGallery.astro";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
@@ -21,7 +20,6 @@ import BackgroundVideo from "../components/BackgroundVideo.astro";
 import TestimonialCarousel from "../components/TestimonialCarousel.tsx";
 import { Image } from "astro:assets";
 import { bookingHref, contact } from "../data/site";
-import { suites } from "../data/suites";
 import { testimonials } from "../data/testimonials";
 import { photos, suitePhotos } from "../data/media";
 import { galleryItems } from "../data/gallery";
@@ -29,10 +27,6 @@ import { experienceLinks } from "../data/experiences";
 import { journalTeasers } from "../data/journal";
 import { homeFaqs } from "../data/faq";
 import { faqSchema } from "../lib/schema";
-
-// Metro mosaic order: signature (highest rate) suite first so it takes the
-// hero tile, then the rest by descending rate for a balanced layout.
-const orderedSuites = [...suites].sort((a, b) => b.fromNight - a.fromNight);
 
 // Home gallery teaser — a curated set mixing suites + /gallery surroundings.
 const gal = (slug: string) => galleryItems.find((g) => g.slug === slug)!;
@@ -244,27 +238,6 @@ const weddingSlides = [
       });
     })();
   </script>
-
-  <!-- THE SUITES — left header + draggable card carousel. -->
-  <section class="section bg-ivory suites-section">
-    <div class="wrap">
-      <div class="suites-head">
-        <SectionHeader eyebrow="The Suites" title="Five Suites, One View" align="left">
-          <p>Sophisticated comfort and genuine charm, curated for real rest.</p>
-        </SectionHeader>
-        <Button href="/suites" variant="ghost" class="suites-head__cta">Explore all suites</Button>
-      </div>
-      <CardCarousel label="The suites" class="suites-carousel">
-        {
-          orderedSuites.map((s) => (
-            <div class="suites-slide">
-              <SuiteCard suite={s} panel />
-            </div>
-          ))
-        }
-      </CardCarousel>
-    </div>
-  </section>
 
   <!-- GALLERY -->
   <HomeGallery
@@ -776,7 +749,7 @@ const weddingSlides = [
     }
   }
 
-  /* ── SUITES — header row + metro mosaic ──────────────────────────────── */
+  /* ── SECTION HEADER ROW (header + inline CTA) ────────────────────────── */
   .suites-head {
     display: flex;
     align-items: flex-end;
@@ -792,19 +765,7 @@ const weddingSlides = [
     white-space: nowrap;
     margin-bottom: 0.4rem;
   }
-  /* Slides: ~3 cards visible on desktop, equal heights via track stretch. */
-  .suites-slide {
-    display: flex;
-    flex: 0 0 clamp(17rem, 28vw, 25rem);
-    min-width: 0;
-  }
-  .suites-slide > :global(.suite) {
-    width: 100%;
-  }
   @media (max-width: 560px) {
-    .suites-slide {
-      flex-basis: min(21rem, 84vw);
-    }
     .suites-head {
       flex-direction: column;
       align-items: flex-start;
