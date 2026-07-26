@@ -92,6 +92,11 @@ const bgClass = theme === "dark" ? "bg-dark" : theme === "stone" ? "bg-sunk" : "
     gap: clamp(2.5rem, 6vw, 6.5rem);
     align-items: center;
   }
+  .split--reverse .split__inner {
+    /* Keep the media on the wide track so its width matches the default
+       (and the PageHero) — copy takes the narrow track on the left. */
+    grid-template-columns: 1fr 1.35fr;
+  }
   .split--reverse .split__media {
     order: 2;
   }
@@ -166,7 +171,8 @@ const bgClass = theme === "dark" ? "bg-dark" : theme === "stone" ? "bg-sunk" : "
   }
 
   @media (max-width: 900px) {
-    .split__inner {
+    .split__inner,
+    .split--reverse .split__inner {
       grid-template-columns: 1fr;
       gap: 2.5rem;
     }
