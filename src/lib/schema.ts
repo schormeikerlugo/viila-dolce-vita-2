@@ -5,6 +5,7 @@
 
 import { site, contact, social } from "../data/site";
 import type { FaqItem } from "../data/faq";
+import type { ImageMetadata } from "astro";
 
 /** The estate as a LodgingBusiness — global card for search engines. */
 export function lodgingBusinessSchema() {
@@ -50,6 +51,10 @@ export function articleSchema(a: {
   excerpt: string;
   slug: string;
   category: string;
+  author?: string;
+  date?: string;
+  image?: ImageMetadata;
+  tags?: string[];
 }) {
   return {
     "@context": "https://schema.org",
@@ -58,6 +63,10 @@ export function articleSchema(a: {
     description: a.excerpt,
     articleSection: a.category,
     url: `${site.url}/journal/${a.slug}`,
+    ...(a.image ? { image: `${site.url}${a.image.src}` } : {}),
+    ...(a.date ? { datePublished: a.date, dateModified: a.date } : {}),
+    ...(a.tags?.length ? { keywords: a.tags.join(", ") } : {}),
+    author: { "@type": "Organization", name: a.author ?? site.name },
     publisher: { "@type": "Organization", name: site.name, url: site.url },
   };
 }

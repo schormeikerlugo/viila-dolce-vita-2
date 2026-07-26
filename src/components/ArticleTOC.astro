@@ -1,0 +1,219 @@
+---
+/**
+ * ArticleTOC — "On this page" index built from the article's section
+ * headings. Sticky rail on desktop, a collapsible <details> accordion on
+ * mobile. A scrollspy highlights the section currently in view.
+ *
+ * Contract: each item is { slug, heading }; anchors point at `#${slug}`,
+ * which must match the `id` of the corresponding section element.
+ */
+interface Item {
+  slug: string;
+  heading: string;
+}
+interface Props {
+  items: Item[];
+}
+const { items } = Astro.props;
+---
+
+{
+  items.length > 1 && (
+    <aside class="toc" aria-label="Table of contents">
+      <details class="toc__details" open>
+        <summary class="toc__head">
+          <span>On this page</span>
+          <svg
+            class="toc__chev"
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            aria-hidden="true"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </summary>
+        <nav class="toc__nav">
+          <ol class="toc__list">
+            {items.map((h, i) => (
+              <li class="toc__item">
+                <a href={`#${h.slug}`} data-toc-link={h.slug} class="toc__link">
+                  <span class="toc__num" aria-hidden="true">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span class="toc__text">{h.heading}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      </details>
+    </aside>
+  )
+}
+
+<style>
+  .toc {
+    position: sticky;
+    top: 6.5rem;
+    align-self: start;
+  }
+  .toc__details {
+    border-top: 1px solid var(--line);
+  }
+  .toc__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 0.1rem;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .toc__head::-webkit-details-marker {
+    display: none;
+  }
+  .toc__chev {
+    flex: 0 0 auto;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  /* On desktop the rail stays open; hide the chevron cue. */
+  .toc__chev {
+    display: none;
+  }
+  .toc__nav {
+    padding-top: 0.35rem;
+  }
+  .toc__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .toc__item {
+    margin: 0;
+  }
+  .toc__link {
+    display: flex;
+    gap: 0.7rem;
+    align-items: baseline;
+    padding: 0.5rem 0.1rem;
+    border-left: 1px solid transparent;
+    padding-left: 0.85rem;
+    margin-left: -0.85rem;
+    color: var(--text-muted);
+    font-size: 0.86rem;
+    line-height: 1.35;
+    transition: color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out);
+  }
+  .toc__num {
+    flex: 0 0 auto;
+    font-size: 0.6rem;
+    letter-spacing: var(--tracking-caps);
+    color: var(--text-faint, var(--text-muted));
+    opacity: 0.7;
+    transform: translateY(-0.05em);
+  }
+  .toc__link:hover {
+    color: var(--text);
+  }
+  .toc__link.is-active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+  .toc__link.is-active .toc__num {
+    color: var(--accent);
+    opacity: 1;
+  }
+
+  @media (max-width: 900px) {
+    .toc {
+      position: static;
+      margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+    }
+    .toc__chev {
+      display: block;
+    }
+    .toc__details[open] .toc__chev {
+      transform: rotate(180deg);
+    }
+    /* Collapse the list by default on mobile. */
+    .toc__details:not([open]) .toc__nav {
+      display: none;
+    }
+    .toc__head {
+      border-bottom: 1px solid var(--line);
+    }
+  }
+</style>
+
+<script>
+  // Scrollspy: highlight the TOC link whose section is at the top of view.
+  function initToc() {
+    document
+      .querySelectorAll<HTMLElement>(".toc:not([data-toc-ready])")
+      .forEach((toc) => {
+        toc.dataset.tocReady = "1";
+        const links = Array.from(
+          toc.querySelectorAll<HTMLAnchorElement>("[data-toc-link]"),
+        );
+        if (!links.length) return;
+
+        const linkMap = new Map<string, HTMLAnchorElement>();
+        links.forEach((l) => linkMap.set(l.dataset.tocLink || "", l));
+
+        const headings: HTMLElement[] = [];
+        linkMap.forEach((_, slug) => {
+          const el = document.getElementById(slug);
+          if (el) headings.push(el);
+        });
+        if (!headings.length) return;
+
+        let activeSlug: string | null = null;
+        const setActive = (slug: string) => {
+          if (slug === activeSlug) return;
+          activeSlug = slug;
+          linkMap.forEach((link, s) => link.classList.toggle("is-active", s === slug));
+        };
+
+        // The active section is the last heading that has scrolled past a
+        // reading line (~28% down the viewport). This stays correct even when
+        // no heading is inside a narrow intersection band, and works with the
+        // site's smooth-scroll (Lenis) transforms since it reads live rects.
+        let ticking = false;
+        const pick = () => {
+          ticking = false;
+          const line = window.innerHeight * 0.28;
+          let current = headings[0];
+          for (const h of headings) {
+            if (h.getBoundingClientRect().top - line <= 0) current = h;
+            else break;
+          }
+          setActive(current.id);
+        };
+        const onScroll = () => {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(pick);
+          }
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll);
+        pick();
+      });
+  }
+
+  document.addEventListener("astro:page-load", initToc);
+  if (document.readyState !== "loading") initToc();
+  else document.addEventListener("DOMContentLoaded", initToc);
+</script>

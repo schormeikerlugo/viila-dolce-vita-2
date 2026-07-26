@@ -1,15 +1,19 @@
 ---
 /**
  * Journal article — static route generated per slug from journal.ts.
- * Tuscan Editorial: split hero with category meta row, a centered 68ch body
- * with a Bodoni italic lead, and hairline "Keep Reading" rows to close.
+ * Tuscan Editorial: a full-bleed cover hero, a sticky "On this page" rail,
+ * a centered ~72ch body split into anchored sections (each with an optional
+ * inset image), a closing FAQ, a tag list, and hairline "Keep Reading" rows.
  */
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import PageHero from "../../components/PageHero.astro";
+import ArticleHero from "../../components/ArticleHero.astro";
+import ArticleTOC from "../../components/ArticleTOC.astro";
+import FaqAccordion from "../../components/FaqAccordion.astro";
 import Button from "../../components/Button.astro";
 import Reveal from "../../components/Reveal.astro";
+import { Image } from "astro:assets";
 import { journal } from "../../data/journal";
-import { articleSchema } from "../../lib/schema";
+import { articleSchema, faqSchema } from "../../lib/schema";
 
 export function getStaticPaths() {
   return journal.map((article) => ({
@@ -23,8 +27,17 @@ const { article } = Astro.props;
 // Related: the other articles.
 const related = journal.filter((a) => a.slug !== article.slug);
 
-// Estimated reading time (200 wpm) from the article body.
-const words = [article.excerpt, ...article.body].join(" ").split(/\s+/).length;
+// Table-of-contents entries derived from the section headings.
+const tocItems = article.sections.map((s) => ({ slug: s.slug, heading: s.heading }));
+
+// Estimated reading time (200 wpm) from the whole body + FAQ.
+const words = [
+  article.excerpt,
+  ...article.sections.flatMap((s) => s.body),
+  ...article.faqs.flatMap((f) => [f.q, f.a]),
+]
+  .join(" ")
+  .split(/\s+/).length;
 const readMinutes = Math.max(1, Math.round(words / 200));
 ---
 
@@ -32,31 +45,60 @@ const readMinutes = Math.max(1, Math.round(words / 200));
   title={article.title}
   description={article.excerpt}
   ogImage={article.image}
-  schemas={[articleSchema(article)]}
+  schemas={[articleSchema({ ...article, readMinutes }), faqSchema(article.faqs)]}
 >
-  <PageHero
-    eyebrow="From the Journal"
+  <ArticleHero
+    category={article.category}
     title={article.title}
+    excerpt={article.excerpt}
+    author={article.author}
+    date={article.date}
+    readMinutes={readMinutes}
     image={article.image}
     imageAlt={article.imageAlt}
-    meta={[
-      { label: "Category", value: article.category },
-      { label: "Reading Time", value: `${readMinutes} min` },
-    ]}
     mediaTransitionName={`journal-${article.slug}`}
   />
 
   {/* Reading progress — a hairline of accent that fills as you read. */}
   <div class="readbar" id="read-progress" aria-hidden="true"></div>
 
-  <article class="section bg-ivory">
-    <div class="wrap">
+  <article class="section bg-ivory art">
+    <div class="wrap art__layout">
+      <ArticleTOC items={tocItems} />
+
       <div class="prose">
-        <Reveal as="p" class="prose__lead">{article.excerpt}</Reveal>
-        <hr class="prose__rule" />
-        {article.body.map((p, i) => (
-          <Reveal as="p" delay={Math.min(i * 0.03, 0.15)}>{p}</Reveal>
-        ))}
+        {
+          article.sections.map((s, si) => (
+            <section class="prose__section" aria-labelledby={s.slug}>
+              <h2 id={s.slug} data-split>{s.heading}</h2>
+              {s.image && (
+                <Reveal as="figure" class="prose__figure">
+                  <Image
+                    src={s.image}
+                    alt={s.imageAlt ?? ""}
+                    widths={[560, 860, 1200]}
+                    sizes="(max-width: 900px) 92vw, 72ch"
+                    loading={si === 0 ? "eager" : "lazy"}
+                  />
+                </Reveal>
+              )}
+              {s.body.map((p, i) => (
+                <Reveal as="p" delay={Math.min(i * 0.03, 0.15)}>{p}</Reveal>
+              ))}
+            </section>
+          ))
+        }
+
+        {/* FAQ */}
+        <section class="prose__faq" aria-labelledby="faq-heading">
+          <h2 id="faq-heading" data-split>Frequently Asked Questions</h2>
+          <FaqAccordion items={article.faqs} onDark={false} />
+        </section>
+
+        {/* Tags */}
+        <ul class="art__tags" data-reveal aria-label="Tags">
+          {article.tags.map((t) => <li>#{t}</li>)}
+        </ul>
 
         <footer class="prose__foot">
           <Button href="/journal" variant="ghost">Back to the Journal</Button>
@@ -111,39 +153,83 @@ const readMinutes = Math.max(1, Math.round(words / 200));
     }
   }
 
-  /* ── Article body — centered 68ch measure ─────────────────────────────── */
+  /* ── Layout — sticky TOC rail + centered body ─────────────────────────── */
+  .art__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    gap: clamp(2.5rem, 6vw, 5rem);
+    align-items: start;
+  }
   .prose {
-    max-width: 68ch;
-    margin-inline: auto;
-  }
-  .prose :global(.prose__lead) {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: clamp(1.3rem, 1rem + 1.2vw, 1.9rem);
-    line-height: 1.45;
-    color: var(--text);
-    max-width: none;
-  }
-  .prose__rule {
-    border: 0;
-    height: 1px;
+    grid-column: 1;
+    grid-row: 1;
+    max-width: 72ch;
+    justify-self: center;
     width: 100%;
-    background: var(--line);
-    margin-block: clamp(1.8rem, 3.5vw, 2.8rem);
   }
-  .prose :global(p:not(.prose__lead)) {
+  .art :global(.toc) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  @media (max-width: 900px) {
+    .art__layout {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .prose,
+    .art :global(.toc) {
+      grid-column: 1;
+    }
+    .art :global(.toc) {
+      grid-row: 1;
+    }
+    .prose {
+      grid-row: 2;
+      justify-self: stretch;
+    }
+  }
+
+  /* ── Article body ─────────────────────────────────────────────────────── */
+  .prose__section + .prose__section,
+  .prose__faq {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+  }
+  .prose :global(h2) {
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem);
+    line-height: 1.12;
+    padding-top: clamp(1.4rem, 2.5vw, 2rem);
+    margin-bottom: clamp(1.1rem, 2vw, 1.6rem);
+    border-top: 1px solid var(--line);
+  }
+  .prose :global(p) {
     font-size: 1.05rem;
     line-height: 1.8;
     color: var(--text);
     margin-bottom: 1.4rem;
     max-width: none;
   }
-  /* Editorial defaults for rich content, should the body ever carry it. */
-  .prose :global(img) {
+  .prose :global(.prose__figure) {
+    margin: 0 0 clamp(1.6rem, 3vw, 2.4rem);
+    overflow: hidden;
+    background: var(--surface-sunk);
+  }
+  .prose :global(.prose__figure img) {
     width: 100%;
     height: auto;
     display: block;
-    margin-block: clamp(1.8rem, 3.5vw, 2.8rem);
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+  }
+  .prose :global(a) {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .prose :global(a:hover) {
+    color: var(--accent);
   }
   .prose :global(blockquote) {
     margin: clamp(1.8rem, 3.5vw, 2.8rem) 0;
@@ -155,15 +241,29 @@ const readMinutes = Math.max(1, Math.round(words / 200));
     line-height: 1.5;
     color: var(--text);
   }
-  .prose :global(a) {
-    color: var(--text);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.2em;
-    transition: color var(--dur-fast) var(--ease-out);
+
+  /* FAQ heading matches section rhythm; accordion styled by FaqAccordion. */
+  .prose__faq :global(.faq) {
+    margin-top: 0.5rem;
   }
-  .prose :global(a:hover) {
-    color: var(--accent);
+
+  /* ── Tags ─────────────────────────────────────────────────────────────── */
+  .art__tags {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+    padding: 0;
+  }
+  .art__tags li {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    color: var(--text-muted);
+    border: 1px solid var(--line);
+    padding: 0.4rem 0.8rem;
   }
   .prose__foot {
     margin-top: clamp(2.5rem, 5vw, 3.5rem);
@@ -248,7 +348,7 @@ const readMinutes = Math.max(1, Math.round(words / 200));
   // Reading progress bar — fills with scroll depth through the article.
   function initReadProgress() {
     const bar = document.getElementById("read-progress");
-    const body = document.querySelector<HTMLElement>("article.section");
+    const body = document.querySelector<HTMLElement>("article.art");
     if (!bar || !body) return;
 
     let ticking = false;

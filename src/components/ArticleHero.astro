@@ -1,0 +1,161 @@
+---
+/**
+ * ArticleHero — full-bleed journal opener.
+ * A cover image sits under an ink scrim; the category, a large uppercase
+ * Bodoni title (SplitText via [data-split]), an italic standfirst, and a
+ * hairline meta row (category · date · reading time) are set over it.
+ *
+ * The media carries a shared View-Transition name (`journal-${slug}`) so it
+ * pairs with the card the reader clicked from.
+ */
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  category: string;
+  title: string;
+  excerpt: string;
+  author: string;
+  /** ISO date (YYYY-MM-DD). */
+  date: string;
+  readMinutes: number;
+  image: ImageMetadata;
+  imageAlt?: string;
+  /** Shared View-Transition name for the cover media. */
+  mediaTransitionName?: string;
+}
+const {
+  category,
+  title,
+  excerpt,
+  author,
+  date,
+  readMinutes,
+  image,
+  imageAlt = "",
+  mediaTransitionName,
+} = Astro.props;
+
+// Format the date server-side to keep SSR/client markup identical.
+const dateLabel = new Date(`${date}T12:00:00`).toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+---
+
+<header class="ahero">
+  <div class="ahero__bg" aria-hidden="true" transition:name={mediaTransitionName}>
+    <Image
+      src={image}
+      alt={imageAlt}
+      widths={[768, 1280, 1920, 2560]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="ahero__scrim"></div>
+  </div>
+
+  <div class="ahero__inner wrap">
+    <p class="ahero__cat">{category}</p>
+    <h1 class="ahero__title" data-split set:html={title} />
+    <p class="ahero__dek">{excerpt}</p>
+    <div class="ahero__meta">
+      <span class="ahero__meta-item">{author}</span>
+      <span class="ahero__sep" aria-hidden="true">·</span>
+      <span class="ahero__meta-item">{dateLabel}</span>
+      <span class="ahero__sep" aria-hidden="true">·</span>
+      <span class="ahero__meta-item">{readMinutes} min read</span>
+    </div>
+  </div>
+</header>
+
+<style>
+  .ahero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: clamp(28rem, 72vh, 44rem);
+    padding-top: clamp(7rem, 12vw, 10rem);
+    padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+    color: var(--c-ivory);
+    overflow: hidden;
+    background: var(--c-ink);
+  }
+  .ahero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .ahero__bg :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ahero__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(22, 20, 18, 0.5) 0%,
+      rgba(22, 20, 18, 0.28) 38%,
+      rgba(22, 20, 18, 0.72) 100%
+    );
+  }
+  .ahero__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+  .ahero__cat {
+    font-size: var(--fs-eyebrow);
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(244, 241, 234, 0.85);
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
+  .ahero__title {
+    font-size: clamp(2.2rem, 1.2rem + 4vw, 4.6rem);
+    line-height: 1.04;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    max-width: 20ch;
+    text-shadow: 0 2px 40px rgba(0, 0, 0, 0.35);
+  }
+  .ahero__title :global(em) {
+    font-style: italic;
+    font-weight: 450;
+  }
+  .ahero__dek {
+    margin-top: clamp(1.2rem, 2.5vw, 1.8rem);
+    max-width: 60ch;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.1rem, 0.95rem + 0.7vw, 1.5rem);
+    line-height: 1.5;
+    color: rgba(244, 241, 234, 0.92);
+  }
+  .ahero__meta {
+    margin-top: clamp(1.6rem, 3vw, 2.4rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: rgba(244, 241, 234, 0.75);
+  }
+  .ahero__sep {
+    color: rgba(244, 241, 234, 0.45);
+  }
+
+  @media (max-width: 640px) {
+    .ahero {
+      min-height: clamp(24rem, 64vh, 34rem);
+    }
+  }
+</style>
