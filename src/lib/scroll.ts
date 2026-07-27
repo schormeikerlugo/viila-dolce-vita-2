@@ -181,16 +181,24 @@ function initParallax() {
 
   targets.forEach((el) => {
     const strength = parseFloat(el.dataset.parallax ?? "0.15");
-    gsap.to(el, {
-      yPercent: -strength * 100,
-      ease: "none",
-      scrollTrigger: {
-        trigger: el.closest("[data-parallax-scope]") ?? el,
-        start: "top bottom",
-        end: "bottom top",
-        scrub: true,
+    // Centre the travel around 0 (+half → −half) so the media never uncovers
+    // its container edges: the overscan margin only needs to cover half the
+    // total travel on each side. Keeps the fill seamless top AND bottom.
+    const half = strength * 50;
+    gsap.fromTo(
+      el,
+      { yPercent: half },
+      {
+        yPercent: -half,
+        ease: "none",
+        scrollTrigger: {
+          trigger: el.closest("[data-parallax-scope]") ?? el,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
       },
-    });
+    );
   });
 }
 

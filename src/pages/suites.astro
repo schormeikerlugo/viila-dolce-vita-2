@@ -491,8 +491,8 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
   }
   .suites-cta__media {
     position: absolute;
-    inset: -8% 0;
-    height: 116%;
+    inset: -10% 0;
+    height: 120%;
     z-index: -2;
   }
   .suites-cta__img {
@@ -568,9 +568,13 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
   .in-suite__media {
     position: absolute;
     inset: 0;
+    overflow: hidden;
     z-index: -1;
   }
   .in-suite__img {
+    position: absolute;
+    /* Centre the 118% overscan so parallax has symmetric top/bottom margin. */
+    inset: -9% 0;
     width: 100%;
     height: 118%;
     object-fit: cover;
