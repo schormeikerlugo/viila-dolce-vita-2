@@ -170,7 +170,7 @@ const weddingSlides = [
       <div class="amenities__groups" data-reveal data-reveal-delay={0.12}>
         {
           featureGroups.map((group) => (
-            <div class="amenity" tabindex="0">
+            <div class="amenity">
               <div class="amenity__summary">
                 <span class="amenity__icon" aria-hidden="true" />
                 <span class="amenity__title">{group.title}</span>
@@ -617,17 +617,6 @@ const weddingSlides = [
     align-items: center;
     gap: 0.8rem;
     padding: clamp(1.1rem, 2vw, 1.5rem) clamp(1.1rem, 2.2vw, 1.6rem);
-    cursor: pointer;
-    user-select: none;
-    transition: background var(--dur-fast) var(--ease-out);
-  }
-  .amenity:hover .amenity__summary,
-  .amenity:focus-visible .amenity__summary {
-    background: var(--surface-sunk);
-  }
-  .amenity:focus-visible .amenity__summary {
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
   }
   .amenity__title {
     font-family: var(--font-body);
@@ -663,41 +652,27 @@ const weddingSlides = [
     height: 1px;
     transform: translateY(-50%);
   }
+  /* Groups are always open — show the "−" (minus) icon by default. */
   .amenity__icon::after {
     left: 50%;
     top: 0;
     width: 1px;
     height: 100%;
-    transform: translateX(-50%);
-  }
-  .amenity:hover .amenity__icon::after,
-  .amenity:focus-visible .amenity__icon::after {
     transform: translateX(-50%) scaleY(0);
   }
   .amenity__panel {
     display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows var(--dur) var(--ease-out);
-  }
-  .amenity:hover .amenity__panel,
-  .amenity:focus-visible .amenity__panel {
     grid-template-rows: 1fr;
   }
   .amenity__list {
     list-style: none;
     margin: 0;
-    padding: 0 clamp(1.1rem, 2.2vw, 1.6rem);
+    padding: 0 clamp(1.1rem, 2.2vw, 1.6rem) clamp(1rem, 2vw, 1.35rem);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     min-height: 0;
     overflow: hidden;
-    opacity: 0;
-    transition: opacity var(--dur-fast) var(--ease-out);
-  }
-  .amenity:hover .amenity__list,
-  .amenity:focus-visible .amenity__list {
-    padding-bottom: clamp(1rem, 2vw, 1.35rem);
     opacity: 1;
   }
   .amenity__item {
@@ -705,15 +680,6 @@ const weddingSlides = [
     font-size: 0.88rem;
     line-height: 1.5;
     color: var(--text-muted);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .amenity__summary,
-    .amenity__panel,
-    .amenity__list,
-    .amenity__icon::before,
-    .amenity__icon::after {
-      transition: none;
-    }
   }
   @media (max-width: 900px) {
     .amenities__groups {
@@ -735,17 +701,6 @@ const weddingSlides = [
     }
     .amenity:not(:first-child) {
       border-top: 1px solid var(--line);
-    }
-    /* No hover on touch — keep every list expanded so nothing is hidden. */
-    .amenity__panel {
-      grid-template-rows: 1fr;
-    }
-    .amenity__list {
-      opacity: 1;
-      padding-bottom: clamp(1rem, 2vw, 1.35rem);
-    }
-    .amenity__icon::after {
-      transform: translateX(-50%) scaleY(0);
     }
   }
 
