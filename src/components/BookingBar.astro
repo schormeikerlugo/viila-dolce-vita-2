@@ -127,9 +127,11 @@ const defaultDepart = plus(37);
   .bookbar__field select:focus {
     outline: none;
   }
-  /* Native date picker indicator — tint to ivory so it reads on the night. */
+  /* Native date picker indicator — force to pure white so it reads on the
+     night regardless of the browser's default indicator colour.
+     brightness(0) flattens it to black, invert(1) then flips it to white. */
   .bookbar__field input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
+    filter: brightness(0) invert(1);
     opacity: 0.75;
     cursor: pointer;
     transition: opacity var(--dur-fast) var(--ease-out);
