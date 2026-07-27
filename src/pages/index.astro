@@ -31,26 +31,26 @@ import { faqSchema } from "../lib/schema";
 // Home gallery teaser — a curated set mixing suites + /gallery surroundings.
 const gal = (slug: string) => galleryItems.find((g) => g.slug === slug)!;
 const homeGalleryItems = [
-  { image: gal("villa-aerial-golden").image, alt: "Villa Dolce Vita from above in the golden Tuscan light", caption: "The estate at golden hour" },
+  { image: gal("villa-aerial").image, alt: "Villa Dolce Vita and its pool from above in the golden Tuscan light", caption: "The estate from above" },
   { image: suitePhotos.roma[0], alt: "Roma suite interior", caption: "Roma suite" },
-  { image: gal("pool-afternoon").image, alt: "The villa with its pool and lawn on a bright afternoon", caption: "The pool" },
+  { image: gal("villa-pool-afternoon").image, alt: "The yellow villa and its pool on a sunlit afternoon", caption: "The pool" },
   { image: suitePhotos.napoli[0], alt: "Napoli suite interior", caption: "Napoli suite" },
-  { image: gal("terrace-table-view").image, alt: "The loggia terrace with the hills opening out beyond", caption: "Terrace view" },
+  { image: gal("villa-loggia-terrace").image, alt: "The villa's arched loggia and terrace in the evening light", caption: "The loggia" },
   { image: suitePhotos.positano[0], alt: "Positano suite interior", caption: "Positano suite" },
-  { image: gal("cypress-road-hills").image, alt: "A white road winding between cypresses and green hills", caption: "Cypress road" },
+  { image: gal("cypress-road").image, alt: "A white road winding between cypresses and green hills", caption: "Cypress road" },
   { image: suitePhotos.roma[2], alt: "Roma suite detail", caption: "Roma suite" },
-  { image: gal("hills-pink-dawn").image, alt: "Pink dawn light over the Tuscan hills", caption: "Hills at dawn" },
+  { image: gal("villa-pines-lavender").image, alt: "The villa framed by stone pines and rows of lavender", caption: "Lavender & pines" },
   { image: suitePhotos.napoli[2], alt: "Napoli suite detail", caption: "Napoli suite" },
-  { image: gal("vineyard-wine-sunset").image, alt: "Wine and grapes on an old barrel at sunset", caption: "Wine at sunset" },
+  { image: gal("loggia-wine-couple").image, alt: "Wine for two under the loggia as the sun goes down", caption: "Wine at sunset" },
   { image: suitePhotos.milano[0], alt: "Milano suite interior", caption: "Milano suite" },
-  { image: gal("massa-marittima-piazza").image, alt: "The cathedral square of Massa Marittima under a summer sky", caption: "Massa Marittima" },
+  { image: gal("cathedral-cafe-read").image, alt: "Coffee and a book in the cathedral square of Massa Marittima", caption: "Massa Marittima" },
   { image: suitePhotos.positano[2], alt: "Positano suite detail", caption: "Positano suite" },
-  { image: gal("valdorcia-mist").image, alt: "Morning mist settling into the folds of the Val d'Orcia", caption: "Val d'Orcia" },
+  { image: gal("lavender-pine-sunset").image, alt: "Rows of lavender and a stone pine as the sun sets over the valley", caption: "Lavender at dusk" },
   { image: suitePhotos.roma[4], alt: "Roma suite bathroom", caption: "Roma suite" },
-  { image: gal("horseman").image, alt: "A buttero and his horse in the morning field", caption: "Morning ride" },
+  { image: gal("rider-hills").image, alt: "A rider on horseback above the Tuscan hills", caption: "Morning ride" },
   { image: suitePhotos.napoli[4], alt: "Napoli suite bedroom", caption: "Napoli suite" },
-  { image: gal("piazza-dinner").image, alt: "Dinner tables filling the piazza at dusk", caption: "Dinner in the piazza" },
-  { image: gal("estate-vineyards-aerial").image, alt: "The estate and its vineyards seen from above", caption: "Estate & vineyards" },
+  { image: gal("outdoor-dinner-lights").image, alt: "Tables set for an outdoor dinner under the string lights", caption: "Dinner under the lights" },
+  { image: gal("villa-plunge-olives").image, alt: "The villa and its plunge pool through the olive branches", caption: "The plunge pool" },
 ];
 
 // Features & amenities — Masseto-style headline stats.
