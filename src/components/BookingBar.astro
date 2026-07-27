@@ -94,6 +94,8 @@ const defaultDepart = plus(37);
     gap: 0.4rem;
     padding: 1rem clamp(1rem, 2vw, 1.5rem);
     border-right: 1px solid var(--bb-line);
+    /* The whole cell is the hit target (label + value open the picker). */
+    cursor: pointer;
   }
   .bookbar__field label {
     font-size: 0.62rem;
@@ -124,6 +126,16 @@ const defaultDepart = plus(37);
   .bookbar__field input:focus,
   .bookbar__field select:focus {
     outline: none;
+  }
+  /* Native date picker indicator — tint to ivory so it reads on the night. */
+  .bookbar__field input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.75;
+    cursor: pointer;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  .bookbar__field input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
   }
   .bookbar__field:focus-within {
     background: rgba(244, 241, 234, 0.05);
@@ -186,6 +198,28 @@ const defaultDepart = plus(37);
         const arrive = form.querySelector<HTMLInputElement>("[data-bb-arrive]");
         const depart = form.querySelector<HTMLInputElement>("[data-bb-depart]");
         const guests = form.querySelector<HTMLSelectElement>("[data-bb-guests]");
+
+        // Make the whole field cell open its control, not just the tiny
+        // native icon. Clicking a label/value focuses the input and calls
+        // showPicker() where supported (date inputs + <select> in Chromium).
+        form
+          .querySelectorAll<HTMLElement>(".bookbar__field")
+          .forEach((field) => {
+            const control = field.querySelector<
+              HTMLInputElement | HTMLSelectElement
+            >("input, select");
+            if (!control) return;
+            field.addEventListener("click", (e) => {
+              // Let direct interaction with the control behave natively.
+              if (e.target === control) return;
+              control.focus();
+              try {
+                (control as HTMLInputElement).showPicker?.();
+              } catch {
+                /* showPicker throws if not allowed; focus is enough. */
+              }
+            });
+          });
 
         // Keep departure after arrival.
         arrive?.addEventListener("change", () => {
