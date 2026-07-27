@@ -12,22 +12,23 @@ import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
 import { Image } from "astro:assets";
 import { suites, roomsIntro } from "../data/suites";
-import { photos, mockups } from "../data/media";
+import { mockups } from "../data/media";
 import { bookingHref, bookingMessageHref, contact } from "../data/site";
 import { galleryItems } from "../data/gallery";
 
-// One canonical order everywhere on the page: by nightly rate, high → low.
-// The top-rate suite (Roma) becomes "Suite 01 — Signature Suite".
-const orderedSuites = [...suites].sort((a, b) => b.fromNight - a.fromNight);
+// One canonical order everywhere on the page: by editorial rank, flagship first.
+// The top-ranked suite (Roma) becomes "Suite 01 — Signature Suite".
+const orderedSuites = [...suites].sort((a, b) => a.rank - b.rank);
 const premiumSlug = orderedSuites[0].slug;
 
-// Rate range + capacity for the hero meta and closing CTA.
-const lowestRate = Math.min(...suites.map((s) => s.fromNight));
 // Official estate capacity (incl. premium sofa beds) — matches the site copy.
 const totalSleeps = 24;
 
 // Evocative full-bleed background for the mid-page CTA.
 const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial")!.image;
+
+// Hero background: the arched loggia and terrace in golden evening light.
+const heroImage = galleryItems.find((i) => i.slug === "villa-loggia-terrace")!.image;
 
 // The first sentence of the intro becomes the hero's italic standfirst.
 const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
@@ -42,12 +43,12 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
     eyebrow="The Suites"
     title="Five Suites, One Unforgettable View"
     dek={heroDek}
-    image={photos.suitesHeroAerial}
-    imageAlt="Villa Dolce Vita, its pool and garden seen from above, the Tuscan valley beyond"
+    image={heroImage}
+    imageAlt="The villa's arched loggia and terrace in the golden evening light"
     meta={[
       { label: "Suites", value: "5" },
       { label: "Sleeps", value: `Up to ${totalSleeps} guests` },
-      { label: "From", value: `€${lowestRate} / night` },
+      { label: "Rates", value: "On request" },
     ]}
   />
 
@@ -145,8 +146,8 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
                   <dd>{suite.sleeps} guests</dd>
                 </div>
                 <div class="suite-detail__metacell">
-                  <dt>From</dt>
-                  <dd>€{suite.fromNight} / night</dd>
+                  <dt>Highlight</dt>
+                  <dd>{suite.highlight}</dd>
                 </div>
               </dl>
             </Reveal>
@@ -199,10 +200,9 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
             </Reveal>
             <Reveal delay={0.1}>
               <p class="suites-cta__lead">
-                Five suites, one unforgettable view — from €{lowestRate} a
-                night. Tell us your dates and we'll match you with the room
-                that fits your stay, then handle every detail before you
-                arrive.
+                Five suites, one unforgettable view. Tell us your dates and
+                we'll match you with the room that fits your stay, then handle
+                every detail before you arrive.
               </p>
             </Reveal>
             <Reveal as="div" class="suites-cta__actions" delay={0.15}>
@@ -256,9 +256,9 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
   /* Media leads at ~58%, copy in a narrow column — matches SplitSection. */
   .suite-detail__inner {
     display: grid;
-    grid-template-columns: 1.35fr 1fr;
+    grid-template-columns: 1.1fr 1fr;
     gap: clamp(2.5rem, 6vw, 6.5rem);
-    align-items: start;
+    align-items: center;
   }
   .suite-detail__inner.is-reverse .suite-detail__media {
     order: 2;
@@ -301,11 +301,6 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
     position: relative;
     overflow: hidden;
     aspect-ratio: 4 / 3;
-  }
-  @media (min-width: 901px) {
-    .suite-detail__img {
-      aspect-ratio: 5 / 6;
-    }
   }
 
   /* ---- Gallery ---- */

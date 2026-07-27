@@ -73,7 +73,6 @@ export const nav: NavItem[] = [
   { label: "Experiences", href: "/experiences" },
   { label: "Weddings & Events", href: "/weddings-events" },
   { label: "Gallery", href: "/gallery" },
-  { label: "Packages & Rates", href: "/packages" },
   { label: "Journal", href: "/journal" },
   { label: "Contact Us", href: "/contact" },
 ];
@@ -102,7 +101,6 @@ export const navGroups: NavNode[] = [
     label: "Experiences",
     href: "/experiences",
     children: [
-      { label: "Packages & Rates", href: "/packages" },
       { label: "Journal", href: "/journal" },
     ],
   },

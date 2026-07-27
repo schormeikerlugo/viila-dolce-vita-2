@@ -16,8 +16,10 @@ export interface Suite {
   /** Ordered gallery of real room photos; [0] is the card/lead image. */
   images: ImageMetadata[];
   imageAlt: string;
-  /** Peak nightly rate for the "from" label (see packages.ts for full table). */
-  fromNight: number;
+  /** Editorial rank, 1 = flagship. Drives the "Suite 01…05" order on the page. */
+  rank: number;
+  /** Signature attribute shown in place of a nightly rate. */
+  highlight: string;
 }
 
 export const suites: Suite[] = [
@@ -37,7 +39,8 @@ export const suites: Suite[] = [
     ],
     images: suitePhotos.napoli,
     imageAlt: "The Napoli Suite — a bright, two-bedroom retreat with panoramic Tuscan views",
-    fromNight: 320,
+    rank: 2,
+    highlight: "Two bedrooms",
   },
   {
     slug: "roma",
@@ -55,7 +58,8 @@ export const suites: Suite[] = [
     ],
     images: suitePhotos.roma,
     imageAlt: "The Roma Suite — a romantic honeymoon hideaway with a private plunge pool",
-    fromNight: 360,
+    rank: 1,
+    highlight: "Private plunge pool",
   },
   {
     slug: "capri",
@@ -72,7 +76,8 @@ export const suites: Suite[] = [
     ],
     images: suitePhotos.capri,
     imageAlt: "The Capri Suite — a private apartment with wraparound views of the valley",
-    fromNight: 260,
+    rank: 3,
+    highlight: "Private entrance & wraparound terrace",
   },
   {
     slug: "positano",
@@ -89,7 +94,8 @@ export const suites: Suite[] = [
     ],
     images: suitePhotos.positano,
     imageAlt: "The Positano Suite — a cozy, intimate Tuscan hideaway with hillside views",
-    fromNight: 220,
+    rank: 5,
+    highlight: "Intimate hideaway",
   },
   {
     slug: "milano",
@@ -106,7 +112,8 @@ export const suites: Suite[] = [
     ],
     images: suitePhotos.milano,
     imageAlt: "The Milano Suite — a refined, contemporary one-bedroom retreat",
-    fromNight: 240,
+    rank: 4,
+    highlight: "Contemporary design suite",
   },
 ];
 

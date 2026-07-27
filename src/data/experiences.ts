@@ -145,33 +145,33 @@ export const dayTrips: DayTrip[] = [
 export const selfGuided = [
   {
     city: "Florence",
-    visit: ["Uffizi Gallery (€25)", "Villa Bardini (€10)", "Galleria dell'Accademia (€16)", "Duomo (free)"],
+    visit: ["Uffizi Gallery", "Villa Bardini", "Galleria dell'Accademia", "Duomo"],
     architecture: ["Piazza della Repubblica", "Ponte Vecchio", "Piazza della Signoria"],
     eat: ["Ditta Artigianale Neri", "All'Antico Vinaio", "Trattoria Sergio Gozzi", "Gelateria del Nero"],
   },
   {
     city: "Siena",
-    visit: ["Torre del Mangia", "Civic Museum", "Santa Maria della Scala (€20 combined)"],
+    visit: ["Torre del Mangia", "Civic Museum", "Santa Maria della Scala"],
     architecture: ["Piazza del Campo", "Piazza del Duomo"],
     eat: ["Torrefazione Fiorella", "Osteria degli Svitati"],
   },
 ];
 
-/** Chauffeured transfer pricing (content.md). */
+/** Chauffeured transfer routes (content.md). Pricing on request. */
 export const transfers = [
-  { route: "Roma / Aeroporto Fiumicino", price: "€725,00" },
-  { route: "Firenze / Aeroporto Amerigo Vespucci (FLR)", price: "€562,50" },
-  { route: "Pisa / Aeroporto Galileo Galilei (PSA)", price: "€437,00" },
-  { route: "Porto di Livorno", price: "€435,00" },
-  { route: "Siena", price: "€375,00" },
+  { route: "Roma / Aeroporto Fiumicino", price: "On request" },
+  { route: "Firenze / Aeroporto Amerigo Vespucci (FLR)", price: "On request" },
+  { route: "Pisa / Aeroporto Galileo Galilei (PSA)", price: "On request" },
+  { route: "Porto di Livorno", price: "On request" },
+  { route: "Siena", price: "On request" },
 ];
 
-/** Curated private chauffeured tours (content.md). Prices are for 2 people. */
+/** Curated private chauffeured tours (content.md). Pricing on request. */
 export const privateTours = [
   {
     title: "Luxury Private Tour",
     duration: "8–9 hours",
-    price: "€3,100",
+    price: "On request",
     items: [
       "Rocca di Frassinello — tour and premium tasting",
       "Antinori Cellar visit in Florence",
@@ -183,7 +183,7 @@ export const privateTours = [
   {
     title: "Brolio · Monte Oliveto · Siena",
     duration: "Full day",
-    price: "€2,500",
+    price: "On request",
     items: [
       "Brolio Castle — guided tour and wine tasting",
       "Monte Oliveto Abbey — cloister and abbey entry",
@@ -193,7 +193,7 @@ export const privateTours = [
   {
     title: "San Gimignano + Michelin-Star Dinner",
     duration: "8–9 hours",
-    price: "€3,250",
+    price: "On request",
     items: [
       "Full-day chauffeur",
       "Free exploration of San Gimignano and Siena",
@@ -203,7 +203,7 @@ export const privateTours = [
   {
     title: "Brunello Tour",
     duration: "8–9 hours",
-    price: "€2,800",
+    price: "On request",
     items: [
       "Castello Banfi — guided tour and wine tasting",
       "Maserati panoramic tour",
@@ -214,7 +214,7 @@ export const privateTours = [
   {
     title: "Maserati Scenic Drive",
     duration: "7–8 hours",
-    price: "€1,800",
+    price: "On request",
     items: [
       "Panoramic stops at Baratti, Populonia, Castiglione della Pescaia",
     ],
