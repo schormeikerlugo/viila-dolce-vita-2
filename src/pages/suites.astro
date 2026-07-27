@@ -7,7 +7,7 @@
  * Content from suites.ts (lifted verbatim from content.md).
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
-import PageHero from "../components/PageHero.astro";
+import SectionHero from "../components/SectionHero.astro";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
 import { Image } from "astro:assets";
@@ -27,42 +27,29 @@ const lowestRate = Math.min(...suites.map((s) => s.fromNight));
 const totalSleeps = 24;
 
 // Evocative full-bleed background for the mid-page CTA.
-const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image;
+const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial")!.image;
+
+// The first sentence of the intro becomes the hero's italic standfirst.
+const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
 ---
 
 <BaseLayout
+  navTheme="dark"
   title="Suites"
   description="Five private suites — Napoli, Roma, Capri, Positano and Milano — curated for real rest, with king- and queen-size beds, heated floors and panoramic Tuscan views."
 >
-  <PageHero
+  <SectionHero
     eyebrow="The Suites"
     title="Five Suites, One Unforgettable View"
-    subtitle={roomsIntro}
-    image={photos.terraceTableView}
-    imageAlt="Private terrace overlooking the Tuscan valley"
+    dek={heroDek}
+    image={photos.suitesHeroAerial}
+    imageAlt="Villa Dolce Vita, its pool and garden seen from above, the Tuscan valley beyond"
     meta={[
       { label: "Suites", value: "5" },
       { label: "Sleeps", value: `Up to ${totalSleeps} guests` },
       { label: "From", value: `€${lowestRate} / night` },
     ]}
   />
-
-  <!-- SUITE INDEX — compact anchor nav, deep-linking to each suite. -->
-  <section class="section bg-ivory suites-index" aria-label="Suite index">
-    <div class="wrap suites-index__inner">
-      <Reveal as="p" class="slash-label suites-index__label">Jump to a Suite</Reveal>
-      <nav class="suites-index__nav" aria-label="Jump to a suite" data-reveal>
-        {
-          orderedSuites.map((s) => (
-            <a class="suites-index__chip" href={`#${s.slug}`}>
-              {s.name}
-              <span class="suites-index__from">€{s.fromNight}</span>
-            </a>
-          ))
-        }
-      </nav>
-    </div>
-  </section>
 
   <!-- SUITES -->
   {
@@ -265,56 +252,6 @@ const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-dusk")!.image
 </BaseLayout>
 
 <style>
-  /* ── Suite index — compact anchor nav ────────────────────────────────── */
-  .suites-index {
-    padding-block: clamp(2.25rem, 4.5vw, 3.5rem);
-    border-bottom: 1px solid var(--line);
-  }
-  .suites-index__inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: clamp(1rem, 3vw, 2.5rem);
-  }
-  .suites-index :global(.slash-label) {
-    flex: 0 0 auto;
-    margin: 0;
-  }
-  .suites-index__nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem 0.75rem;
-  }
-  .suites-index__chip {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    padding: 0.5rem 0.9rem;
-    border: 1px solid var(--line);
-    font-family: var(--font-display);
-    font-size: 0.92rem;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: var(--text);
-    transition:
-      border-color var(--dur-fast) var(--ease-out),
-      color var(--dur-fast) var(--ease-out);
-  }
-  .suites-index__chip:hover {
-    border-color: var(--c-ink);
-    color: var(--accent);
-  }
-  .suites-index__from {
-    font-family: var(--font-body);
-    font-size: 0.66rem;
-    font-weight: 500;
-    letter-spacing: var(--tracking-caps);
-    color: var(--text-muted);
-  }
-  .suites-index__chip:hover .suites-index__from {
-    color: var(--accent);
-  }
-
   /* ── Suite sections ──────────────────────────────────────────────────── */
   /* Media leads at ~58%, copy in a narrow column — matches SplitSection. */
   .suite-detail__inner {

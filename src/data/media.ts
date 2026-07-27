@@ -31,6 +31,7 @@ import butteriFoal from "../assets/images/AdobeStock_806802471.jpeg";
 import welcomeVilla from "../assets/images/seccion2.png"; // transparent PNG (no background)
 import massaMarittima from "../assets/images/seccion3.png"; // Massa Marittima cathedral + piazza (full-bleed band)
 import contactValleyDusk from "../assets/images/contact-valley-dusk.png"; // dusk over the valley — Contact side image
+import suitesHeroAerial from "../assets/images/suites-hero-aerial.png"; // the villa, pool and garden from above (Suites hero)
 
 /* ---- Our Story feature photos (full-resolution originals) ---- */
 import landMaremmaHilltown from "../assets/images/land-maremma-hilltown.jpg"; // The Land — Maremma hilltown over the valley
@@ -51,6 +52,7 @@ export const photos = {
   welcomeVilla,
   massaMarittima,
   contactValleyDusk,
+  suitesHeroAerial,
   landMaremmaHilltown,
   houseTerraceView,
   hilltopRest,

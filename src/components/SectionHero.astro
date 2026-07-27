@@ -1,0 +1,267 @@
+---
+/**
+ * SectionHero — full-bleed editorial opener for interior sections.
+ *
+ * Fuses the home Hero's cinema (full-bleed cover under an ink scrim, a bottom
+ * hairline meta bar with a scroll cue) with the site's editorial grammar
+ * (slash-label eyebrow, Bodoni display title via [data-split], an italic dek,
+ * and a Tonelli label/value meta row). Content is anchored bottom-left.
+ *
+ * Pages using this should set `navTheme="dark"` so the nav floats over the
+ * media in ivory and solidifies on scroll.
+ *
+ * The media carries a shared View-Transition name (default `pagehero-media`)
+ * so it morphs with other interior heroes across navigations.
+ */
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  /** Short italic standfirst set over the media. */
+  dek?: string;
+  image: ImageMetadata;
+  imageAlt?: string;
+  /** Tonelli-style label/value pairs rendered on a hairline. */
+  meta?: { label: string; value: string }[];
+  /** Show the animated scroll cue on the far right of the meta bar. */
+  scrollCue?: boolean;
+  /** Shared View-Transition name for the cover media. */
+  mediaTransitionName?: string;
+}
+const {
+  eyebrow,
+  title,
+  dek,
+  image,
+  imageAlt = "",
+  meta = [],
+  scrollCue = true,
+  mediaTransitionName = "pagehero-media",
+} = Astro.props;
+---
+
+<section class="shero" data-parallax-scope>
+  <div class="shero__bg" aria-hidden="true" transition:name={mediaTransitionName} data-parallax="0.14">
+    <Image
+      src={image}
+      alt={imageAlt}
+      widths={[768, 1280, 1920, 2560]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+    />
+  </div>
+  <div class="shero__scrim" aria-hidden="true"></div>
+
+  <div class="shero__inner wrap">
+    <div class="shero__lede">
+      {eyebrow && <p class="slash-label shero__eyebrow">{eyebrow}</p>}
+      <h1 class="shero__title" data-split set:html={title} />
+      {dek && <p class="shero__dek">{dek}</p>}
+    </div>
+
+    {
+      (meta.length > 0 || scrollCue) && (
+        <div class="shero__bar">
+          {meta.length > 0 && (
+            <dl class="shero__meta">
+              {meta.map((m) => (
+                <div class="shero__metacell">
+                  <dt>{m.label}</dt>
+                  <dd>{m.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {scrollCue && (
+            <p class="shero__cue" aria-hidden="true">
+              Scroll <span>↓</span>
+            </p>
+          )}
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .shero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: clamp(34rem, 92svh, 54rem);
+    padding-top: clamp(7rem, 12vw, 10rem);
+    padding-bottom: clamp(1.6rem, 3vw, 2.6rem);
+    color: var(--c-ivory);
+    overflow: hidden;
+    background: var(--c-ink);
+  }
+  .shero__bg {
+    position: absolute;
+    /* The media is taller than the section so the parallax drift never
+       exposes the ink edge above or below. */
+    top: -12%;
+    left: 0;
+    right: 0;
+    height: 124%;
+    z-index: 0;
+    will-change: transform;
+  }
+  .shero__bg :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .shero__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(22, 20, 18, 0.46) 0%,
+      rgba(22, 20, 18, 0.2) 34%,
+      rgba(22, 20, 18, 0.78) 100%
+    );
+  }
+  .shero__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+
+  .shero__eyebrow {
+    color: rgba(244, 241, 234, 0.85);
+    margin-bottom: clamp(1rem, 2vw, 1.6rem);
+  }
+  .shero__title {
+    font-size: clamp(2.1rem, 1rem + 6vw, 6.5rem);
+    line-height: 1.02;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    max-width: 18ch;
+    text-shadow: 0 2px 40px rgba(0, 0, 0, 0.35);
+    /* keep long words (e.g. "Unforgettable") inside narrow viewports */
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .shero__title :global(em) {
+    font-style: italic;
+    font-weight: 450;
+  }
+  .shero__dek {
+    margin-top: clamp(1.2rem, 2.5vw, 1.8rem);
+    max-width: 56ch;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.1rem, 0.95rem + 0.7vw, 1.5rem);
+    line-height: 1.5;
+    color: rgba(244, 241, 234, 0.92);
+  }
+
+  /* Bottom hairline meta bar — Tonelli label/value cells + scroll cue. */
+  .shero__bar {
+    margin-top: clamp(2.2rem, 5vw, 4rem);
+    padding-top: clamp(1rem, 2vw, 1.4rem);
+    border-top: 1px solid rgba(244, 241, 234, 0.24);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 1.5rem;
+  }
+  .shero__meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(8rem, 100%), 1fr));
+    gap: clamp(1.25rem, 3vw, 3rem);
+    margin: 0;
+    max-width: 46rem;
+  }
+  .shero__metacell dt {
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: rgba(244, 241, 234, 0.7);
+    margin-bottom: 0.35rem;
+  }
+  .shero__metacell dd {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--c-ivory);
+  }
+  .shero__cue {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(244, 241, 234, 0.6);
+  }
+  .shero__cue span {
+    animation: shero-cue 2.4s var(--ease-inout) infinite;
+  }
+  @keyframes shero-cue {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.5;
+    }
+    50% {
+      transform: translateY(4px);
+      opacity: 1;
+    }
+  }
+
+  /* ── Entrance choreography ──────────────────────────────────────────── */
+  .shero__eyebrow,
+  .shero__dek,
+  .shero__bar {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: shero-rise 0.9s var(--ease-out) forwards;
+  }
+  .shero__eyebrow {
+    animation-delay: 0.9s;
+  }
+  .shero__dek {
+    animation-delay: 1.05s;
+  }
+  .shero__bar {
+    animation-delay: 1.25s;
+  }
+  @keyframes shero-rise {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shero__eyebrow,
+    .shero__dek,
+    .shero__bar {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    .shero__cue span {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .shero {
+      min-height: clamp(30rem, 82svh, 40rem);
+    }
+    .shero__bar {
+      grid-template-columns: 1fr;
+    }
+    .shero__cue {
+      display: none;
+    }
+  }
+</style>
