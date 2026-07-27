@@ -25,10 +25,10 @@ const premiumSlug = orderedSuites[0].slug;
 const totalSleeps = 24;
 
 // Evocative full-bleed background for the mid-page CTA.
-const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial")!.image;
+const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-day")!.image;
 
-// Hero background: the arched loggia and terrace in golden evening light.
-const heroImage = galleryItems.find((i) => i.slug === "villa-loggia-terrace")!.image;
+// Hero background: the yellow villa and its pool on a clear summer day.
+const heroImage = galleryItems.find((i) => i.slug === "villa-pool-day")!.image;
 
 // The first sentence of the intro becomes the hero's italic standfirst.
 const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
@@ -44,7 +44,7 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
     title="Five Suites, One Unforgettable View"
     dek={heroDek}
     image={heroImage}
-    imageAlt="The villa's arched loggia and terrace in the golden evening light"
+    imageAlt="The yellow villa and its pool on a clear summer day"
     meta={[
       { label: "Suites", value: "5" },
       { label: "Sleeps", value: `Up to ${totalSleeps} guests` },

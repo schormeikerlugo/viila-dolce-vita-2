@@ -31,26 +31,26 @@ import { faqSchema } from "../lib/schema";
 // Home gallery teaser — a curated set mixing suites + /gallery surroundings.
 const gal = (slug: string) => galleryItems.find((g) => g.slug === slug)!;
 const homeGalleryItems = [
-  { image: gal("villa-aerial").image, alt: "Villa Dolce Vita and its pool from above in the golden Tuscan light", caption: "The estate from above" },
+  { image: gal("villa-aerial-day").image, alt: "Villa Dolce Vita and its pool from above in the golden Tuscan light", caption: "The estate from above" },
   { image: suitePhotos.roma[0], alt: "Roma suite interior", caption: "Roma suite" },
-  { image: gal("villa-pool-afternoon").image, alt: "The yellow villa and its pool on a sunlit afternoon", caption: "The pool" },
+  { image: gal("villa-pool-day").image, alt: "The yellow villa and its pool on a clear summer day", caption: "The pool" },
   { image: suitePhotos.napoli[0], alt: "Napoli suite interior", caption: "Napoli suite" },
-  { image: gal("villa-loggia-terrace").image, alt: "The villa's arched loggia and terrace in the evening light", caption: "The loggia" },
+  { image: gal("pool-guest-afternoon").image, alt: "A guest relaxes in the pool on a sunlit afternoon", caption: "The pool" },
   { image: suitePhotos.positano[0], alt: "Positano suite interior", caption: "Positano suite" },
-  { image: gal("cypress-road").image, alt: "A white road winding between cypresses and green hills", caption: "Cypress road" },
+  { image: gal("lavender-gravel-drive").image, alt: "The gravel drive winding up between rows of lavender to the villa", caption: "The lavender drive" },
   { image: suitePhotos.roma[2], alt: "Roma suite detail", caption: "Roma suite" },
-  { image: gal("villa-pines-lavender").image, alt: "The villa framed by stone pines and rows of lavender", caption: "Lavender & pines" },
+  { image: gal("villa-lavender-path").image, alt: "The villa above a path lined with lavender", caption: "Lavender & villa" },
   { image: suitePhotos.napoli[2], alt: "Napoli suite detail", caption: "Napoli suite" },
-  { image: gal("loggia-wine-couple").image, alt: "Wine for two under the loggia as the sun goes down", caption: "Wine at sunset" },
+  { image: gal("arch-aperitivo-couple").image, alt: "Aperitivo for two under the arch as the sun goes down", caption: "Aperitivo at sunset" },
   { image: suitePhotos.milano[0], alt: "Milano suite interior", caption: "Milano suite" },
-  { image: gal("cathedral-cafe-read").image, alt: "Coffee and a book in the cathedral square of Massa Marittima", caption: "Massa Marittima" },
+  { image: gal("stone-pine-hills").image, alt: "A great stone pine over the rolling Tuscan hills", caption: "The Tuscan hills" },
   { image: suitePhotos.positano[2], alt: "Positano suite detail", caption: "Positano suite" },
-  { image: gal("lavender-pine-sunset").image, alt: "Rows of lavender and a stone pine as the sun sets over the valley", caption: "Lavender at dusk" },
+  { image: gal("stone-pine-sunset").image, alt: "A lone stone pine against the sky at sunset", caption: "Pine at dusk" },
   { image: suitePhotos.roma[4], alt: "Roma suite bathroom", caption: "Roma suite" },
-  { image: gal("rider-hills").image, alt: "A rider on horseback above the Tuscan hills", caption: "Morning ride" },
+  { image: gal("olive-harvest-basket").image, alt: "Hand-picking olives into a wicker basket in the grove", caption: "The olive harvest" },
   { image: suitePhotos.napoli[4], alt: "Napoli suite bedroom", caption: "Napoli suite" },
-  { image: gal("outdoor-dinner-lights").image, alt: "Tables set for an outdoor dinner under the string lights", caption: "Dinner under the lights" },
-  { image: gal("villa-plunge-olives").image, alt: "The villa and its plunge pool through the olive branches", caption: "The plunge pool" },
+  { image: gal("outdoor-dinner-tables").image, alt: "Tables set for an outdoor dinner under the canopy", caption: "Dinner outdoors" },
+  { image: gal("pool-terrace-above").image, alt: "The pool and sun terrace seen from above", caption: "The pool terrace" },
 ];
 
 // Features & amenities — Masseto-style headline stats.
