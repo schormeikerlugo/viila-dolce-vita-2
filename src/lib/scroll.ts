@@ -542,6 +542,20 @@ export function initScroll() {
 
   respectReducedMotionVideos();
   initSmoothScroll();
+
+  // After a View Transition, start the new page at the top unless the URL
+  // targets an in-page anchor. Native scrollTo(0,0) in astro:after-swap isn't
+  // enough because the freshly-booted Lenis instance keeps its own scroll
+  // position, so reset it explicitly here (immediate = no animation).
+  const hash = window.location.hash;
+  if (hash && document.querySelector(hash)) {
+    // Deep link to a section, honoring the fixed-nav offset.
+    requestAnimationFrame(() => scrollTo(hash, -90));
+  } else if (lenis) {
+    lenis.scrollTo(0, { immediate: true, force: true });
+  } else {
+    window.scrollTo(0, 0);
+  }
   // Pin-fades first so they claim their scroll space before section reveals
   // measure their trigger positions (otherwise reveals after a pinned section
   // can miscalculate and stay hidden).

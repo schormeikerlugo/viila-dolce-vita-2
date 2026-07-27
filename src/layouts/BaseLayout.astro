@@ -122,6 +122,8 @@ const jsonLd = [lodgingBusinessSchema(), ...schemas];
 
     <script>
       import { initScroll } from "../lib/scroll";
+      // Own the scroll position across navigations (Lenis is reset in initScroll).
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
       // Run on first load AND after every View Transition navigation.
       document.addEventListener("astro:page-load", () => initScroll());
       // Start each new page at the top (Lenis shouldn't inherit scroll).
