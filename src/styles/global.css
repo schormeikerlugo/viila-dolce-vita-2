@@ -271,7 +271,7 @@ em,
 }
 .card:hover {
   border-color: var(--line-strong);
-  background: var(--c-ivory);
+  background: var(--surface-warm);
 }
 /* Card whose whole surface is a link */
 a.card {

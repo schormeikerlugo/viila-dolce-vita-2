@@ -35,9 +35,10 @@ const classes = ["btn", `btn--${variant}`, onDark ? "btn--on-dark" : "", classNa
 
 <style>
   .btn {
-    --btn-fg: var(--c-ivory);
-    --btn-bg: var(--c-ink);
-    --btn-border: var(--c-ink);
+    /* DARK theme default: an ivory pill with ink text — the brightest CTA. */
+    --btn-fg: var(--c-ink);
+    --btn-bg: var(--c-ivory);
+    --btn-border: var(--c-ivory);
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
@@ -58,28 +59,28 @@ const classes = ["btn", `btn--${variant}`, onDark ? "btn--on-dark" : "", classNa
       border-color var(--dur-fast) var(--ease-out);
   }
 
-  /* Primary — filled ink */
+  /* Primary — filled ivory; hover empties to an ivory outline */
   .btn--primary:hover {
     --btn-bg: transparent;
-    --btn-fg: var(--c-ink);
+    --btn-fg: var(--c-ivory);
   }
 
-  /* Secondary — hairline outline */
+  /* Secondary — hairline outline on the night */
   .btn--secondary {
     --btn-bg: transparent;
-    --btn-fg: var(--c-ink);
+    --btn-fg: var(--c-ivory);
     --btn-border: var(--line-strong);
   }
   .btn--secondary:hover {
-    --btn-bg: var(--c-ink);
-    --btn-fg: var(--c-ivory);
-    --btn-border: var(--c-ink);
+    --btn-bg: var(--c-ivory);
+    --btn-fg: var(--c-ink);
+    --btn-border: var(--c-ivory);
   }
 
   /* Ghost — text + ↗ arrow, underline reveal */
   .btn--ghost {
     --btn-bg: transparent;
-    --btn-fg: var(--c-ink);
+    --btn-fg: var(--c-ivory);
     padding: 0;
     border: 0;
     position: relative;

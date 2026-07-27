@@ -8,14 +8,24 @@
    ========================================================================== */
 
 :root {
-  /* --- Brand colors (Tuscan Editorial palette) --- */
-  --c-ivory: #f4f1ea; /* warm ivory — primary light surface */
-  --c-ivory-deep: #eae5da; /* sunken ivory — tables / quiet bands */
-  --c-ink: #161412; /* warm near-black — primary dark surface + text */
-  --c-ink-soft: #262320; /* raised surface on ink */
-  --c-stone: #6e6759; /* warm stone — secondary copy on ivory (AA) */
-  --c-stone-light: #a49b8c; /* pale stone — captions, muted borders */
-  --c-accent: #a5673e; /* burnished terracotta — THE single accent */
+  /* --- Brand colors (Tuscan Editorial palette) ---
+     NOTE: ivory + ink stay fixed. They back the image scrims and any element
+     that must remain ivory-on-ink regardless of theme. The DARK theme is built
+     on the "warm night" surface ramp below, mapped through the semantic roles. */
+  --c-ivory: #f4f1ea; /* warm ivory — used for text + scrims */
+  --c-ivory-deep: #eae5da;
+  --c-ink: #161412; /* warm near-black — image scrims */
+  --c-ink-soft: #262320;
+  --c-stone: #6e6759;
+  --c-stone-light: #a49b8c;
+  --c-accent: #c08a58; /* burnished terracotta, lit for dark grounds (AA) */
+
+  /* --- Dark "warm night" surface ramp (Tuscan Editorial, Notte) --- */
+  --c-night: #141210; /* deepest — page base */
+  --c-night-sunk: #100e0c; /* sunken bands / tables */
+  --c-night-raised: #1b1815; /* cards on hairlines */
+  --c-night-band: #1e1a16; /* ex-ink alternating bands (a touch lighter) */
+  --c-night-warm: #241e18; /* warm highlighted bands */
 
   /* Legacy aliases (kept so existing selectors don't break) --------------- */
   --c-parchment: var(--c-ivory);
@@ -29,21 +39,21 @@
   --c-gold: var(--c-accent);
   --c-bronze: var(--c-accent);
 
-  /* --- Semantic roles --- */
-  --bg: var(--c-ivory);
-  --bg-dark: var(--c-ink);
-  --bg-charcoal: var(--c-ink);
-  --text: var(--c-ink);
-  --text-muted: var(--c-stone);
+  /* --- Semantic roles (DARK) --- */
+  --bg: var(--c-night); /* page base */
+  --bg-dark: var(--c-night-band); /* alternating bands sit a touch lighter */
+  --bg-charcoal: var(--c-night-band);
+  --text: var(--c-ivory); /* ivory copy on the warm night */
+  --text-muted: #b6afa2; /* soft ivory-grey, AA on the night ramp */
   --text-on-dark: var(--c-ivory);
-  --text-on-dark-muted: #b6afa2; /* soft ivory-grey on ink */
+  --text-on-dark-muted: #b6afa2;
 
   --accent: var(--c-accent);
   --accent-deep: var(--c-accent);
-  --accent-veg: var(--c-stone);
+  --accent-veg: var(--c-stone-light);
 
-  --line: rgba(22, 20, 18, 0.14);
-  --line-strong: rgba(22, 20, 18, 0.32);
+  --line: rgba(244, 241, 234, 0.14);
+  --line-strong: rgba(244, 241, 234, 0.34);
   --line-on-dark: rgba(244, 241, 234, 0.16);
 
   /* --- Typography --- */
@@ -90,10 +100,10 @@
   --shadow-soft: none;
   --shadow-card: none;
 
-  /* Card surfaces sit on hairlines, a breath warmer than the page. */
-  --surface: #f8f5ee;
-  --surface-sunk: var(--c-ivory-deep);
-  --surface-warm: #ede7d9;
+  /* Card surfaces sit on hairlines, a breath lighter than the page. */
+  --surface: var(--c-night-raised);
+  --surface-sunk: var(--c-night-sunk);
+  --surface-warm: var(--c-night-warm);
 
   /* --- Decorative --- */
   /* Film grain retired — surfaces stay clean and flat. */
