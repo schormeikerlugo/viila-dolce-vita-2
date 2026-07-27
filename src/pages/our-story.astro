@@ -16,6 +16,12 @@ import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
 import { bookingHref } from "../data/site";
 import { photos } from "../data/media";
+import { galleryItems } from "../data/gallery";
+
+// Page hero: the villa above a path lined with lavender.
+const heroImage = galleryItems.find((i) => i.slug === "villa-lavender-path")!.image;
+// The Invitation banner: the barrel sauna set among the trees.
+const invitationImage = galleryItems.find((i) => i.slug === "barrel-sauna-trees")!.image;
 
 const estateStats = [
   { value: "3,000", label: "Years of view" },
@@ -55,8 +61,8 @@ const values = [
   <PageHero
     eyebrow="Our Story"
     title="The Maremma Was Here First"
-    image={photos.hillsPinkDawn}
-    imageAlt="Estate hills at first light, the sea on the horizon"
+    image={heroImage}
+    imageAlt="The villa in the distance above a path lined with lavender"
     meta={[
       { label: "Location", value: "Colline Metallifere, Maremma" },
       { label: "Estate", value: "40 Acres" },
@@ -214,8 +220,8 @@ const values = [
     sub="The Etruscans chose these hills. So did the butteri. The door is open."
     ctaLabel="Check Availability"
     ctaHref={bookingHref}
-    image={photos.valdorciaGolden}
-    imageAlt="Golden evening light falling across the Tuscan hills"
+    image={invitationImage}
+    imageAlt="The barrel sauna set among the trees"
   />
 </BaseLayout>
 
