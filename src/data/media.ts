@@ -167,7 +167,7 @@ export const suitePhotos = {
 const V = "/videos";
 export const videos = {
   laDolceVita: `${V}/LaDolceVita`, // main home hero
-  nightSky: `${V}/AdobeStock_105691259`,
+  hilltownDusk: `${V}/AdobeStock_105691259`, // Tuscan hilltown on the ridge at dusk (home final CTA)
   aerialTownGolden: `${V}/AdobeStock_1063526130`,
   grapeHarvest: `${V}/AdobeStock_132949803`,
   terraceDining: `${V}/AdobeStock_134096176`,
