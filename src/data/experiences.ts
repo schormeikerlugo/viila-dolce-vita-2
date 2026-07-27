@@ -10,7 +10,6 @@ import type { ImageMetadata } from "astro";
 /** Homepage "Beyond the Villa" links — anchor into the Experiences page. */
 export const experienceLinks = [
   { label: "Day Trips & Tours", href: "/experiences#day-trips" },
-  { label: "Wine & Dining", href: "/experiences#wine-dining" },
   { label: "Wellness Area", href: "/experiences#wellness-area" },
   { label: "Animal Sanctuary", href: "/experiences#animal-sanctuary" },
   { label: "Private Workshops", href: "/experiences#workshops" },

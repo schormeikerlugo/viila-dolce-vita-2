@@ -1,7 +1,7 @@
 ---
 /**
  * Experiences — one page, five anchored sections:
- * #day-trips · #wine-dining · #wellness-area · #animal-sanctuary · #workshops
+ * #day-trips · #wellness-area · #animal-sanctuary · #workshops
  * (content.md consolidated five former pages into this one.)
  * Tuscan Editorial reskin: hairline hierarchy, spec tables, image-led carousel.
  */
@@ -27,7 +27,6 @@ import {
 
 const anchors = [
   { id: "day-trips", label: "Day Trips & Tours" },
-  { id: "wine-dining", label: "Wine & Dining" },
   { id: "wellness-area", label: "Wellness Area" },
   { id: "animal-sanctuary", label: "Animal Sanctuary" },
   { id: "workshops", label: "Private Workshops" },
@@ -166,27 +165,6 @@ const tourRows = privateTours.map((t) => ({
       <!-- PRIVATE LUXURY TOURS -->
       <SectionHeader eyebrow="Private Luxury Tours" title="Curated, Chauffeured, for Two" align="left" />
       <SpecTable rows={tourRows} />
-    </div>
-  </section>
-
-  <!-- WINE & DINING (teaser to Dining) -->
-  <section id="wine-dining" class="section bg-dark winedining">
-    <div class="wrap winedining__grid">
-      <SectionHeader
-        eyebrow="Wine & Dining"
-        title="From Tuscan Pizza to a Cellar Spanning Three Countries"
-        align="left"
-        onDark
-      >
-        <p class="winedining__copy">
-          Private dinners are always available, and the wine list is long enough to take
-          seriously. The full menu, dinner pricing, gift baskets, and wine list live on the
-          Dining page.
-        </p>
-      </SectionHeader>
-      <Reveal delay={0.15} class="winedining__cta">
-        <Button href="/dining" variant="ghost" onDark>See the full menu & wine list</Button>
-      </Reveal>
     </div>
   </section>
 
@@ -395,29 +373,6 @@ const tourRows = privateTours.map((t) => ({
     margin-top: 1.25rem;
   }
 
-  /* ── Wine & dining teaser (ink) ───────────────────────────────────────── */
-  .winedining__grid {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: end;
-  }
-  .winedining__grid :global(.sechead) {
-    margin-bottom: 0;
-  }
-  .winedining :global(.winedining__copy) {
-    color: var(--text-on-dark-muted);
-  }
-  .winedining :global(.winedining__cta) {
-    justify-self: start;
-    padding-bottom: 0.35rem;
-  }
-  @media (min-width: 901px) {
-    .winedining :global(.winedining__cta) {
-      justify-self: end;
-    }
-  }
-
   /* ── Wellness — hairline grid ─────────────────────────────────────────── */
   .wellness-grid {
     display: grid;
@@ -555,12 +510,6 @@ const tourRows = privateTours.map((t) => ({
     .workshops-grid,
     .city__cols {
       grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  @media (max-width: 900px) {
-    .winedining__grid {
-      grid-template-columns: 1fr;
-      align-items: start;
     }
   }
   @media (max-width: 620px) {
