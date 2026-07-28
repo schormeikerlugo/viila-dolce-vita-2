@@ -27,21 +27,22 @@ const landImage = galleryItems.find((i) => i.slug === "pines-valley-deer")!.imag
 // The House: the villa above a path lined with lavender.
 const houseImage = galleryItems.find((i) => i.slug === "villa-lavender-path")!.image;
 
-// A framed 5-picture teaser linking out to the full gallery.
+// A framed 5-picture teaser — opens the same lightbox as the home gallery.
 const propertyGallerySlugs = [
-  "living-room-interior",
-  "stone-pine-hills",
-  "kitchen-dining-interior",
+  "living-room-lavender",
+  "stone-pine-sunset",
+  "dining-dusk-table",
   "roe-deer-lavender",
-  "gym-deck-sails",
+  "gym-weights-deck",
 ];
-const propertyGallery = propertyGallerySlugs.map(
-  (slug) => galleryItems.find((i) => i.slug === slug)!,
-);
+const propertyGallery = propertyGallerySlugs.map((slug) => {
+  const item = galleryItems.find((i) => i.slug === slug)!;
+  return { image: item.image, alt: item.alt };
+});
 
 const estateStats = [
   { value: "3,000", label: "Years of view" },
-  { value: "40", label: "Acres of estate" },
+  { value: "50", label: "Acres of estate" },
   { value: "5", label: "Private suites" },
   { value: "1", label: "View of the sea" },
 ];
@@ -72,7 +73,7 @@ const values = [
 
 <BaseLayout
   title="Our Story"
-  description="Villa Dolce Vita sits high on the Colline Metallifere in the Maremma — three thousand years of view, forty acres of olive groves and forest, five suites, and a single purpose: a front-row seat to the real Tuscany."
+  description="Villa Dolce Vita sits high on the Colline Metallifere in the Maremma — three thousand years of view, fifty acres of olive groves and forest, five suites, and a single purpose: a front-row seat to the real Tuscany."
 >
   <PageHero
     eyebrow="Our Story"
@@ -81,7 +82,7 @@ const values = [
     imageAlt="The villa in the distance above a path lined with lavender"
     meta={[
       { label: "Location", value: "Colline Metallifere, Maremma" },
-      { label: "Estate", value: "40 Acres" },
+      { label: "Estate", value: "50 Acres" },
       { label: "Suites", value: "5" },
       { label: "View", value: "Sea, Elba & Corsica" },
     ]}
@@ -143,7 +144,7 @@ const values = [
   <!-- BY THE NUMBERS -->
   <StatBand
     eyebrow="The Estate in Numbers"
-    title="Three Thousand Years, Forty Acres"
+    title="Three Thousand Years, Fifty Acres"
     stats={estateStats}
     theme="dark"
   />
@@ -171,22 +172,34 @@ const values = [
     </p>
   </SplitSection>
 
-  <!-- FRAMED GALLERY TEASER -->
+  <!-- FRAMED GALLERY TEASER — click a frame to open the lightbox -->
   <section class="section bg-dark propgal" aria-label="A glimpse of the estate">
     <div class="propgal__inner">
       <ul class="propgal__grid">
         {
           propertyGallery.map((item, i) => (
-            <li class="propgal__tile" data-reveal data-reveal-delay={0.05 + i * 0.06}>
-              <a href="/gallery" class="propgal__link" aria-label={`View gallery — ${item.alt}`}>
+            <li
+              class="propgal__tile"
+              data-reveal
+              data-reveal-delay={0.05 + i * 0.06}
+              data-cap={item.alt}
+            >
+              <button
+                type="button"
+                class="propgal__link"
+                aria-label={`View ${item.alt}`}
+                aria-haspopup="dialog"
+                data-lb-open
+                data-cursor="view"
+              >
                 <Image
                   src={item.image}
                   alt={item.alt}
-                  widths={[320, 480, 640]}
+                  widths={[320, 480, 640, 900]}
                   sizes="(max-width: 760px) 45vw, 18vw"
                   loading="lazy"
                 />
-              </a>
+              </button>
             </li>
           ))
         }
@@ -194,6 +207,38 @@ const values = [
       <div class="propgal__foot" data-reveal data-reveal-delay={0.1}>
         <Button href="/gallery" variant="ghost" onDark>View full gallery</Button>
       </div>
+    </div>
+
+    {/* ─── Lightbox modal (same behaviour as the home gallery) ─── */}
+    <div
+      class="propgal-lb"
+      id="property-gallery-lightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Photograph viewer"
+      hidden
+    >
+      <div class="propgal-lb__backdrop" data-lb-close></div>
+
+      <button type="button" class="propgal-lb__btn propgal-lb__close" data-lb-close aria-label="Close">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+
+      <button type="button" class="propgal-lb__btn propgal-lb__nav propgal-lb__prev" data-lb-prev aria-label="Previous photograph">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+
+      <figure class="propgal-lb__figure">
+        <img class="propgal-lb__img" src="" alt="" />
+        <figcaption class="propgal-lb__bar">
+          <span class="propgal-lb__title" data-lb-title></span>
+          <span class="propgal-lb__count" data-lb-count aria-live="polite"></span>
+        </figcaption>
+      </figure>
+
+      <button type="button" class="propgal-lb__btn propgal-lb__nav propgal-lb__next" data-lb-next aria-label="Next photograph">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
     </div>
   </section>
 
@@ -290,10 +335,14 @@ const values = [
   .propgal__link {
     display: block;
     position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
     aspect-ratio: 3 / 5;
     overflow: hidden;
     border: 1px solid var(--line);
     background: var(--surface-sunk);
+    cursor: zoom-in;
   }
   .propgal__link :global(img) {
     display: block;
@@ -323,6 +372,153 @@ const values = [
     }
     .propgal__link:hover :global(img) {
       transform: none;
+    }
+  }
+
+  /* ─── Lightbox modal (mirrors the home gallery) ─── */
+  .propgal-lb {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 4vw, 3rem);
+  }
+  .propgal-lb[hidden] {
+    display: none;
+  }
+  .propgal-lb__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(24, 26, 22, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    animation: propgal-lb-fade var(--dur-fast) var(--ease-out) both;
+  }
+  .propgal-lb__figure {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    max-width: 100%;
+    max-height: 100%;
+    animation: propgal-lb-pop var(--dur-fast) var(--ease-out) both;
+  }
+  .propgal-lb__img {
+    display: block;
+    max-width: min(90vw, 1400px);
+    max-height: 82vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
+    background: var(--surface);
+  }
+  .propgal-lb__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: min(90vw, 1400px);
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+  .propgal-lb__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--c-ivory);
+    min-width: 0;
+  }
+  .propgal-lb__count {
+    font-size: 0.72rem;
+    color: rgba(243, 238, 230, 0.7);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+  .propgal-lb__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(243, 238, 230, 0.2);
+    background: rgba(38, 36, 31, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--c-ivory);
+    cursor: pointer;
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+  .propgal-lb__btn:hover {
+    background: rgba(201, 151, 77, 0.5);
+    border-color: var(--accent);
+  }
+  .propgal-lb__btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .propgal-lb__close {
+    position: absolute;
+    z-index: 2;
+    top: clamp(0.75rem, 2vw, 1.5rem);
+    right: clamp(0.75rem, 2vw, 1.5rem);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+  }
+  .propgal-lb__nav {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+  }
+  .propgal-lb__nav:hover {
+    transform: translateY(-50%) scale(1.06);
+  }
+  .propgal-lb__prev {
+    left: clamp(0.5rem, 2vw, 1.5rem);
+  }
+  .propgal-lb__next {
+    right: clamp(0.5rem, 2vw, 1.5rem);
+  }
+  @keyframes propgal-lb-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes propgal-lb-pop {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  :global(body.propgal-lb-open) {
+    overflow: hidden;
+  }
+  @media (max-width: 760px) {
+    .propgal-lb__img {
+      max-height: 70vh;
+    }
+    .propgal-lb__nav {
+      width: 44px;
+      height: 44px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .propgal-lb__backdrop,
+    .propgal-lb__figure {
+      animation: none;
+    }
+    .propgal-lb__nav:hover {
+      transform: translateY(-50%);
     }
   }
 
@@ -372,3 +568,101 @@ const values = [
     }
   }
 </style>
+
+<script>
+  function initPropertyGallery() {
+    const section = document.querySelector<HTMLElement>(".propgal");
+    if (!section || section.dataset.propgalReady === "1") return;
+    section.dataset.propgalReady = "1";
+
+    const tiles = Array.from(
+      section.querySelectorAll<HTMLElement>(".propgal__tile"),
+    );
+    const lb = document.getElementById("property-gallery-lightbox");
+    if (!lb || tiles.length === 0) return;
+
+    // Portal the modal to <body> so no transformed / `will-change` ancestor
+    // (e.g. reveal wrappers) traps its `position: fixed`.
+    if (lb.parentElement !== document.body) document.body.appendChild(lb);
+
+    const lbImg = lb.querySelector<HTMLImageElement>(".propgal-lb__img");
+    const lbTitle = lb.querySelector<HTMLElement>("[data-lb-title]");
+    const lbCount = lb.querySelector<HTMLElement>("[data-lb-count]");
+    const closeEls = Array.from(
+      lb.querySelectorAll<HTMLElement>("[data-lb-close]"),
+    );
+    const prevBtn = lb.querySelector<HTMLButtonElement>("[data-lb-prev]");
+    const nextBtn = lb.querySelector<HTMLButtonElement>("[data-lb-next]");
+
+    let idx = -1;
+    let lastFocus: HTMLElement | null = null;
+
+    /** Largest candidate from the tile's srcset (full-res image). */
+    function largestSrc(img: HTMLImageElement): string {
+      const candidates = (img.srcset || "")
+        .split(",")
+        .map((s) => s.trim().split(/\s+/))
+        .filter((p) => p[0]);
+      if (!candidates.length) return img.currentSrc || img.src;
+      candidates.sort((a, b) => parseInt(b[1] || "0") - parseInt(a[1] || "0"));
+      return candidates[0][0];
+    }
+
+    function render() {
+      const el = tiles[idx];
+      if (!el || !lbImg) return;
+      const img = el.querySelector<HTMLImageElement>("img");
+      const title = el.dataset.cap ?? img?.alt ?? "";
+      lbImg.src = img ? largestSrc(img) : "";
+      lbImg.alt = title;
+      if (lbTitle) lbTitle.textContent = title;
+      if (lbCount) lbCount.textContent = `${idx + 1} / ${tiles.length}`;
+    }
+
+    function open(i: number) {
+      idx = i;
+      if (idx < 0) return;
+      lastFocus = tiles[idx].querySelector<HTMLElement>("[data-lb-open]");
+      render();
+      lb!.hidden = false;
+      document.body.classList.add("propgal-lb-open");
+      (closeEls[0] as HTMLButtonElement | undefined)?.focus();
+    }
+
+    function close() {
+      lb!.hidden = true;
+      document.body.classList.remove("propgal-lb-open");
+      if (lbImg) lbImg.src = "";
+      lastFocus?.focus();
+    }
+
+    function step(delta: number) {
+      idx = (idx + delta + tiles.length) % tiles.length;
+      render();
+    }
+
+    tiles.forEach((el, i) => {
+      el.querySelector<HTMLElement>("[data-lb-open]")?.addEventListener(
+        "click",
+        () => open(i),
+      );
+    });
+    closeEls.forEach((c) => c.addEventListener("click", close));
+    prevBtn?.addEventListener("click", () => step(-1));
+    nextBtn?.addEventListener("click", () => step(1));
+
+    document.addEventListener("keydown", (e) => {
+      if (lb.hidden) return;
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") step(-1);
+      else if (e.key === "ArrowRight") step(1);
+    });
+  }
+
+  document.addEventListener("astro:page-load", initPropertyGallery);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPropertyGallery);
+  } else {
+    initPropertyGallery();
+  }
+</script>
