@@ -425,6 +425,15 @@ const weddingSlides = [
 
 <style>
   /* ── OVERVIEW ─────────────────────────────────────────────────────────── */
+  /* Extra breathing room (+15%) before the full-bleed night band below. */
+  .overview {
+    padding-bottom: calc(var(--section-y) * 1.15);
+  }
+  /* Home gallery: +15% extra space before the Massa Marittima band below.
+     (Scoped to the home page's gallery section only.) */
+  :global(.hgal) {
+    padding-bottom: calc(var(--section-y) * 1.15);
+  }
   .overview__grid {
     display: grid;
     grid-template-columns: minmax(10rem, 0.55fr) 1.45fr;
@@ -763,18 +772,7 @@ const weddingSlides = [
         rgba(22, 20, 18, 0.12) 75%,
         rgba(22, 20, 18, 0) 100%
       ),
-      rgba(22, 20, 18, 0.4);
-    opacity: 0;
-    transition: opacity var(--dur-slow, 0.6s) var(--ease-out, ease);
-  }
-  .townband:hover .townband__scrim,
-  .townband:focus-within .townband__scrim {
-    opacity: 1;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .townband__scrim {
-      transition: none;
-    }
+      rgba(22, 20, 18, 0.48);
   }
   .townband__inner {
     position: relative;
@@ -810,15 +808,12 @@ const weddingSlides = [
       min-height: 30rem;
     }
     .townband__scrim {
-      /* No hover on touch devices — keep the scrim visible by default so
-         the overlaid text stays legible. */
       background: linear-gradient(
         180deg,
-        rgba(22, 20, 18, 0.55) 0%,
-        rgba(22, 20, 18, 0.8) 55%,
-        rgba(22, 20, 18, 0.9) 100%
+        rgba(22, 20, 18, 0.66) 0%,
+        rgba(22, 20, 18, 0.9) 55%,
+        rgba(22, 20, 18, 0.95) 100%
       );
-      opacity: 1;
     }
   }
 
@@ -916,6 +911,10 @@ const weddingSlides = [
   }
 
   /* ── REVIEWS ─────────────────────────────────────────────────────────── */
+  /* Extra breathing room (+15%) before the section below. */
+  .reviews {
+    padding-bottom: calc(var(--section-y) * 1.15);
+  }
   /* Match the home gallery's centred max-width so the section isn't flush
      to the screen edges on wide viewports. */
   .reviews .wrap {

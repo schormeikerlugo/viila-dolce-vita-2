@@ -23,10 +23,6 @@ export const faqs: FaqItem[] = [
     a: "Daily breakfast is served on the estate, with three chef-cooked dinners per week and food and grocery delivery available. Private dinners and welcome baskets can be arranged through the concierge.",
   },
   {
-    q: "Is alcohol served at the villa?",
-    a: "Due to current Italian law, the sale and consumption of alcohol is temporarily prohibited. We are complying fully with this regulation until further notice, and thank you for your understanding.",
-  },
-  {
     q: "Are there animals on the property?",
     a: "Yes — the villa is also a sanctuary for rescued animals (three dogs and seven cats) who roam freely across the property. Many guests find their presence a joyful part of the stay; we kindly ask that you're comfortable sharing the space with them.",
   },

@@ -86,7 +86,7 @@
   --measure: 62ch;
 
   /* Editorial vertical rhythm — spaced but consistent across viewports. */
-  --section-y: clamp(4.5rem, 6vw, 7rem);
+  --section-y: clamp(5.4rem, 7.2vw, 8.4rem);
   --space-group: clamp(2.5rem, 4vw, 4rem);
   --space-element: clamp(1rem, 1.5vw, 1.5rem);
 
