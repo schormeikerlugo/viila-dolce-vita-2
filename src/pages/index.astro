@@ -2,8 +2,8 @@
 /**
  * Home — Tuscan Editorial landing page.
  * Order: Hero → Overview (ink) → Features & Amenities → Suites → Gallery →
- * Massa Marittima band → History (ink) → Journal →
- * Weddings → Reviews → FAQ (ink) → Final CTA.
+ * Massa Marittima band → History (ink) → Weddings → Reviews →
+ * Journal → FAQ (ink) → Final CTA.
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/Hero.astro";
@@ -303,38 +303,6 @@ const weddingSlides = [
     </div>
   </section>
 
-  <!-- JOURNAL — editorial card carousel. -->
-  <section class="section bg-sunk journal">
-    <div class="wrap">
-      <div class="suites-head">
-        <SectionHeader eyebrow="From the Journal" title="A Running Local Guide" align="left">
-          <p>Things to do nearby, restaurant spotlights, and life at the estate.</p>
-        </SectionHeader>
-        <Button href="/journal" variant="ghost" class="suites-head__cta">Read the Journal</Button>
-      </div>
-      <CardCarousel label="Journal stories">
-        {
-          journalTeasers.map((a) => (
-            <a class="jcard carousel__slide" href={`/journal/${a.slug}`}>
-              <div class="jcard__media hoist" transition:name={`journal-${a.slug}`}>
-                <Image
-                  src={a.image}
-                  alt={a.imageAlt}
-                  widths={[420, 640, 900]}
-                  sizes="(max-width: 860px) 80vw, 28vw"
-                  loading="lazy"
-                />
-              </div>
-              <p class="jcard__cat">{a.category}</p>
-              <h3 class="jcard__title">{a.title}</h3>
-              <p class="jcard__more">Read the story <span aria-hidden="true">↗</span></p>
-            </a>
-          ))
-        }
-      </CardCarousel>
-    </div>
-  </section>
-
   <!-- WEDDINGS & EVENTS — full-width photo carousel (Masseto). -->
   <section class="section bg-ivory weddings" aria-labelledby="weddings-title">
     <div class="wrap">
@@ -394,6 +362,38 @@ const weddingSlides = [
       </ul>
 
       <TestimonialCarousel client:load items={testimonials} />
+    </div>
+  </section>
+
+  <!-- JOURNAL — editorial card carousel. -->
+  <section class="section bg-sunk journal">
+    <div class="wrap">
+      <div class="suites-head">
+        <SectionHeader eyebrow="From the Journal" title="A Running Local Guide" align="left">
+          <p>Things to do nearby, restaurant spotlights, and life at the estate.</p>
+        </SectionHeader>
+        <Button href="/journal" variant="ghost" class="suites-head__cta">Read the Journal</Button>
+      </div>
+      <CardCarousel label="Journal stories">
+        {
+          journalTeasers.map((a) => (
+            <a class="jcard carousel__slide" href={`/journal/${a.slug}`}>
+              <div class="jcard__media hoist" transition:name={`journal-${a.slug}`}>
+                <Image
+                  src={a.image}
+                  alt={a.imageAlt}
+                  widths={[420, 640, 900]}
+                  sizes="(max-width: 860px) 80vw, 28vw"
+                  loading="lazy"
+                />
+              </div>
+              <p class="jcard__cat">{a.category}</p>
+              <h3 class="jcard__title">{a.title}</h3>
+              <p class="jcard__more">Read the story <span aria-hidden="true">↗</span></p>
+            </a>
+          ))
+        }
+      </CardCarousel>
     </div>
   </section>
 
@@ -719,23 +719,37 @@ const weddingSlides = [
     z-index: 0;
   }
 
-  /* Night interstitial — same proportion as the Massa Marittima band. */
+  /* Night interstitial — same proportion as the Massa Marittima band.
+     The source image is low-res, so inset it with 200px side padding to
+     render it smaller (and sharper) against the page ground. */
   .nightband {
     position: relative;
     width: 100%;
     aspect-ratio: 1280 / 520;
+    padding-inline: 200px;
+    background: var(--bg);
     overflow: hidden;
   }
   .nightband__media {
     position: absolute;
-    /* Centred overscan so the parallax drift never uncovers the edges. */
-    inset: -10% 0;
+    /* Centred overscan so the parallax drift never uncovers the edges.
+       Left/right insets equal the side padding so the image sits inside it. */
+    inset: -10% 200px;
     height: 120%;
+    overflow: hidden;
   }
   .nightband__img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+  @media (max-width: 900px) {
+    .nightband {
+      padding-inline: 0;
+    }
+    .nightband__media {
+      inset: -10% 0;
+    }
   }
   .townband__scrim {
     position: absolute;
