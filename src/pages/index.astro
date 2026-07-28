@@ -57,7 +57,7 @@ const estateStats = [
   { value: "5", label: "Suites" },
   { value: "7", label: "Bedrooms" },
   { value: "50", label: "Acre Estate" },
-  { value: "24", label: "Guests Max" },
+  { value: "15", label: "Guests Max" },
 ];
 
 // Reviews — headline stats shown above the guest review carousel.
@@ -128,7 +128,7 @@ const weddingSlides = [
           to the sea, <em>Elba and Corsica beyond</em>.
         </p>
         <Reveal as="p" class="overview__copy" delay={0.12}>
-          Set high on the Maremma hills, Villa Dolce Vita hosts up to 24 guests
+          Set high on the Maremma hills, Villa Dolce Vita hosts up to 15 guests
           with daily breakfast, chef-cooked dinners, an on-site concierge and a
           working animal sanctuary. Massa Marittima — cobbled streets, medieval
           charm and a thousand-year-old cathedral — is fifteen minutes from
@@ -138,7 +138,7 @@ const weddingSlides = [
           <dl class="overview__meta">
             <div><dt>Location</dt><dd>Massa Marittima, Tuscany</dd></div>
             <div><dt>Accommodation</dt><dd>5 Suites · 2 Stone Houses</dd></div>
-            <div><dt>Capacity</dt><dd>Up to 24 Guests</dd></div>
+            <div><dt>Capacity</dt><dd>Up to 15 Guests</dd></div>
             <div><dt>To Town</dt><dd>15 Minutes</dd></div>
           </dl>
         </Reveal>
@@ -900,6 +900,13 @@ const weddingSlides = [
   }
 
   /* ── REVIEWS ─────────────────────────────────────────────────────────── */
+  /* Match the home gallery's centred max-width so the section isn't flush
+     to the screen edges on wide viewports. */
+  .reviews .wrap {
+    width: min(100% - 2 * var(--gutter), 1500px);
+    margin-inline: auto;
+    padding-inline: 0;
+  }
   .reviews :global(.eyebrow) {
     margin-bottom: clamp(1rem, 2vw, 1.6rem);
     justify-content: center;

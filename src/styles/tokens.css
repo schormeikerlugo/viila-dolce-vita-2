@@ -85,8 +85,8 @@
   --content-max: 1680px;
   --measure: 62ch;
 
-  /* Editorial vertical rhythm — generous, premium. */
-  --section-y: clamp(5.5rem, 9vw, 10rem);
+  /* Editorial vertical rhythm — spaced but consistent across viewports. */
+  --section-y: clamp(4.5rem, 6vw, 7rem);
   --space-group: clamp(2.5rem, 4vw, 4rem);
   --space-element: clamp(1rem, 1.5vw, 1.5rem);
 

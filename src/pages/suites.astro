@@ -22,7 +22,7 @@ const orderedSuites = [...suites].sort((a, b) => a.rank - b.rank);
 const premiumSlug = orderedSuites[0].slug;
 
 // Official estate capacity (incl. premium sofa beds) — matches the site copy.
-const totalSleeps = 24;
+const totalSleeps = 15;
 
 // Evocative full-bleed background for the mid-page CTA.
 const ctaImage = galleryItems.find((i) => i.slug === "villa-aerial-day")!.image;
@@ -563,7 +563,7 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
     isolation: isolate;
     overflow: hidden;
     color: var(--c-ivory);
-    padding-block: clamp(4rem, 9vw, 6.5rem);
+    padding-block: clamp(4rem, 6vw, 7rem);
   }
   .in-suite__media {
     position: absolute;

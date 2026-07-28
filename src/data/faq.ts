@@ -16,7 +16,7 @@ export const faqs: FaqItem[] = [
   },
   {
     q: "How many guests can the estate host?",
-    a: "Two stone houses hold five large suites — seven bedrooms in all — sleeping up to 24 guests. Suites can be booked individually, or the estate reserved in full for complete privacy.",
+    a: "Two stone houses hold five large suites — seven bedrooms in all — sleeping up to 15 guests. Suites can be booked individually, or the estate reserved in full for complete privacy.",
   },
   {
     q: "Is dining included in the stay?",

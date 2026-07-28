@@ -61,7 +61,7 @@ const defaultDepart = plus(37);
   <div class="bookbar__field">
     <label for={`bb-guests-${suite ?? "x"}`}>Guests</label>
     <select id={`bb-guests-${suite ?? "x"}`} name="guests" data-bb-guests>
-      {Array.from({ length: 24 }, (_, i) => i + 1).map((n) => (
+      {Array.from({ length: 15 }, (_, i) => i + 1).map((n) => (
         <option value={n} selected={n === 2}>
           {n} {n === 1 ? "guest" : "guests"}
         </option>
