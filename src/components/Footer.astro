@@ -6,10 +6,10 @@
 import { contact, nav, site, social } from "../data/site";
 
 const services = nav.filter((n) =>
-  ["/suites", "/experiences", "/weddings-events"].includes(n.href),
+  ["/suites", "/experiences", "/weddings-events", "/journal"].includes(n.href),
 );
 const quick = nav.filter((n) =>
-  ["/the-property", "/journal", "/contact"].includes(n.href),
+  ["/the-property", "/gallery", "/contact"].includes(n.href),
 );
 const year = new Date().getFullYear();
 ---
