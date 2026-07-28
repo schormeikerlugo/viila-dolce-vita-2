@@ -33,21 +33,21 @@ const homeGalleryItems = [
   { image: gal("villa-aerial-day").image, alt: "Villa Dolce Vita and its pool from above in the golden Tuscan light", caption: "The estate from above" },
   { image: suitePhotos.roma[0], alt: "Roma suite interior", caption: "Roma suite" },
   { image: gal("villa-pool-day").image, alt: "The yellow villa and its pool on a clear summer day", caption: "The pool" },
-  { image: suitePhotos.napoli[0], alt: "Napoli suite interior", caption: "Napoli suite" },
+  { image: gal("marble-bathroom").image, alt: "A modern marble bathroom with a walk-in shower", caption: "Marble bathroom" },
   { image: gal("pool-guest-afternoon").image, alt: "A guest relaxes in the pool on a sunlit afternoon", caption: "The pool" },
-  { image: suitePhotos.positano[0], alt: "Positano suite interior", caption: "Positano suite" },
-  { image: gal("lavender-gravel-drive").image, alt: "The gravel drive winding up between rows of lavender to the villa", caption: "The lavender drive" },
-  { image: suitePhotos.roma[2], alt: "Roma suite detail", caption: "Roma suite" },
+  { image: gal("kitchen-dining-interior").image, alt: "The suite's kitchen and dining table set for a meal", caption: "Kitchen & dining" },
+  { image: gal("hallway-glass-table").image, alt: "An interior hallway with a glass table and views beyond", caption: "The hallway" },
+  { image: gal("barrel-sauna-trees").image, alt: "The barrel sauna set among the trees", caption: "The barrel sauna" },
   { image: gal("villa-lavender-path").image, alt: "The villa above a path lined with lavender", caption: "Lavender & villa" },
-  { image: suitePhotos.napoli[2], alt: "Napoli suite detail", caption: "Napoli suite" },
+  { image: gal("pines-valley-deer").image, alt: "Stone pines over the valley, a deer grazing below", caption: "Pines & valley" },
   { image: gal("arch-aperitivo-couple").image, alt: "Aperitivo for two under the arch as the sun goes down", caption: "Aperitivo at sunset" },
   { image: suitePhotos.milano[0], alt: "Milano suite interior", caption: "Milano suite" },
   { image: gal("stone-pine-hills").image, alt: "A great stone pine over the rolling Tuscan hills", caption: "The Tuscan hills" },
   { image: suitePhotos.positano[2], alt: "Positano suite detail", caption: "Positano suite" },
-  { image: gal("stone-pine-sunset").image, alt: "A lone stone pine against the sky at sunset", caption: "Pine at dusk" },
+  { image: gal("gym-deck-sails").image, alt: "The open-air training deck under its sail canopy", caption: "Training deck" },
   { image: suitePhotos.roma[4], alt: "Roma suite bathroom", caption: "Roma suite" },
   { image: gal("olive-harvest-basket").image, alt: "Hand-picking olives into a wicker basket in the grove", caption: "The olive harvest" },
-  { image: suitePhotos.napoli[4], alt: "Napoli suite bedroom", caption: "Napoli suite" },
+  { image: gal("hoopoe-meadow").image, alt: "A hoopoe pauses in the meadow grass", caption: "A hoopoe in the meadow" },
   { image: gal("outdoor-dinner-tables").image, alt: "Tables set for an outdoor dinner under the canopy", caption: "Dinner outdoors" },
   { image: gal("pool-terrace-above").image, alt: "The pool and sun terrace seen from above", caption: "The pool terrace" },
 ];
@@ -62,7 +62,7 @@ const estateStats = [
 
 // Reviews — headline stats shown above the guest review carousel.
 const reviewStats = [
-  { value: "15+", label: "Years on the Market" },
+  { value: "2+", label: "Years on the Market" },
   { value: "90+", label: "Groups Hosted" },
   { value: "98%", label: "Satisfaction Rate" },
 ];
@@ -755,13 +755,26 @@ const weddingSlides = [
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: radial-gradient(
-      ellipse 60% 75% at 50% 50%,
-      rgba(22, 20, 18, 0.6) 0%,
-      rgba(22, 20, 18, 0.4) 45%,
-      rgba(22, 20, 18, 0.12) 75%,
-      rgba(22, 20, 18, 0) 100%
-    );
+    background:
+      radial-gradient(
+        ellipse 60% 75% at 50% 50%,
+        rgba(22, 20, 18, 0.6) 0%,
+        rgba(22, 20, 18, 0.4) 45%,
+        rgba(22, 20, 18, 0.12) 75%,
+        rgba(22, 20, 18, 0) 100%
+      ),
+      rgba(22, 20, 18, 0.4);
+    opacity: 0;
+    transition: opacity var(--dur-slow, 0.6s) var(--ease-out, ease);
+  }
+  .townband:hover .townband__scrim,
+  .townband:focus-within .townband__scrim {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .townband__scrim {
+      transition: none;
+    }
   }
   .townband__inner {
     position: relative;
@@ -797,12 +810,15 @@ const weddingSlides = [
       min-height: 30rem;
     }
     .townband__scrim {
+      /* No hover on touch devices — keep the scrim visible by default so
+         the overlaid text stays legible. */
       background: linear-gradient(
         180deg,
         rgba(22, 20, 18, 0.55) 0%,
         rgba(22, 20, 18, 0.8) 55%,
         rgba(22, 20, 18, 0.9) 100%
       );
+      opacity: 1;
     }
   }
 

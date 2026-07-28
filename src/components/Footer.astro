@@ -66,7 +66,6 @@ const year = new Date().getFullYear();
   </div>
 
   <div class="footer__notices wrap">
-    <p class="footer__notice"><strong>Disclaimer —</strong> {notices.alcohol}</p>
     <p class="footer__notice"><strong>A Note for Our Guests —</strong> {notices.animals}</p>
   </div>
 
@@ -152,9 +151,6 @@ const year = new Date().getFullYear();
 
   .footer__notices {
     padding-block: 2rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.9rem clamp(2rem, 5vw, 5rem);
     border-bottom: 1px solid var(--line-on-dark);
   }
   .footer__notices p {
@@ -203,11 +199,6 @@ const year = new Date().getFullYear();
     }
     .footer__brand {
       grid-column: 1 / -1;
-    }
-  }
-  @media (max-width: 720px) {
-    .footer__notices {
-      grid-template-columns: 1fr;
     }
   }
   @media (max-width: 560px) {

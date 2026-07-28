@@ -13,15 +13,17 @@ interface Props {
   items: FaqItem[];
   /** Set false when rendered on a light section. */
   onDark?: boolean;
+  /** Render every accordion expanded by default. */
+  defaultOpen?: boolean;
   class?: string;
 }
-const { items, onDark = true, class: className = "" } = Astro.props;
+const { items, onDark = true, defaultOpen = true, class: className = "" } = Astro.props;
 ---
 
 <div class:list={["faq", { "faq--light": !onDark }, className]}>
   {
     items.map((item, i) => (
-      <details class="faq__item" data-reveal data-reveal-delay={Math.min(i * 0.04, 0.2)}>
+      <details class="faq__item" open={defaultOpen} data-reveal data-reveal-delay={Math.min(i * 0.04, 0.2)}>
         <summary class="faq__q">
           <span>{item.q}</span>
           <span class="faq__marker" aria-hidden="true" />
