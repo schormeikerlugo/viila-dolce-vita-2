@@ -68,9 +68,9 @@ export type NavItem = { label: string; href: string };
  */
 export const nav: NavItem[] = [
   { label: "Home", href: "/" },
-  { label: "Our Story", href: "/our-story" },
+  { label: "The Property", href: "/our-story" },
   { label: "Suites", href: "/suites" },
-  { label: "Experiences", href: "/experiences" },
+  { label: "Experience", href: "/experiences" },
   { label: "Weddings & Events", href: "/weddings-events" },
   { label: "Gallery", href: "/gallery" },
   { label: "Journal", href: "/journal" },
@@ -91,19 +91,14 @@ export const navGroups: NavNode[] = [
   {
     label: "The Villa",
     children: [
-      { label: "Our Story", href: "/our-story" },
+      { label: "The Property", href: "/our-story" },
       { label: "Suites", href: "/suites" },
-      { label: "Weddings & Events", href: "/weddings-events" },
       { label: "Gallery", href: "/gallery" },
     ],
   },
-  {
-    label: "Experiences",
-    href: "/experiences",
-    children: [
-      { label: "Journal", href: "/journal" },
-    ],
-  },
+  { label: "Experience", href: "/experiences" },
+  { label: "Weddings & Events", href: "/weddings-events" },
+  { label: "Journal", href: "/journal" },
   { label: "Contact Us", href: "/contact" },
 ];
 
