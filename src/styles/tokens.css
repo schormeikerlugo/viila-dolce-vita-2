@@ -20,12 +20,14 @@
   --c-stone-light: #a49b8c;
   --c-accent: #c08a58; /* burnished terracotta, lit for dark grounds (AA) */
 
-  /* --- Dark "warm night" surface ramp (Tuscan Editorial, Notte) --- */
-  --c-night: #141210; /* deepest — page base */
-  --c-night-sunk: #100e0c; /* sunken bands / tables */
-  --c-night-raised: #1b1815; /* cards on hairlines */
-  --c-night-band: #1e1a16; /* ex-ink alternating bands (a touch lighter) */
-  --c-night-warm: #241e18; /* warm highlighted bands */
+  /* --- Dark surface ramp — flattened to pure black (#000) across the site.
+     Every ground (page base, sunken bands, cards, alternating and warm bands)
+     resolves to #000; blocks are separated by hairline rules alone. --- */
+  --c-night: #000; /* deepest — page base */
+  --c-night-sunk: #000; /* sunken bands / tables */
+  --c-night-raised: #000; /* cards on hairlines */
+  --c-night-band: #000; /* ex-ink alternating bands */
+  --c-night-warm: #000; /* warm highlighted bands */
 
   /* Legacy aliases (kept so existing selectors don't break) --------------- */
   --c-parchment: var(--c-ivory);
