@@ -10,8 +10,8 @@ import PageHero from "../components/PageHero.astro";
 import SplitSection from "../components/SplitSection.astro";
 import SectionHeader from "../components/SectionHeader.astro";
 import StatBand from "../components/StatBand.astro";
-import QuoteBand from "../components/QuoteBand.astro";
 import CtaBanner from "../components/CtaBanner.astro";
+import { Image } from "astro:assets";
 import Button from "../components/Button.astro";
 import Reveal from "../components/Reveal.astro";
 import { bookingHref } from "../data/site";
@@ -22,6 +22,22 @@ import { galleryItems } from "../data/gallery";
 const heroImage = galleryItems.find((i) => i.slug === "villa-lavender-path")!.image;
 // The Invitation banner: the barrel sauna set among the trees.
 const invitationImage = galleryItems.find((i) => i.slug === "barrel-sauna-trees")!.image;
+// The Land: stone pines over the valley, a deer grazing below.
+const landImage = galleryItems.find((i) => i.slug === "pines-valley-deer")!.image;
+// The House: the villa above a path lined with lavender.
+const houseImage = galleryItems.find((i) => i.slug === "villa-lavender-path")!.image;
+
+// A framed 5-picture teaser linking out to the full gallery.
+const propertyGallerySlugs = [
+  "living-room-interior",
+  "stone-pine-hills",
+  "kitchen-dining-interior",
+  "roe-deer-lavender",
+  "gym-deck-sails",
+];
+const propertyGallery = propertyGallerySlugs.map(
+  (slug) => galleryItems.find((i) => i.slug === slug)!,
+);
 
 const estateStats = [
   { value: "3,000", label: "Years of view" },
@@ -82,8 +98,8 @@ const values = [
   <SplitSection
     eyebrow="The Land"
     title="Where Tuscany Keeps Its Wildness"
-    image={photos.landMaremmaHilltown}
-    imageAlt="A medieval hilltown rising over the wild Maremma valley"
+    image={landImage}
+    imageAlt="Stone pines over the valley, a deer grazing below"
     reverse
   >
     <p>
@@ -104,8 +120,8 @@ const values = [
   <SplitSection
     eyebrow="The House"
     title="An Ancient Hill, Newly Kept"
-    image={photos.houseTerraceView}
-    imageAlt="A terrace table set against the estate's hillside view"
+    image={houseImage}
+    imageAlt="The villa in the distance above a path lined with lavender"
     theme="stone"
   >
     <p>
@@ -155,13 +171,31 @@ const values = [
     </p>
   </SplitSection>
 
-  <!-- CINEMATIC QUOTE BAND -->
-  <QuoteBand
-    image={photos.monteriggioni}
-    imageAlt="The estate above the Maremma, the view unbroken for three thousand years"
-    quote="The view is the entertainment, as it has been for three thousand years."
-    cite="Villa Dolce Vita"
-  />
+  <!-- FRAMED GALLERY TEASER -->
+  <section class="section bg-dark propgal" aria-label="A glimpse of the estate">
+    <div class="propgal__inner">
+      <ul class="propgal__grid">
+        {
+          propertyGallery.map((item, i) => (
+            <li class="propgal__tile" data-reveal data-reveal-delay={0.05 + i * 0.06}>
+              <a href="/gallery" class="propgal__link" aria-label={`View gallery — ${item.alt}`}>
+                <Image
+                  src={item.image}
+                  alt={item.alt}
+                  widths={[320, 480, 640]}
+                  sizes="(max-width: 760px) 45vw, 18vw"
+                  loading="lazy"
+                />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="propgal__foot" data-reveal data-reveal-delay={0.1}>
+        <Button href="/gallery" variant="ghost" onDark>View full gallery</Button>
+      </div>
+    </div>
+  </section>
 
   <!-- OUR PHILOSOPHY -->
   <SplitSection
@@ -229,6 +263,67 @@ const values = [
   /* The mission title runs long — let it breathe wider than the 24ch default. */
   .creed-section :global(.sechead h2) {
     max-width: 28ch;
+  }
+
+  /* ── FRAMED GALLERY TEASER — five portrait "pictures" + CTA ───────────── */
+  .propgal {
+    /* Generous breathing room above/below the framed row. */
+    padding-block: clamp(3.5rem, 7vw, 6.5rem);
+  }
+  .propgal__inner {
+    /* Comfortable side padding so the frames never touch the screen edge. */
+    width: min(100% - 2 * var(--gutter), 1500px);
+    margin-inline: auto;
+    padding-inline: clamp(0.5rem, 2vw, 2rem);
+  }
+  .propgal__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: clamp(0.6rem, 1.4vw, 1.4rem);
+  }
+  .propgal__tile {
+    margin: 0;
+  }
+  .propgal__link {
+    display: block;
+    position: relative;
+    aspect-ratio: 3 / 5;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--surface-sunk);
+  }
+  .propgal__link :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .propgal__link:hover :global(img),
+  .propgal__link:focus-visible :global(img) {
+    transform: scale(1.05);
+  }
+  .propgal__foot {
+    margin-top: clamp(1.8rem, 3.5vw, 3rem);
+    text-align: center;
+  }
+  @media (max-width: 760px) {
+    .propgal__grid {
+      /* Reflow to a tidy 2-up (last tile centred) on small screens. */
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.6rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .propgal__link :global(img) {
+      transition: none;
+    }
+    .propgal__link:hover :global(img) {
+      transform: none;
+    }
   }
 
   /* Values — index list drawn with 1px hairlines: number / title / body. */
