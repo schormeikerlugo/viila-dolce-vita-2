@@ -151,6 +151,20 @@ const weddingSlides = [
     </div>
   </section>
 
+  <!-- INTERSTITIAL — full-bleed night aerial between Overview and Amenities. -->
+  <section class="nightband" data-parallax-scope aria-hidden="true">
+    <div class="nightband__media" data-parallax="0.12">
+      <Image
+        class="nightband__img"
+        src={gal("villa-aerial-night").image}
+        alt="The villa and its pool aglow from above after dark"
+        widths={[768, 1280, 1920, 2560]}
+        sizes="100vw"
+        loading="lazy"
+      />
+    </div>
+  </section>
+
   <!-- FEATURES & AMENITIES — headline stats table + amenity rows. -->
   <section class="section bg-ivory amenities-section" aria-label="Features and amenities">
     <div class="wrap">
@@ -745,6 +759,25 @@ const weddingSlides = [
     height: 100%;
     object-fit: cover;
     z-index: 0;
+  }
+
+  /* Night interstitial — same proportion as the Massa Marittima band. */
+  .nightband {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1280 / 520;
+    overflow: hidden;
+  }
+  .nightband__media {
+    position: absolute;
+    /* Centred overscan so the parallax drift never uncovers the edges. */
+    inset: -10% 0;
+    height: 120%;
+  }
+  .nightband__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   .townband__scrim {
     position: absolute;
