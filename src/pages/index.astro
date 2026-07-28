@@ -2,7 +2,7 @@
 /**
  * Home — Tuscan Editorial landing page.
  * Order: Hero → Overview (ink) → Features & Amenities → Suites → Gallery →
- * Massa Marittima band → History (ink) → Beyond the Villa → Journal →
+ * Massa Marittima band → History (ink) → Journal →
  * Weddings → Reviews → FAQ (ink) → Final CTA.
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -19,11 +19,10 @@ import BookingBar from "../components/BookingBar.astro";
 import BackgroundVideo from "../components/BackgroundVideo.astro";
 import TestimonialCarousel from "../components/TestimonialCarousel.tsx";
 import { Image } from "astro:assets";
-import { bookingHref, contact } from "../data/site";
+import { contact } from "../data/site";
 import { testimonials } from "../data/testimonials";
 import { photos, suitePhotos } from "../data/media";
 import { galleryItems } from "../data/gallery";
-import { experienceLinks } from "../data/experiences";
 import { journalTeasers } from "../data/journal";
 import { homeFaqs } from "../data/faq";
 import { faqSchema } from "../lib/schema";
@@ -102,12 +101,11 @@ const historyEntries = [
 
 // Weddings carousel slides.
 const weddingSlides = [
-  { image: photos.weddingVeil, alt: "Bride and groom beneath a veil in the golden Tuscan light", caption: "The Ceremony" },
-  { image: photos.weddingCoupleSunset, alt: "Bride and groom outdoors at dusk", caption: "Golden Hour" },
-  { image: photos.weddingDance, alt: "A couple's first dance, gown lit against the dark", caption: "The First Dance" },
-  { image: photos.weddingSilhouette, alt: "A couple silhouetted against the glowing evening light", caption: "Under the Sky" },
-  { image: photos.weddingBouquet, alt: "Bride holding an illuminated bouquet beside the groom", caption: "The Details" },
-  { image: photos.weddingEmbrace, alt: "An intimate embrace in warm low light", caption: "The Quiet Moment" },
+  { image: photos.weddingCeremonyKiss, alt: "The couple share a kiss at the outdoor cocktail hour", caption: "The Ceremony" },
+  { image: photos.weddingGoldenHour, alt: "Bride and groom with champagne on the terrace at sunset", caption: "Golden Hour" },
+  { image: photos.weddingSparklerNight, alt: "The couple with a sparkler before the lit villa at night", caption: "Under the Sky" },
+  { image: photos.weddingCellarToast, alt: "The couple toasting in the estate wine cellar", caption: "The Details" },
+  { image: photos.weddingArrivalCar, alt: "Bride and groom beside a car before the villa", caption: "The Arrival" },
 ];
 ---
 
@@ -305,35 +303,6 @@ const weddingSlides = [
     </div>
   </section>
 
-  <!-- BEYOND THE VILLA — editorial index list with hairlines. -->
-  <section class="section bg-ivory beyond">
-    <div class="wrap">
-      <SectionHeader
-        eyebrow="Beyond the Villa"
-        title="This Is What There Is to Do Here, Beyond Nothing at All"
-        align="center"
-      >
-        <p>
-          Wine tastings ten minutes away. Horses through the olive groves. A
-          cooking class that ends with a flaming wheel of parmigiano.
-        </p>
-      </SectionHeader>
-      <ul class="beyond__list">
-        {
-          experienceLinks.map((e, i) => (
-            <li class="beyond__item" data-reveal data-reveal-delay={Math.min(i * 0.04, 0.2)}>
-              <a href={e.href}>
-                <span class="beyond__num">{String(i + 1).padStart(2, "0")}</span>
-                <span class="beyond__name">{e.label}</span>
-                <span class="beyond__arrow" aria-hidden="true">↗</span>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </div>
-  </section>
-
   <!-- JOURNAL — editorial card carousel. -->
   <section class="section bg-sunk journal">
     <div class="wrap">
@@ -428,23 +397,6 @@ const weddingSlides = [
     </div>
   </section>
 
-  <!-- PLAN YOUR STAY — enquiry composer (dates + guests → WhatsApp). -->
-  <section class="section bg-sunk plan" aria-labelledby="plan-title">
-    <div class="wrap">
-      <div class="plan__head">
-        <Reveal as="p" class="eyebrow">Plan Your Stay</Reveal>
-        <h2 id="plan-title" data-split>Choose Your Dates</h2>
-        <Reveal as="p" class="plan__note" delay={0.08}>
-          Send us your dates and party size — the concierge replies personally
-          on WhatsApp, usually within the hour.
-        </Reveal>
-      </div>
-      <div data-reveal data-reveal-delay={0.12}>
-        <BookingBar />
-      </div>
-    </div>
-  </section>
-
   <!-- FAQ — ink accordion (Masseto). -->
   <section class="section bg-dark faq-section" aria-labelledby="faq-title">
     <div class="wrap faq-section__grid">
@@ -460,15 +412,14 @@ const weddingSlides = [
     </div>
   </section>
 
-  <!-- FINAL CTA -->
+  <!-- FINAL CTA — enquiry composer over the night sky. -->
   <CtaBanner
-    eyebrow="Book direct for the best rate"
-    title="Come Sit on the Hill<br />for a While"
-    sub="Five suites. One view."
-    ctaLabel="Check Availability"
-    ctaHref={bookingHref}
+    eyebrow="Plan Your Stay"
+    title="Choose Your Dates"
+    sub="Send us your dates and party size — the concierge replies personally on WhatsApp, usually within the hour."
   >
     <BackgroundVideo slot="media" video="hilltownDusk" />
+    <BookingBar slot="bar" theme="dark" />
   </CtaBanner>
 </BaseLayout>
 
@@ -602,6 +553,13 @@ const weddingSlides = [
   }
 
   /* ── FEATURES & AMENITIES — hairline grid of "+" rows ────────────────── */
+  /* Match the home gallery's centred max-width so the table isn't flush to
+     the screen edges on wide viewports. */
+  .amenities-section .wrap {
+    width: min(100% - 2 * var(--gutter), 1500px);
+    margin-inline: auto;
+    padding-inline: 0;
+  }
   .amenities__groups {
     margin-top: 1px;
     display: grid;
@@ -839,56 +797,6 @@ const weddingSlides = [
     margin-top: clamp(1.5rem, 3vw, 2.5rem);
   }
 
-  /* ── BEYOND THE VILLA — hairline index list ──────────────────────────── */
-  .beyond :global(.sechead) {
-    max-width: 64ch;
-  }
-  .beyond :global(.sechead h2) {
-    max-width: 34ch;
-  }
-  .beyond__list {
-    border-top: 1px solid var(--line);
-  }
-  .beyond__item a {
-    display: flex;
-    align-items: center;
-    gap: clamp(1.5rem, 4vw, 4rem);
-    padding: clamp(1.4rem, 2.8vw, 2.2rem) 0.25rem;
-    border-bottom: 1px solid var(--line);
-    transition: background var(--dur-fast) var(--ease-out);
-  }
-  .beyond__item a:hover {
-    background: var(--surface-sunk);
-  }
-  .beyond__num {
-    font-size: 0.66rem;
-    font-weight: 500;
-    letter-spacing: var(--tracking-caps);
-    color: var(--text-muted);
-    flex: 0 0 auto;
-  }
-  .beyond__name {
-    font-family: var(--font-display);
-    font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2.4rem);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    line-height: 1.1;
-    flex: 1;
-    transition: color var(--dur-fast) var(--ease-out);
-  }
-  .beyond__item a:hover .beyond__name {
-    color: var(--accent);
-  }
-  .beyond__arrow {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast);
-  }
-  .beyond__item a:hover .beyond__arrow {
-    transform: translate(3px, -3px);
-    color: var(--accent);
-  }
-
   /* ── JOURNAL cards ───────────────────────────────────────────────────── */
   .jcard {
     display: flex;
@@ -991,20 +899,6 @@ const weddingSlides = [
   .reviews__stats.statband__row {
     margin-bottom: clamp(2.5rem, 5vw, 4rem);
     border-bottom: 0;
-  }
-
-  /* ── PLAN YOUR STAY ──────────────────────────────────────────────────── */
-  .plan__head {
-    max-width: 60ch;
-    margin-bottom: var(--space-group);
-  }
-  .plan__head :global(.eyebrow) {
-    margin-bottom: clamp(1rem, 2vw, 1.6rem);
-  }
-  .plan :global(.plan__note) {
-    margin-top: clamp(1rem, 2vw, 1.5rem);
-    color: var(--text-muted);
-    max-width: 46ch;
   }
 
   /* ── FAQ ─────────────────────────────────────────────────────────────── */

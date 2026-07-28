@@ -13,12 +13,14 @@ interface Props {
   eyebrow?: string;
   title: string;
   sub?: string;
-  ctaLabel: string;
-  ctaHref: string;
+  /** Optional CTA button. Omit when a `bar` slot supplies its own action. */
+  ctaLabel?: string;
+  ctaHref?: string;
   image?: ImageMetadata;
   imageAlt?: string;
 }
 const { eyebrow, title, sub, ctaLabel, ctaHref, image, imageAlt = "" } = Astro.props;
+const hasBar = Astro.slots.has("bar");
 ---
 
 <section class="ctab" data-parallax-scope>
@@ -41,10 +43,20 @@ const { eyebrow, title, sub, ctaLabel, ctaHref, image, imageAlt = "" } = Astro.p
   <div class="ctab__inner wrap">
     {eyebrow && <Reveal as="p" class="eyebrow eyebrow--gold">{eyebrow}</Reveal>}
     <h2 class="ctab__title" data-split set:html={title} />
-    {sub && <Reveal as="p" delay={0.1} class="ctab__sub">{sub}</Reveal>}
-    <Reveal delay={0.15} class="ctab__action">
-      <Button href={ctaHref} variant="primary" onDark>{ctaLabel}</Button>
-    </Reveal>
+    {sub && <Reveal as="p" delay={0.1} class:list={["ctab__sub", { "ctab__sub--lede": hasBar }]}>{sub}</Reveal>}
+    {
+      hasBar ? (
+        <Reveal delay={0.15} class="ctab__bar">
+          <slot name="bar" />
+        </Reveal>
+      ) : (
+        ctaLabel && ctaHref && (
+          <Reveal delay={0.15} class="ctab__action">
+            <Button href={ctaHref} variant="primary" onDark>{ctaLabel}</Button>
+          </Reveal>
+        )
+      )
+    }
   </div>
 </section>
 
@@ -99,7 +111,20 @@ const { eyebrow, title, sub, ctaLabel, ctaHref, image, imageAlt = "" } = Astro.p
     text-transform: uppercase;
     color: var(--text-on-dark-muted);
   }
+  /* Lede variant — a readable sentence (used when a booking bar follows). */
+  .ctab :global(.ctab__sub--lede) {
+    font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.1rem);
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.7;
+    max-width: 46ch;
+  }
   .ctab :global(.ctab__action) {
     margin-top: 0.5rem;
+  }
+  /* When a booking bar fills the slot, let it span the content width. */
+  .ctab :global(.ctab__bar) {
+    margin-top: clamp(1rem, 2vw, 1.75rem);
+    width: 100%;
   }
 </style>

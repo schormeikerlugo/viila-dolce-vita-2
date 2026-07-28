@@ -39,12 +39,11 @@ const planning = [
 
 // The day in photos — every wedding photo in the set, image-first.
 const moments = [
-  { image: photos.weddingVeil, alt: "Bride and groom beneath a veil in the warm afternoon light" },
-  { image: photos.weddingCoupleSunset, alt: "Bride and groom outdoors in the last golden light of the day" },
-  { image: photos.weddingDance, alt: "A couple's first dance, the gown catching the light against the dark" },
-  { image: photos.weddingSilhouette, alt: "The couple as a silhouette against a glow of light" },
-  { image: photos.weddingBouquet, alt: "Bride holding an illuminated bouquet beside the groom" },
-  { image: photos.weddingEmbrace, alt: "An intimate close embrace in soft, warm light" },
+  { image: photos.weddingCeremonyKiss, alt: "The couple share a kiss at the outdoor cocktail hour" },
+  { image: photos.weddingGoldenHour, alt: "Bride and groom with champagne on the terrace at sunset" },
+  { image: photos.weddingSparklerNight, alt: "The couple with a sparkler before the lit villa at night" },
+  { image: photos.weddingCellarToast, alt: "The couple toasting in the estate wine cellar" },
+  { image: photos.weddingArrivalCar, alt: "Bride and groom beside a car before the villa" },
 ];
 
 // Wedding tiers → spec rows.
@@ -95,8 +94,8 @@ const tierRows = weddingTiers.map((t) => ({
   <SplitSection
     eyebrow="The Ceremony"
     title="Vows as the Light Goes Gold"
-    image={photos.weddingCoupleSunset}
-    imageAlt="Bride and groom outdoors in the last golden light of the day"
+    image={photos.weddingGoldenHour}
+    imageAlt="Bride and groom with champagne on the terrace at sunset"
     reverse
     theme="stone"
   >
@@ -116,8 +115,8 @@ const tierRows = weddingTiers.map((t) => ({
   <SplitSection
     eyebrow="The Reception"
     title="From the Terrace, Into the Vines"
-    image={photos.weddingDance}
-    imageAlt="A couple's first dance, the gown catching the light against the dark"
+    image={photos.weddingSparklerNight}
+    imageAlt="The couple with a sparkler before the lit villa at night"
     theme="dark"
   >
     <p>
@@ -209,8 +208,8 @@ const tierRows = weddingTiers.map((t) => ({
     sub="Tell us the date and the headcount — we'll build the rest around your day."
     ctaLabel="Enquire About Your Date"
     ctaHref="/contact"
-    image={photos.weddingBouquet}
-    imageAlt="Bride holding an illuminated bouquet beside the groom"
+    image={photos.weddingArrivalCar}
+    imageAlt="Bride and groom beside a car before the villa"
   />
 </BaseLayout>
 

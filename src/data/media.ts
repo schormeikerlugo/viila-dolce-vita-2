@@ -39,12 +39,11 @@ import houseTerraceView from "../assets/images/house-terrace-view.png";       //
 import hilltopRest from "../assets/images/hilltop-rest.png";                   // The Hilltop — rest at altitude
 
 /* ---- Weddings & Events (src/assets/images/weddings) — home teaser gallery ---- */
-import weddingVeil from "../assets/images/weddings/wedding-veil.jpg";     // couple under veil, warm Mediterranean light (tall)
-import weddingDance from "../assets/images/weddings/wedding-dance.jpg";   // first dance, dramatic gown-lit (mid)
-import weddingBouquet from "../assets/images/weddings/wedding-bouquet.jpg"; // couple + lit bouquet (B&W caption tile)
-import weddingCoupleSunset from "../assets/images/weddings/wedding-couple-sunset.jpg"; // bride & groom outdoors at dusk, full-length (wide)
-import weddingSilhouette from "../assets/images/weddings/wedding-silhouette.jpg";       // couple silhouette against glowing light (dramatic, wide)
-import weddingEmbrace from "../assets/images/weddings/wedding-embrace.jpg";             // intimate close-up embrace, warm low light (tall)
+import weddingCeremonyKiss from "../assets/images/weddings/wedding-ceremony-kiss.png"; // couple kiss at the outdoor cocktail hour (B&W)
+import weddingGoldenHour from "../assets/images/weddings/wedding-golden-hour.png";     // couple with champagne on the terrace at sunset
+import weddingSparklerNight from "../assets/images/weddings/wedding-sparkler-night.png"; // couple with a sparkler before the lit villa at night
+import weddingCellarToast from "../assets/images/weddings/wedding-cellar-toast.png";   // couple toasting in the wine cellar
+import weddingArrivalCar from "../assets/images/weddings/wedding-arrival-car.png";     // couple beside a car before the villa (B&W)
 import weddingTerraceHilltop from "../assets/images/weddings/wedding-terrace-hilltop.png"; // hilltop terrace over the valley (Weddings hero)
 import weddingSettingView from "../assets/images/weddings/wedding-setting-view.png";       // set table on the wisteria terrace, valley beyond (The Setting)
 
@@ -56,12 +55,11 @@ export const photos = {
   landMaremmaHilltown,
   houseTerraceView,
   hilltopRest,
-  weddingVeil,
-  weddingDance,
-  weddingBouquet,
-  weddingCoupleSunset,
-  weddingSilhouette,
-  weddingEmbrace,
+  weddingCeremonyKiss,
+  weddingGoldenHour,
+  weddingSparklerNight,
+  weddingCellarToast,
+  weddingArrivalCar,
   weddingTerraceHilltop,
   weddingSettingView,
   restaurantStreet,
