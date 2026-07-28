@@ -1,18 +1,16 @@
 ---
 /**
- * Footer — Tuscan Editorial: hairline sitemap columns, the two recurring
- * legal notices, and the oversized "Dolce Vita" wordmark bleeding off the
- * bottom edge (Tonelli signature).
+ * Footer — Tuscan Editorial: hairline sitemap columns and the oversized
+ * "Dolce Vita" wordmark bleeding off the bottom edge (Tonelli signature).
  */
-import { contact, nav, notices, site, social } from "../data/site";
+import { contact, nav, site, social } from "../data/site";
 
 const services = nav.filter((n) =>
   ["/suites", "/experiences", "/weddings-events"].includes(n.href),
 );
 const quick = nav.filter((n) =>
-  ["/our-story", "/journal", "/contact"].includes(n.href),
+  ["/the-property", "/journal", "/contact"].includes(n.href),
 );
-const suites = ["Napoli Suite", "Roma Suite", "Capri Suite", "Positano Suite", "Milano Suite"];
 const year = new Date().getFullYear();
 ---
 
@@ -42,13 +40,6 @@ const year = new Date().getFullYear();
       </ul>
     </nav>
 
-    <div class="footer__col">
-      <h3>Our Suites</h3>
-      <ul>
-        {suites.map((s) => <li><a href="/suites">{s}</a></li>)}
-      </ul>
-    </div>
-
     <nav class="footer__col" aria-label="Social">
       <h3>Social</h3>
       <ul>
@@ -63,10 +54,6 @@ const year = new Date().getFullYear();
         }
       </ul>
     </nav>
-  </div>
-
-  <div class="footer__notices wrap">
-    <p class="footer__notice"><strong>A Note for Our Guests —</strong> {notices.animals}</p>
   </div>
 
   <div class="footer__bottom wrap">
@@ -84,7 +71,7 @@ const year = new Date().getFullYear();
   }
   .footer__top {
     display: grid;
-    grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 2.6fr 1fr 1fr 1fr;
     gap: clamp(2rem, 4vw, 4rem);
     padding-bottom: clamp(2.5rem, 5vw, 4rem);
     border-bottom: 1px solid var(--line-on-dark);
@@ -147,22 +134,6 @@ const year = new Date().getFullYear();
   .footer__col a span {
     font-size: 0.8em;
     color: var(--text-on-dark-muted);
-  }
-
-  .footer__notices {
-    padding-block: 2rem;
-    border-bottom: 1px solid var(--line-on-dark);
-  }
-  .footer__notices p {
-    max-width: 100%;
-    font-size: 0.75rem;
-    line-height: 1.65;
-    color: rgba(182, 175, 162, 0.8);
-    text-align: center;
-  }
-  .footer__notices strong {
-    color: var(--text-on-dark-muted);
-    font-weight: 500;
   }
 
   .footer__bottom {

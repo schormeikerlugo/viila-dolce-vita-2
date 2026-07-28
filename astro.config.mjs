@@ -7,9 +7,10 @@ export default defineConfig({
   site: "https://villadolcevita.eu",
   integrations: [react()],
   // Preserve old bookmarks/links after the slug changes
-  // (About Us → Our Story, Rooms → Suites).
+  // (About Us → Our Story → The Property, Rooms → Suites).
   redirects: {
-    "/about-us": "/our-story",
+    "/about-us": "/the-property",
+    "/our-story": "/the-property",
     "/rooms": "/suites",
   },
   image: {

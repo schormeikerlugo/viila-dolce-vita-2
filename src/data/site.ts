@@ -68,7 +68,7 @@ export type NavItem = { label: string; href: string };
  */
 export const nav: NavItem[] = [
   { label: "Home", href: "/" },
-  { label: "The Property", href: "/our-story" },
+  { label: "The Property", href: "/the-property" },
   { label: "Suites", href: "/suites" },
   { label: "Experience", href: "/experiences" },
   { label: "Weddings & Events", href: "/weddings-events" },
@@ -88,14 +88,7 @@ export type NavNode =
 
 export const navGroups: NavNode[] = [
   { label: "Home", href: "/" },
-  {
-    label: "The Villa",
-    children: [
-      { label: "The Property", href: "/our-story" },
-      { label: "Suites", href: "/suites" },
-      { label: "Gallery", href: "/gallery" },
-    ],
-  },
+  { label: "The Property", href: "/the-property" },
   { label: "Experience", href: "/experiences" },
   { label: "Weddings & Events", href: "/weddings-events" },
   { label: "Journal", href: "/journal" },
