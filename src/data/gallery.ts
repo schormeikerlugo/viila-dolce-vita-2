@@ -62,6 +62,7 @@ const meta: Record<string, Meta> = {
   "gym-deck-sails": { cat: "experiences", alt: "The open-air training deck under its sail canopy" },
   "dining-dusk-table": { cat: "villa", alt: "The dining table set for dinner at dusk, warm light over the Tuscan kitchen" },
   "living-room-lavender": { cat: "villa", alt: "The villa's living room with a glass table and dried lavender, the valley beyond" },
+  "living-room-suite": { cat: "villa", alt: "A suite's elegant living room with a chandelier, framed art and a warm Tuscan glow" },
 };
 
 export type GalleryItem = {
