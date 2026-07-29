@@ -1,68 +1,120 @@
 ---
 /**
- * Experiences — one page, five anchored sections:
- * #day-trips · #wellness-area · #animal-sanctuary · #workshops
- * (content.md consolidated five former pages into this one.)
- * Tuscan Editorial reskin: hairline hierarchy, spec tables, image-led carousel.
+ * Experience — a stay made of particular things.
+ * Six numbered, anchored sections following Docs/experience-page-copy.md:
+ * #comfort · #cuisine · #wellness · #relaxation · #wildlife · #exploration
+ * Tuscan Editorial language: hairlines, eyebrows, three-card trios,
+ * image-led split sections, and a full-bleed closer.
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "../components/PageHero.astro";
 import SectionHeader from "../components/SectionHeader.astro";
-import SpecTable from "../components/SpecTable.astro";
-import AreaMap from "../components/AreaMap.astro";
+import SplitSection from "../components/SplitSection.astro";
+import FeatureTrio from "../components/FeatureTrio.astro";
 import CardCarousel from "../components/CardCarousel.astro";
-import Button from "../components/Button.astro";
-import Reveal from "../components/Reveal.astro";
+import CtaBanner from "../components/CtaBanner.astro";
 import { Image } from "astro:assets";
-import { photos } from "../data/media";
-import {
-  dayTrips,
-  selfGuided,
-  transfers,
-  privateTours,
-  wellness,
-  sanctuaryNotes,
-  workshops,
-} from "../data/experiences";
+import { bookingHref } from "../data/site";
+import { photos, suitePhotos } from "../data/media";
+import { galleryItems } from "../data/gallery";
+
+/** Gallery lookup — fails loudly if a slug ever goes missing. */
+const g = (slug: string) => {
+  const item = galleryItems.find((i) => i.slug === slug);
+  if (!item) throw new Error(`experiences: missing gallery slug "${slug}"`);
+  return item;
+};
+
+// Hero: aperitivo for two under the arch as the sun goes down.
+const heroImage = g("arch-aperitivo-couple");
 
 const anchors = [
-  { id: "day-trips", label: "Day Trips & Tours" },
-  { id: "wellness-area", label: "Wellness Area" },
-  { id: "animal-sanctuary", label: "Animal Sanctuary" },
-  { id: "workshops", label: "Private Workshops" },
+  { id: "comfort", label: "Comfort" },
+  { id: "cuisine", label: "Cuisine" },
+  { id: "wellness", label: "Wellness" },
+  { id: "relaxation", label: "Relaxation" },
+  { id: "wildlife", label: "Wildlife" },
+  { id: "exploration", label: "Exploration" },
 ];
 
-// Chauffeured transfers → spec rows (route + price).
-const transferRows = transfers.map((t) => ({
-  title: t.route,
-  specs: [{ label: "Price", value: t.price }],
-}));
+// 01 · Comfort — five rooms that know what they are for.
+const comfortSlides = [
+  { image: suitePhotos.roma[0], alt: "The Roma suite, renovated and dressed in fine linens", caption: "The Suites" },
+  { image: g("living-room-suite").image, alt: g("living-room-suite").alt, caption: "The Living Rooms" },
+  { image: g("marble-bathroom").image, alt: g("marble-bathroom").alt, caption: "Marble Bathrooms" },
+  { image: g("kitchen-dining-interior").image, alt: g("kitchen-dining-interior").alt, caption: "Fitted Kitchens" },
+  { image: suitePhotos.milano[0], alt: "The Milano suite, opening onto its own view", caption: "Private Patios" },
+];
 
-// Private luxury tours → spec rows (duration / price / inclusions).
-const tourRows = privateTours.map((t) => ({
-  title: t.title,
-  specs: [
-    { label: "Duration", value: t.duration },
-    { label: "Price", value: t.price },
-    { label: "Includes", value: t.items.join(" · ") },
-  ],
-}));
+// 02 · Cuisine — the table is the centre of the day.
+const cuisineItems = [
+  {
+    image: g("outdoor-dinner-tables").image,
+    alt: g("outdoor-dinner-tables").alt,
+    title: "Breakfast",
+    copy: "Laid out each morning and taken outside before the heat arrives. Coffee, bread, fruit, and honey from our own trees.",
+  },
+  {
+    image: g("dining-dusk-table").image,
+    alt: g("dining-dusk-table").alt,
+    title: "In-House Chef",
+    copy: "Three chef-cooked dinners a week come with the stay, served under the canopy or beneath the arch as the sun goes down behind the islands. Private dinners arranged on request.",
+  },
+  {
+    image: g("arch-aperitivo-couple").image,
+    alt: g("arch-aperitivo-couple").alt,
+    title: "Food & Grocery Delivery",
+    copy: "A full shop delivered before you arrive, welcome baskets, and prepared dishes brought up ready to serve.",
+  },
+];
+
+// 03 · Wellness — heat, air and open sky.
+const wellnessItems = [
+  {
+    image: g("gym-deck-sails").image,
+    alt: g("gym-deck-sails").alt,
+    title: "The Outdoor Gym",
+    copy: "A training deck in the open air under sail canopies, with nothing at all between you and the valley. For those who prefer their stillness earned.",
+  },
+  {
+    image: g("gym-sails-wide").image,
+    alt: g("gym-sails-wide").alt,
+    title: "The Yoga Platform",
+    copy: "Level, shaded, facing the hills, which is the whole of its design. A private instructor can be arranged for the morning.",
+  },
+  {
+    image: g("barrel-sauna-trees").image,
+    alt: g("barrel-sauna-trees").alt,
+    title: "The Barrel Sauna",
+    copy: "Handcrafted, seating four, turned to face the olive groves. Best late, when the only light on the hill is whatever the sky is providing.",
+  },
+];
+
+// 04 · Relaxation — the pool in the quiet of the hilltop gardens.
+const relaxationImage = g("pool-terrace-above");
+
+// 05 · Wildlife — the estate has other residents.
+const wildlifeImage = g("roe-deer-lavender");
+const wildlifeStrip = [g("hoopoe-meadow"), g("pines-valley-deer")];
+
+// Closer: the villa, pool and gardens from above.
+const closerImage = g("villa-aerial-day");
 ---
 
 <BaseLayout
-  title="Experiences"
-  description="Vineyards you can walk to, horses that know the trails, a coastline to charter into, wellness on the hilltop, and a sanctuary of rescued animals — everything within reach of the villa."
+  title="Experience"
+  description="Breakfast before the heat, an in-house chef, a sauna facing the olive groves, a pool with the valley in one direction and the sea in the other — a stay made of small, specific pleasures, arranged by a concierge who lives on the hill."
 >
   <PageHero
-    eyebrow="Experiences"
-    title="Everything Here Is Optional"
-    subtitle="Everything below is optional. Nobody at Villa Dolce Vita is going to hand you an itinerary. But if you want more than a pool and a view, here's what's within reach: vineyards you can walk to, horses that know the trails better than any guide, a coastline you can charter a boat into, and a sanctuary full of animals who were not always this lucky."
-    image={photos.butteriRider}
-    imageAlt="A butteri rider through the olive groves of Maremma"
+    eyebrow="The Experience"
+    title="A Stay Made of Particular Things"
+    subtitle="Breakfast laid out while the valley is still cool. An hour in the sauna with the olive groves in front of you. A car waiting at Pisa. The days here are built from small, specific pleasures, and every one of them is arranged by a concierge who lives on this hill. Tell us how the week should feel. The rest is ours to handle."
+    image={heroImage.image}
+    imageAlt={heroImage.alt}
     meta={[
-      { label: "Day Trips", value: String(dayTrips.length) },
-      { label: "Wellness", value: `${wellness.length} Areas` },
-      { label: "Workshops", value: `${workshops.length} Groups` },
+      { label: "Suites", value: "5" },
+      { label: "Bedrooms", value: "7" },
+      { label: "Estate", value: "50 Acres" },
     ]}
   />
 
@@ -80,186 +132,161 @@ const tourRows = privateTours.map((t) => ({
     </nav>
   </section>
 
-  <!-- DAY TRIPS -->
-  <section id="day-trips" class="section bg-ivory">
+  <!-- 01 · COMFORT -->
+  <section id="comfort" class="section bg-ivory">
     <div class="wrap">
       <SectionHeader
-        eyebrow="Day Trips & Tours"
-        title="Reachable, Most of It, in Under an Hour"
+        eyebrow="Comfort"
+        title="Rooms That Know What They Are For"
         align="left"
       >
         <p>
-          Whether you prefer structured excursions or the freedom to explore at your own pace,
-          everything here is reachable from the villa.
+          Five suites across two stone houses, seven bedrooms between them, no
+          two quite alike. Marble bathrooms with heated floors underfoot. New
+          beds dressed in fine linens. Kitchens fitted properly rather than
+          symbolically, and art on the walls chosen deliberately and to last.
+        </p>
+        <p>
+          Each suite opens onto its own patio or balcony, so the view is never
+          something you have to go and find. You will arrive to a handwritten
+          note, your key on the table, and honey and olives from the farm.
         </p>
       </SectionHeader>
 
-      <CardCarousel label="Day trips and tours">
+      <CardCarousel label="The suites and their comforts">
         {
-          dayTrips.map((d) => (
-            <article class="daytrip carousel__slide" data-reveal>
-              {d.image && (
-                <div class="daytrip__media hoist">
-                  <Image
-                    src={d.image}
-                    alt={d.title}
-                    widths={[400, 640, 900]}
-                    sizes="(max-width: 900px) 80vw, 30vw"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-              <h3 class="daytrip__title">{d.title}</h3>
-              <p class="daytrip__copy">{d.copy}</p>
-            </article>
+          comfortSlides.map((s) => (
+            <figure class="comfort carousel__slide" data-reveal>
+              <div class="comfort__media hoist">
+                <Image
+                  src={s.image}
+                  alt={s.alt}
+                  widths={[400, 640, 900]}
+                  sizes="(max-width: 900px) 80vw, 30vw"
+                  loading="lazy"
+                />
+              </div>
+              <figcaption class="comfort__caption">{s.caption}</figcaption>
+            </figure>
           ))
         }
       </CardCarousel>
     </div>
   </section>
 
-  <!-- SELF-GUIDED CITY GUIDES -->
-  <section class="section bg-sunk">
-    <div class="wrap">
-      <SectionHeader eyebrow="Self-Guided Adventures" title="If You Have a Car, Point It Here" align="left" />
-      <div class="cities">
-        {
-          selfGuided.map((c) => (
-            <article class="city" data-reveal>
-              <h3 class="city__name">{c.city}</h3>
-              <div class="city__cols">
-                <div class="city__col">
-                  <p class="city__label">What to visit</p>
-                  <ul>{c.visit.map((v) => <li>{v}</li>)}</ul>
-                </div>
-                <div class="city__col">
-                  <p class="city__label">Architecture</p>
-                  <ul>{c.architecture.map((v) => <li>{v}</li>)}</ul>
-                </div>
-                <div class="city__col">
-                  <p class="city__label">Eat & drink</p>
-                  <ul>{c.eat.map((v) => <li>{v}</li>)}</ul>
-                </div>
-              </div>
-            </article>
-          ))
-        }
-      </div>
-    </div>
-  </section>
+  <!-- 02 · CUISINE -->
+  <FeatureTrio
+    id="cuisine"
+    eyebrow="Cuisine"
+    title="The Table Is the Centre of the Day"
+    theme="stone"
+    items={cuisineItems}
+    footnote="Dinner runs long here. It always has."
+  />
 
-  <!-- TRANSFERS -->
-  <section class="section bg-ivory">
-    <div class="wrap">
-      <SectionHeader eyebrow="Chauffeured Transfers" title="Move Easily, with Comfort" align="left" />
-      <div class="transfers-map">
-        <AreaMap />
-      </div>
-      <SpecTable rows={transferRows} />
-      <p class="fineprint">
-        A Maserati upgrade is available on the same routes (2 passengers plus driver).
-      </p>
+  <!-- 03 · WELLNESS -->
+  <FeatureTrio
+    id="wellness"
+    eyebrow="Wellness"
+    title="Heat, Air and Open Sky"
+    items={wellnessItems}
+  />
 
-      <div class="divider" role="presentation"></div>
+  <!-- 04 · RELAXATION -->
+  <SplitSection
+    id="relaxation"
+    eyebrow="Relaxation"
+    title="The Long Afternoon"
+    image={relaxationImage.image}
+    imageAlt={relaxationImage.alt}
+    theme="stone"
+  >
+    <p>
+      The pool rests in the quiet of the hilltop gardens, on a terrace that
+      gives you the valley in one direction and the sea in the other. Mornings
+      there are cool and entirely yours.
+    </p>
+    <p>
+      Massage can be arranged in the house, with a therapist working in your
+      suite or outside on the terrace. A day's notice is usually enough.
+    </p>
+    <p class="closing-line">Afternoons here are not scheduled. They are allowed.</p>
+  </SplitSection>
 
-      <!-- PRIVATE LUXURY TOURS -->
-      <SectionHeader eyebrow="Private Luxury Tours" title="Curated, Chauffeured, for Two" align="left" />
-      <SpecTable rows={tourRows} />
+  <!-- 05 · WILDLIFE -->
+  <SplitSection
+    id="wildlife"
+    eyebrow="Wildlife"
+    title="The Estate Has Other Residents"
+    image={wildlifeImage.image}
+    imageAlt={wildlifeImage.alt}
+    theme="dark"
+    reverse
+  >
+    <p>
+      Fifty acres of olive grove, pine and forest, with no street lights and no
+      road running through it. Roe deer come to the lavender at dusk. A fox
+      crosses the track most weeks, always with somewhere to be.
+    </p>
+    <p>
+      It is quietly excellent country for birds. Hoopoes work the meadow grass
+      in spring, buzzards ride the thermals over the valley, and the terrace at
+      first light is as good a hide as you could ask for.
+    </p>
+    <p>
+      There are also three rescued dogs and seven cats who consider the estate
+      theirs and have never been asked to prove it.
+    </p>
+    <div class="wildstrip" role="presentation">
+      {
+        wildlifeStrip.map((w) => (
+          <div class="wildstrip__img">
+            <Image
+              src={w.image}
+              alt={w.alt}
+              widths={[320, 480, 640]}
+              sizes="(max-width: 900px) 45vw, 16vw"
+              loading="lazy"
+            />
+          </div>
+        ))
+      }
     </div>
-  </section>
+  </SplitSection>
 
-  <!-- WELLNESS -->
-  <section id="wellness-area" class="section bg-ivory">
-    <div class="wrap">
-      <SectionHeader eyebrow="Wellness Area" title="Relax. Recharge. Rejuvenate." align="left">
-        <p>
-          Perched on a mountainside overlooking the valley and the sea, looking out toward Elba,
-          Montecristo, and, on the clearest days, Corsica.
-        </p>
-      </SectionHeader>
-      <div class="wellness-grid">
-        {
-          wellness.map((w, i) => (
-            <article class="wellness" data-reveal>
-              <p class="wellness__num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</p>
-              <h3 class="wellness__title">
-                {w.title}
-                {w.soon && <span class="wellness__soon">Coming 2026</span>}
-              </h3>
-              <p class="wellness__copy">{w.copy}</p>
-            </article>
-          ))
-        }
-      </div>
-    </div>
-  </section>
+  <!-- 06 · EXPLORATION -->
+  <SplitSection
+    id="exploration"
+    eyebrow="Exploration"
+    title="Everything Is Closer Than It Looks"
+    image={photos.massaMarittima}
+    imageAlt="Massa Marittima's medieval cathedral and piazza, fifteen minutes down the hill"
+  >
+    <p>
+      Massa Marittima is fifteen minutes down the hill: cobbled streets, a
+      thousand-year-old cathedral, coffee in the piazza. The coast is forty
+      minutes, and empties out by evening.
+    </p>
+    <p>
+      Beyond that, a car and a driver can be arranged for as long as you need
+      one. Transfers from Rome, Florence and Pisa, and days out put together
+      with someone who knows the roads: the vineyards from Montalcino to
+      Bolgheri, the hot springs, horseback riding on the Maremma plains where
+      the butteri still work cattle much as they always have.
+    </p>
+    <p class="closing-line">Go out for the day. The hill will be here when you get back.</p>
+  </SplitSection>
 
-  <!-- ANIMAL SANCTUARY -->
-  <section id="animal-sanctuary" class="section sanctuary">
-    <div class="sanctuary__media">
-      <Image
-        src={photos.butteriFoal}
-        alt="A rescued foal in the estate pasture"
-        widths={[768, 1280, 1920]}
-        sizes="100vw"
-        loading="lazy"
-      />
-      <div class="sanctuary__scrim" aria-hidden="true"></div>
-    </div>
-    <div class="sanctuary__content wrap">
-      <Reveal as="p" class="eyebrow eyebrow--gold">Animal Sanctuary</Reveal>
-      <Reveal as="h2" delay={0.05}>The True Dolce Vita Awaits</Reveal>
-      <Reveal delay={0.12}>
-        <p class="sanctuary__body">
-          Part of the estate is dedicated to a small animal sanctuary, where we care for rescued
-          animals who now enjoy the peace and freedom of the Tuscan countryside. They are gentle,
-          friendly, and very much part of the soul of the villa. Many have come from difficult
-          pasts, and Villa Dolce Vita has become their forever home.
-        </p>
-      </Reveal>
-      <Reveal delay={0.15}>
-        <ul class="sanctuary__notes">
-          {sanctuaryNotes.map((n) => <li>{n}</li>)}
-        </ul>
-      </Reveal>
-      <Reveal delay={0.18}>
-        <p class="sanctuary__body">
-          By staying at Villa Dolce Vita, you help support their care and give them the peaceful
-          life they deserve.
-        </p>
-      </Reveal>
-    </div>
-  </section>
-
-  <!-- PRIVATE WORKSHOPS -->
-  <section id="workshops" class="section bg-sunk">
-    <div class="wrap">
-      <SectionHeader
-        eyebrow="Private Workshops"
-        title="Leave with a New Skill, Not Just a Suntan"
-        align="left"
-      >
-        <p>
-          A number of guests use the villa as a private base for hands-on experiences. If you're
-          planning a small-group retreat or a milestone celebration, here's what we can build
-          around your stay.
-        </p>
-      </SectionHeader>
-      <div class="workshops-grid">
-        {
-          workshops.map((g) => (
-            <article class="workshop" data-reveal>
-              <h3 class="workshop__title">{g.title}</h3>
-              <ul>{g.items.map((it) => <li>{it}</li>)}</ul>
-            </article>
-          ))
-        }
-      </div>
-      <div class="workshops-cta">
-        <Button href="/contact" variant="ghost">Plan your experience</Button>
-      </div>
-    </div>
-  </section>
+  <!-- CLOSER -->
+  <CtaBanner
+    eyebrow="Plan Your Stay"
+    title="Tell Us How the Days Should Look"
+    sub="Send your dates and the shape of the week you have in mind. We will do the arranging."
+    ctaLabel="Check Availability"
+    ctaHref={bookingHref}
+    image={closerImage.image}
+    imageAlt={closerImage.alt}
+  />
 </BaseLayout>
 
 <style>
@@ -295,228 +322,54 @@ const tourRows = privateTours.map((t) => ({
     letter-spacing: 0;
   }
 
-  /* ── Day trips — image-led carousel slides ────────────────────────────── */
-  .daytrip {
+  /* ── Comfort — image-led carousel slides with small-caps captions ─────── */
+  .comfort {
     display: flex;
     flex-direction: column;
-  }
-  .daytrip__media {
-    aspect-ratio: 4 / 5;
-    background: var(--surface-sunk);
-    margin-bottom: 1.2rem;
-  }
-  .daytrip__media :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .daytrip__title {
-    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
-    margin-bottom: 0.6rem;
-  }
-  .daytrip__copy {
-    color: var(--text-muted);
-    font-size: 0.88rem;
-    line-height: 1.65;
-  }
-
-  /* ── Cities — hairline editorial columns ──────────────────────────────── */
-  .cities {
-    display: grid;
-    gap: clamp(2.5rem, 5vw, 4rem);
-  }
-  .city {
-    border-top: 1px solid var(--line);
-    padding-top: clamp(1.4rem, 2.5vw, 2rem);
-  }
-  .city__name {
-    font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.6rem);
-    margin-bottom: clamp(1.2rem, 2.5vw, 2rem);
-  }
-  .city__cols {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(1.5rem, 3vw, 2.5rem);
-  }
-  .city__col {
-    border-top: 1px solid var(--line);
-    padding-top: 0.8rem;
-  }
-  .city__label {
-    font-size: 0.66rem;
-    font-weight: 500;
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 0.7rem;
-  }
-  .city__cols ul {
-    list-style: none;
-    padding: 0;
     margin: 0;
-    display: grid;
-    gap: 0.4rem;
   }
-  .city__cols li {
-    color: var(--text);
-    font-size: 0.92rem;
-  }
-
-  /* ── Transfers + tours fineprint ──────────────────────────────────────── */
-  .transfers-map {
-    max-width: 56rem;
-    margin-bottom: var(--space-group);
-  }
-  .fineprint {
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    margin-top: 1.25rem;
-  }
-
-  /* ── Wellness — hairline grid ─────────────────────────────────────────── */
-  .wellness-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--line);
-    border: 1px solid var(--line);
-  }
-  .wellness {
-    background: var(--bg);
-    padding: clamp(1.8rem, 3vw, 2.6rem);
-  }
-  .wellness__num {
-    font-size: 0.66rem;
-    font-weight: 500;
-    letter-spacing: var(--tracking-caps);
-    color: var(--text-muted);
-    margin-bottom: 1.1rem;
-  }
-  .wellness__title {
-    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.45rem);
-    margin-bottom: 0.8rem;
-    display: flex;
-    align-items: baseline;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-  }
-  .wellness__soon {
-    font-family: var(--font-body);
-    font-size: 0.62rem;
-    font-weight: 500;
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
-    color: var(--accent);
-    white-space: nowrap;
-  }
-  .wellness__copy {
-    color: var(--text-muted);
-    font-size: 0.92rem;
-    line-height: 1.65;
-  }
-
-  /* ── Sanctuary — full-bleed ink ───────────────────────────────────────── */
-  .sanctuary {
-    position: relative;
-    color: var(--text-on-dark);
-    display: flex;
-    align-items: center;
-    min-height: 80svh;
+  .comfort__media {
+    aspect-ratio: 4 / 5;
     overflow: hidden;
-  }
-  .sanctuary__media {
-    position: absolute;
-    inset: 0;
-  }
-  .sanctuary__media :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .sanctuary__scrim {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to right,
-      rgba(22, 20, 18, 0.85) 0%,
-      rgba(22, 20, 18, 0.55) 60%,
-      rgba(22, 20, 18, 0.25) 100%
-    );
-  }
-  .sanctuary__content {
-    position: relative;
-    z-index: 2;
-    max-width: 46rem;
-  }
-  .sanctuary__content :global(.eyebrow) {
-    margin-bottom: clamp(1rem, 2vw, 1.5rem);
-  }
-  .sanctuary__content :global(h2) {
-    max-width: 18ch;
-    margin-bottom: clamp(1.2rem, 2.5vw, 1.8rem);
-  }
-  .sanctuary__body {
-    color: var(--text-on-dark-muted);
-    line-height: 1.75;
-  }
-  .sanctuary__notes {
-    list-style: none;
-    padding: 0;
-    margin: 1.6rem 0;
-    display: grid;
-  }
-  .sanctuary__notes li {
-    padding-block: 0.9rem;
-    border-top: 1px solid var(--line-on-dark);
-    color: var(--text-on-dark);
-    font-size: 0.95rem;
-  }
-  .sanctuary__notes li:last-child {
-    border-bottom: 1px solid var(--line-on-dark);
-  }
-
-  /* ── Workshops — hairline-topped columns ──────────────────────────────── */
-  .workshops-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.5rem);
-  }
-  .workshop {
-    border-top: 1px solid var(--line);
-    padding-top: 1.3rem;
-  }
-  .workshop__title {
-    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.45rem);
+    background: var(--surface-sunk);
     margin-bottom: 1rem;
   }
-  .workshop ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 0.55rem;
+  .comfort__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
-  .workshop li {
+  .comfort__caption {
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
     color: var(--text-muted);
-    font-size: 0.92rem;
-    line-height: 1.6;
-  }
-  .workshops-cta {
-    margin-top: clamp(2.5rem, 5vw, 4rem);
   }
 
-  @media (max-width: 1080px) {
-    .wellness-grid,
-    .workshops-grid,
-    .city__cols {
-      grid-template-columns: repeat(2, 1fr);
-    }
+  /* ── Closing lines — the italic display voice inside split copy ───────── */
+  .closing-line {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+    margin-top: 0.4rem;
   }
-  @media (max-width: 620px) {
-    .wellness-grid,
-    .workshops-grid,
-    .city__cols {
-      grid-template-columns: 1fr;
-    }
+
+  /* ── Wildlife — small two-up strip under the dark split copy ──────────── */
+  .wildstrip {
+    margin-top: clamp(1.6rem, 3vw, 2.4rem);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(0.6rem, 1.4vw, 1rem);
+  }
+  .wildstrip__img {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--surface-sunk);
+  }
+  .wildstrip__img :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 </style>

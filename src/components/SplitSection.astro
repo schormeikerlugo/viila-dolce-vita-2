@@ -12,6 +12,8 @@ import ArchImage from "./ArchImage.astro";
 import Reveal from "./Reveal.astro";
 
 interface Props {
+  /** Anchor id for in-page navigation. */
+  id?: string;
   eyebrow?: string;
   title: string;
   image?: ImageMetadata;
@@ -24,6 +26,7 @@ interface Props {
   meta?: { label: string; value: string }[];
 }
 const {
+  id,
   eyebrow,
   title,
   image,
@@ -38,7 +41,7 @@ const {
 const bgClass = theme === "dark" ? "bg-dark" : theme === "stone" ? "bg-sunk" : "bg-ivory";
 ---
 
-<section class:list={["section", "split", bgClass, { "split--reverse": reverse }]}>
+<section id={id} class:list={["section", "split", bgClass, { "split--reverse": reverse }]}>
   <div class="split__inner wrap">
     <div class="split__media" data-parallax-scope>
       {

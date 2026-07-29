@@ -1,0 +1,114 @@
+---
+/**
+ * FeatureTrio — editorial three-card section (Reschio villa-page pattern):
+ * a left-aligned SectionHeader, then three image-led cards (portrait media,
+ * title, short copy) on a single row, and an optional italic footnote line.
+ *
+ * Used on Experience for Cuisine and Wellness; any section that breaks into
+ * exactly three named pleasures fits here.
+ *
+ * Slot: default = optional intro copy rendered inside the SectionHeader.
+ */
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import SectionHeader from "./SectionHeader.astro";
+
+export interface FeatureTrioItem {
+  image: ImageMetadata;
+  alt: string;
+  title: string;
+  copy: string;
+}
+
+interface Props {
+  /** Anchor id for in-page navigation. */
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  theme?: "ivory" | "stone";
+  items: FeatureTrioItem[];
+  /** Closing line under the grid, e.g. "Dinner runs long here." */
+  footnote?: string;
+}
+
+const { id, eyebrow, title, theme = "ivory", items, footnote } = Astro.props;
+const bgClass = theme === "stone" ? "bg-sunk" : "bg-ivory";
+---
+
+<section id={id} class:list={["section", bgClass, "ftrio"]}>
+  <div class="wrap">
+    <SectionHeader eyebrow={eyebrow} title={title} align="left">
+      <slot />
+    </SectionHeader>
+
+    <div class="ftrio__grid">
+      {
+        items.map((item, i) => (
+          <article class="ftrio__card" data-reveal data-reveal-delay={0.05 + i * 0.06}>
+            <div class="ftrio__media hoist">
+              <Image
+                src={item.image}
+                alt={item.alt}
+                widths={[400, 640, 900]}
+                sizes="(max-width: 620px) 92vw, (max-width: 1080px) 45vw, 30vw"
+                loading="lazy"
+              />
+            </div>
+            <h3 class="ftrio__title">{item.title}</h3>
+            <p class="ftrio__copy">{item.copy}</p>
+          </article>
+        ))
+      }
+    </div>
+
+    {footnote && <p class="ftrio__footnote" data-reveal>{footnote}</p>}
+  </div>
+</section>
+
+<style>
+  .ftrio__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.5rem);
+  }
+  .ftrio__media {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--surface-sunk);
+    margin-bottom: 1.2rem;
+  }
+  .ftrio__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ftrio__title {
+    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+    margin-bottom: 0.6rem;
+  }
+  .ftrio__copy {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.65;
+    max-width: 42ch;
+  }
+  /* Closing line — italic display voice, quiet and final. */
+  .ftrio__footnote {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
+    color: var(--text);
+  }
+
+  @media (max-width: 1080px) {
+    .ftrio__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 620px) {
+    .ftrio__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
