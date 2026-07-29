@@ -63,6 +63,13 @@ const meta: Record<string, Meta> = {
   "dining-dusk-table": { cat: "villa", alt: "The dining table set for dinner at dusk, warm light over the Tuscan kitchen" },
   "living-room-lavender": { cat: "villa", alt: "The villa's living room with a glass table and dried lavender, the valley beyond" },
   "living-room-suite": { cat: "villa", alt: "A suite's elegant living room with a chandelier, framed art and a warm Tuscan glow" },
+  "breakfast-terrace-pool": { cat: "food", alt: "Breakfast laid out on the poolside table, the valley rolling away beyond" },
+  "chef-plating-kitchen": { cat: "food", alt: "The in-house chef plating dinner in the villa's kitchen" },
+  "grocery-delivery-dusk": { cat: "food", alt: "A grocery delivery and prepared dishes waiting on the terrace at dusk" },
+  "yoga-platform-sails": { cat: "experiences", alt: "The wooden yoga platform under sail canopies, mats laid out among the trees" },
+  "patio-sail-lounge": { cat: "villa", alt: "A private gravel patio with lounge sofas under a sail canopy, the yellow villa and olive trees behind" },
+  "car-hillside-road": { cat: "experiences", alt: "A car winds along a tree-lined hillside road above the green valley" },
+  "hilltown-aerial-fortress": { cat: "tuscany", alt: "A medieval hilltop town and its fortress walls seen from above at golden hour" },
 };
 
 export type GalleryItem = {

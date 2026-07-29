@@ -43,26 +43,26 @@ const comfortSlides = [
   { image: g("living-room-suite").image, alt: g("living-room-suite").alt, caption: "The Living Rooms" },
   { image: g("marble-bathroom").image, alt: g("marble-bathroom").alt, caption: "Marble Bathrooms" },
   { image: g("kitchen-dining-interior").image, alt: g("kitchen-dining-interior").alt, caption: "Fitted Kitchens" },
-  { image: suitePhotos.milano[0], alt: "The Milano suite, opening onto its own view", caption: "Private Patios" },
+  { image: g("patio-sail-lounge").image, alt: g("patio-sail-lounge").alt, caption: "Private Patios" },
 ];
 
 // 02 · Cuisine — the table is the centre of the day.
 const cuisineItems = [
   {
-    image: g("outdoor-dinner-tables").image,
-    alt: g("outdoor-dinner-tables").alt,
+    image: g("breakfast-terrace-pool").image,
+    alt: g("breakfast-terrace-pool").alt,
     title: "Breakfast",
     copy: "Laid out each morning and taken outside before the heat arrives. Coffee, bread, fruit, and honey from our own trees.",
   },
   {
-    image: g("dining-dusk-table").image,
-    alt: g("dining-dusk-table").alt,
+    image: g("chef-plating-kitchen").image,
+    alt: g("chef-plating-kitchen").alt,
     title: "In-House Chef",
     copy: "Three chef-cooked dinners a week come with the stay, served under the canopy or beneath the arch as the sun goes down behind the islands. Private dinners arranged on request.",
   },
   {
-    image: g("arch-aperitivo-couple").image,
-    alt: g("arch-aperitivo-couple").alt,
+    image: g("grocery-delivery-dusk").image,
+    alt: g("grocery-delivery-dusk").alt,
     title: "Food & Grocery Delivery",
     copy: "A full shop delivered before you arrive, welcome baskets, and prepared dishes brought up ready to serve.",
   },
@@ -77,8 +77,8 @@ const wellnessItems = [
     copy: "A training deck in the open air under sail canopies, with nothing at all between you and the valley. For those who prefer their stillness earned.",
   },
   {
-    image: g("gym-sails-wide").image,
-    alt: g("gym-sails-wide").alt,
+    image: g("yoga-platform-sails").image,
+    alt: g("yoga-platform-sails").alt,
     title: "The Yoga Platform",
     copy: "Level, shaded, facing the hills, which is the whole of its design. A private instructor can be arranged for the morning.",
   },
@@ -96,6 +96,9 @@ const relaxationImage = g("pool-terrace-above");
 // 05 · Wildlife — the estate has other residents.
 const wildlifeImage = g("roe-deer-lavender");
 const wildlifeStrip = [g("hoopoe-meadow"), g("pines-valley-deer")];
+
+// 06 · Exploration — small strip echoing the wildlife one: the road out and the towns.
+const explorationStrip = [g("car-hillside-road"), g("hilltown-aerial-fortress")];
 
 // Closer: the villa, pool and gardens from above.
 const closerImage = g("villa-aerial-day");
@@ -275,6 +278,21 @@ const closerImage = g("villa-aerial-day");
       the butteri still work cattle much as they always have.
     </p>
     <p class="closing-line">Go out for the day. The hill will be here when you get back.</p>
+    <div class="wildstrip" role="presentation">
+      {
+        explorationStrip.map((e) => (
+          <div class="wildstrip__img">
+            <Image
+              src={e.image}
+              alt={e.alt}
+              widths={[320, 480, 640]}
+              sizes="(max-width: 900px) 45vw, 16vw"
+              loading="lazy"
+            />
+          </div>
+        ))
+      }
+    </div>
   </SplitSection>
 
   <!-- CLOSER -->
@@ -371,5 +389,20 @@ const closerImage = g("villa-aerial-day");
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  /* ── Exploration — the cathedral image matches the copy column's height ── */
+  @media (min-width: 901px) {
+    :global(#exploration .split__inner) {
+      align-items: stretch;
+    }
+    :global(#exploration .split__media) {
+      position: relative;
+    }
+    :global(#exploration .split__img) {
+      position: absolute;
+      inset: 0;
+      aspect-ratio: auto;
+    }
   }
 </style>
