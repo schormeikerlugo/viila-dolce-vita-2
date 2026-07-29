@@ -1,8 +1,9 @@
 ---
 /**
  * FeatureTrio — editorial three-card section (Reschio villa-page pattern):
- * a left-aligned SectionHeader, then three image-led cards (portrait media,
- * title, short copy) on a single row, and an optional italic footnote line.
+ * a left-aligned SectionHeader, then three image-led cards (landscape media
+ * at its native 16:9, title, short copy) on a single row, and an optional
+ * italic footnote line.
  *
  * Used on Experience for Cuisine and Wellness; any section that breaks into
  * exactly three named pleasures fits here.
@@ -72,7 +73,8 @@ const bgClass = theme === "stone" ? "bg-sunk" : "bg-ivory";
     gap: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.5rem);
   }
   .ftrio__media {
-    aspect-ratio: 4 / 5;
+    /* The source photos are horizontal — keep their native proportion. */
+    aspect-ratio: 16 / 9;
     overflow: hidden;
     background: var(--surface-sunk);
     margin-bottom: 1.2rem;
