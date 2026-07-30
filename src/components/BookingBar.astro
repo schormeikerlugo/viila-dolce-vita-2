@@ -8,6 +8,15 @@
  */
 import { bookingHref } from "../data/site";
 
+/**
+ * TEMP: the owners take bookings manually over WhatsApp while the real
+ * booking system is built (see Docs/booking-system-plan.md). While false,
+ * the composer is hidden and a single "Check Availability" button — the
+ * same WhatsApp link as the nav CTA — renders in its place.
+ * Flip to true to restore the date/guests composer.
+ */
+const SHOW_COMPOSER = false;
+
 interface Props {
   theme?: "light" | "dark";
   /** Pre-fill the enquiry with a suite name (suite pages). */
@@ -27,6 +36,20 @@ const defaultArrive = plus(30);
 const defaultDepart = plus(37);
 ---
 
+{!SHOW_COMPOSER && (
+  <div class:list={["bookbar-solo", `bookbar-solo--${theme}`, className]}>
+    <a
+      href={bookingHref}
+      target="_blank"
+      rel="noopener"
+      class="bookbar__submit bookbar-solo__btn"
+    >
+      Check Availability <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+)}
+
+{SHOW_COMPOSER && (
 <form
   class:list={["bookbar", `bookbar--${theme}`, className]}
   data-bookbar
@@ -72,8 +95,18 @@ const defaultDepart = plus(37);
     Check Availability <span aria-hidden="true">↗</span>
   </button>
 </form>
+)}
 
 <style>
+  /* ── Solo CTA — the interim WhatsApp button (SHOW_COMPOSER = false) ───── */
+  .bookbar-solo {
+    display: flex;
+    justify-content: center;
+  }
+  .bookbar-solo__btn {
+    text-decoration: none;
+  }
+
   .bookbar {
     --bb-line: var(--line);
     --bb-fg: var(--text);
