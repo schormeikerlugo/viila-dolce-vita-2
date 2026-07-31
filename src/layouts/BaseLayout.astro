@@ -34,6 +34,8 @@ interface Props {
   ogImage?: ImageMetadata;
   /** Extra JSON-LD blocks (FAQPage, Article, …). */
   schemas?: object[];
+  /** Keep the page out of search engines (unlinked/in-progress pages). */
+  noindex?: boolean;
 }
 
 const {
@@ -42,6 +44,7 @@ const {
   navTheme = "light",
   ogImage = photos.hillsPinkDawn,
   schemas = [],
+  noindex = false,
 } = Astro.props;
 
 const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;
@@ -76,6 +79,7 @@ const jsonLd = [lodgingBusinessSchema(), ...schemas];
 
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />

@@ -1,0 +1,79 @@
+---
+/**
+ * /book — the booking wizard (UNLINKED while the backend is built).
+ *
+ * Not referenced from the nav, footer or any page; direct URL only, and
+ * noindex'd. Runs against the mock API (src/lib/booking/api.ts) — swapping
+ * in Supabase later touches the data layer, not this page.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BookApp from "../components/booking/BookApp.tsx";
+import { getImage } from "astro:assets";
+import { suites } from "../data/suites";
+import type { SuiteCardData, SuiteSlug } from "../lib/booking/types";
+import "../styles/booking.css";
+
+// Resolve each suite's lead photo to an optimized URL — islands take plain
+// strings, not ImageMetadata.
+const suiteCards: SuiteCardData[] = await Promise.all(
+  suites.map(async (s) => {
+    const img = await getImage({ src: s.images[0], width: 900, format: "webp", quality: 78 });
+    return {
+      slug: s.slug as SuiteSlug,
+      name: s.name,
+      tagline: s.tagline,
+      sleeps: s.sleeps,
+      highlight: s.highlight,
+      image: img.src,
+      imageAlt: s.imageAlt,
+      rank: s.rank,
+    };
+  }),
+);
+---
+
+<BaseLayout
+  title="Book Your Stay"
+  description="Choose your dates, your suite and the shape of the week — the concierge confirms personally."
+  noindex
+>
+  <section class="section bg-dark bookpage">
+    <div class="wrap">
+      <header class="bookpage__head">
+        <p class="slash-label">/ Book</p>
+        <h1 data-split>Choose Your Days on the Hill</h1>
+        <p class="bookpage__sub">
+          Pick the dates, the suite and anything the stay should include. Nothing is charged
+          online — the concierge confirms every request personally, usually within the hour.
+        </p>
+      </header>
+
+      <BookApp client:load suites={suiteCards} />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .bookpage {
+    padding-top: clamp(7rem, 11vw, 9.5rem);
+    min-height: 100vh;
+  }
+  .bookpage__head {
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    max-width: 60rem;
+  }
+  .bookpage__head :global(.slash-label) {
+    margin-bottom: clamp(1rem, 2vw, 1.6rem);
+  }
+  .bookpage__head h1 {
+    font-size: clamp(2.2rem, 1.3rem + 3.4vw, 4.2rem);
+    max-width: 18ch;
+  }
+  .bookpage__sub {
+    margin-top: clamp(1.2rem, 2.5vw, 2rem);
+    max-width: 52ch;
+    font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.08rem);
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+</style>
