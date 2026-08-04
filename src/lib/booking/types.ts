@@ -96,7 +96,7 @@ export interface Quote {
   currency: "EUR";
   nights: number;
   minNights: number;
-  /** Accommodation lines (nightly rate, extra guests, estate discount…). */
+  /** Accommodation lines (nightly rate, extra guests, estate discount, promo…). */
   lines: QuoteLine[];
   /** Selected extras (inquire-only ones never appear here). */
   extrasLines: QuoteLine[];
@@ -106,6 +106,8 @@ export interface Quote {
   /** Payable at confirmation (deposit percentage of total). */
   depositDue: number;
   depositPct: number;
+  /** The promotion applied, when one qualified (code or automatic). */
+  promo?: { id: string; name: string; code: string | null };
 }
 
 /**
@@ -147,6 +149,8 @@ export interface BookingRequest {
   /** Extra ids from the catalog. */
   extras: string[];
   guest: GuestDetails;
+  /** Optional promo code typed by the guest. */
+  promoCode?: string;
 }
 
 export interface Booking {
@@ -166,6 +170,109 @@ export interface CalendarBlock {
   end: string;
   reason: string;
 }
+
+/* ---- Admin ---------------------------------------------------------------- */
+
+/** A season row as the admin edits it (mirrors `rate_periods`). */
+export interface SeasonSetting {
+  id: string;
+  name: string;
+  /** "MM-DD" boundaries, inclusive; may wrap the year end. */
+  from: string;
+  to: string;
+  multiplier: number;
+  minNights: number;
+}
+
+/** Everything money-related the owners can edit from the admin. */
+export interface RatesConfig {
+  suites: RateSuite[];
+  seasons: SeasonSetting[];
+  extras: Extra[];
+  depositPct: number;
+  /** Tassa di soggiorno, EUR per person per night. */
+  touristTaxPerPersonNight: number;
+  touristTaxMaxNights: number;
+}
+
+/** A promotion — mirrors the `promotions` table. */
+export interface Promotion {
+  id: string;
+  /** Uppercase redeem code, or null for an automatic offer. */
+  code: string | null;
+  name: string;
+  kind: "percent" | "fixed";
+  value: number;
+  /** null = every suite + the estate. */
+  suite: SuiteSlug | null;
+  /** Stay window (arrive ≥ start, depart ≤ end). Null = always. */
+  stayStart: string | null;
+  stayEnd: string | null;
+  /** Booking window (when it can be redeemed). Null = always. */
+  bookStart: string | null;
+  bookEnd: string | null;
+  minNights: number;
+  usageLimit: number | null;
+  used: number;
+  active: boolean;
+}
+
+/** Payload for creating a promotion (server assigns id/used). */
+export type PromotionInput = Omit<Promotion, "id" | "used">;
+
+/* ---- Dashboard ------------------------------------------------------------ */
+
+export interface AttentionBooking {
+  reference: string;
+  guest: string;
+  email: string;
+  phone: string | null;
+  unit: string;
+  arrive: string;
+  depart: string;
+  guests: number;
+  total: number;
+  createdAt: string;
+}
+
+export interface MovementRow {
+  date: string;
+  reference: string;
+  guest: string;
+  unit: string;
+  guests: number;
+  phone: string | null;
+}
+
+/** One-call aggregates behind the admin Overview screen. */
+export interface DashboardStats {
+  monthStart: string;
+  pendingRequests: number;
+  arrivalsNext7: number;
+  occupancyMonthPct: number;
+  revenueMonth: number;
+  pipelineValue: number;
+  avgBookingValue: number;
+  needsAttention: AttentionBooking[];
+  arrivals: MovementRow[];
+  departures: MovementRow[];
+}
+
+export type CalendarCellKind = "booking" | "block" | "external";
+
+/** One suite-night on the admin calendar (absent = free). */
+export interface CalendarCell {
+  kind: CalendarCellKind;
+  /** Guest name, block reason, or "Imported stay". */
+  label: string;
+  /** Present for bookings created in this system. */
+  reference?: string;
+  /** Present for manual blocks (deletable). */
+  blockId?: string;
+}
+
+/** date → suite → cell. Missing entries are free nights. */
+export type AdminCalendar = Record<string, Partial<Record<SuiteSlug, CalendarCell>>>;
 
 /* ---- Presentation-only (passed from Astro to the islands) ---------------- */
 

@@ -25,22 +25,61 @@ import ExtrasPicker from "./ExtrasPicker";
 import GuestDetailsForm from "./GuestDetailsForm";
 import QuoteSummary from "./QuoteSummary";
 
-const STEPS = ["Dates", "Suite", "Extras", "Details"] as const;
+const STEPS = ["Dates & Suite", "Extras", "Details"] as const;
+const STEP_META = [
+  { title: "When would you like to stay?", copy: "Pick your dates and party size — the suites free for those nights appear below, priced for your stay." },
+  { title: "Shape your stay", copy: "Add anything that makes it yours — or continue with what's included." },
+  { title: "Almost there", copy: "A few details and your request is on its way to the concierge." },
+] as const;
 const MAX_GUESTS = 15;
+/** Index of the confirmation screen (one past the last real step). */
+const DONE_STEP = STEPS.length; // 3
 
 interface Props {
   suites: SuiteCardData[];
 }
 
+/** Read prefill params from the URL (?suite=&arrive=&depart=&guests=). */
+function readPrefill(suites: SuiteCardData[]) {
+  if (typeof window === "undefined") return {};
+  const p = new URLSearchParams(window.location.search);
+  const iso = /^\d{4}-\d{2}-\d{2}$/;
+  const today = new Date().toISOString().slice(0, 10);
+  const suiteParam = p.get("suite");
+  const validSuite =
+    suiteParam && (suiteParam === ESTATE || suites.some((s) => s.slug === suiteParam))
+      ? (suiteParam as UnitId)
+      : null;
+  const a = p.get("arrive");
+  const d = p.get("depart");
+  const g = Number(p.get("guests"));
+  const arrive = a && iso.test(a) && a >= today ? a : null;
+  const depart = d && iso.test(d) && arrive && d > arrive ? d : null;
+  return {
+    suite: validSuite,
+    arrive,
+    depart,
+    guests: Number.isInteger(g) && g >= 1 && g <= MAX_GUESTS ? g : undefined,
+  };
+}
+
 export default function BookApp({ suites }: Props) {
+  const prefill = useRef(readPrefill(suites)).current;
+  const rootRef = useRef<HTMLDivElement>(null);
+
   /* ---- Wizard position ---- */
+  // Deep-linked with a suite → jump straight to the suite step once dates
+  // exist; otherwise start at dates.
   const [step, setStep] = useState(0); // 0..3, 4 = confirmation
 
-  /* ---- Stay ---- */
-  const [arrive, setArrive] = useState<string | null>(null);
-  const [depart, setDepart] = useState<string | null>(null);
-  const [guests, setGuests] = useState(2);
-  const [unit, setUnit] = useState<UnitId | null>(null);
+  /* ---- Stay (URL-prefilled where valid) ---- */
+  const [arrive, setArrive] = useState<string | null>(prefill.arrive ?? null);
+  const [depart, setDepart] = useState<string | null>(prefill.depart ?? null);
+  const [guests, setGuests] = useState(prefill.guests ?? 2);
+  const [unit, setUnit] = useState<UnitId | null>(prefill.suite ?? null);
+
+  // Dates and suite now share step 0, so a date prefill needs no step jump —
+  // the available-suites panel appears under the calendar automatically.
 
   /* ---- Availability (merged windows, cached per month) ---- */
   const [occ, setOcc] = useState<AvailabilityMap>({});
@@ -54,6 +93,13 @@ export default function BookApp({ suites }: Props) {
     api
       .getAvailability(start, end)
       .then((map) => setOcc((prev) => ({ ...prev, ...map })))
+      .catch((err) => {
+        // Never let a failed availability fetch wedge the calendar: on error
+        // we simply treat the window as fully free (days stay clickable) and
+        // allow a retry next time it's requested.
+        fetchedWindows.current.delete(key);
+        console.warn("Availability fetch failed:", err);
+      })
       .finally(() => setOccLoading(false));
   }, []);
 
@@ -91,6 +137,11 @@ export default function BookApp({ suites }: Props) {
     .filter((e): e is Extra => Boolean(e?.inquireOnly))
     .map((e) => e.name);
 
+  /* ---- Promo code ---- */
+  const [promoInput, setPromoInput] = useState("");
+  const [promoCode, setPromoCode] = useState<string | null>(null); // applied
+  const [promoError, setPromoError] = useState<string | null>(null);
+
   /* ---- Quote (recomputed by the API on every relevant change) ---- */
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
@@ -104,19 +155,28 @@ export default function BookApp({ suites }: Props) {
     let alive = true;
     setQuoteLoading(true);
     setQuoteError(null);
+    const stay = { arrive, depart, guests, unit };
     api
-      .getQuote({ arrive, depart, guests, unit }, selectedExtras)
+      .getQuote(stay, selectedExtras, promoCode ?? undefined)
       .then((q) => alive && setQuote(q))
-      .catch((err) => {
+      .catch(async (err) => {
         if (!alive) return;
+        const message = err instanceof Error ? err.message : "Could not price this stay.";
+        // An invalid code shouldn't kill the whole quote: retry without it
+        // and surface the message on the promo field instead.
+        if (promoCode) {
+          setPromoCode(null);
+          setPromoError(message);
+          return; // effect re-runs without the code
+        }
         setQuote(null);
-        setQuoteError(err instanceof Error ? err.message : "Could not price this stay.");
+        setQuoteError(message);
       })
       .finally(() => alive && setQuoteLoading(false));
     return () => {
       alive = false;
     };
-  }, [arrive, depart, guests, unit, selectedExtras]);
+  }, [arrive, depart, guests, unit, selectedExtras, promoCode]);
 
   /* ---- Guest & submission ---- */
   const [guest, setGuest] = useState<GuestDetails>({
@@ -139,11 +199,12 @@ export default function BookApp({ suites }: Props) {
         stay: { arrive, depart, guests, unit },
         extras: selectedExtras,
         guest,
+        promoCode: promoCode ?? undefined,
       })
       .then((b) => {
         setBooking(b);
-        setStep(4);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        setStep(DONE_STEP);
+        scrollToWizardTop();
       })
       .catch((err) =>
         setSubmitError(err instanceof Error ? err.message : "Something went wrong."),
@@ -151,29 +212,74 @@ export default function BookApp({ suites }: Props) {
       .finally(() => setSubmitting(false));
   };
 
+  /* ---- Derived ---- */
+  // How many suites (not the estate) are bookable for the chosen range.
+  const availableCount = options.filter((o) => o.unit !== ESTATE && o.available).length;
+
   /* ---- Step gating ---- */
+  // Step 0 = Dates & Suite (must have a dated, priced suite selected);
+  // Step 1 = Extras (always continuable); Step 2 = Details (submits).
   const nights = arrive && depart ? nightsBetween(arrive, depart) : 0;
   const canContinue =
     step === 0
-      ? Boolean(arrive && depart)
+      ? Boolean(arrive && depart && unit && quote)
       : step === 1
-        ? Boolean(unit && quote)
-        : step === 2
-          ? Boolean(quote)
-          : false;
+        ? Boolean(quote)
+        : false;
+
+  /**
+   * Scroll back to the top of the wizard on step change. The site runs Lenis
+   * (smooth-scroll), which owns the scroll position and ignores the native
+   * window.scrollTo — so we use the Lenis-aware helper, with a small offset
+   * so the stepper isn't jammed under the fixed nav. Falls back to native.
+   */
+  const scrollToWizardTop = () => {
+    const doScroll = () => {
+      const el = rootRef.current;
+      if (typeof window !== "undefined" && window.__lenisScrollTo && el) {
+        window.__lenisScrollTo(el, { offset: -96, duration: 0.8 });
+      } else if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 96;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+    // Two frames: the first lets React commit the new (shorter/taller) step to
+    // the DOM, the second lets the browser lay it out — so Lenis measures the
+    // final document height before scrolling. A single rAF fires too early for
+    // the short Extras step, which is why step 3 didn't settle at the top.
+    requestAnimationFrame(() => requestAnimationFrame(doScroll));
+  };
 
   const goto = (target: number) => {
-    if (target < step) setStep(target);
+    if (target < step) {
+      setStep(target);
+      scrollToWizardTop();
+    }
   };
   const next = () => {
-    if (canContinue && step < 3) setStep(step + 1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (canContinue && step < STEPS.length - 1) {
+      setStep(step + 1);
+      scrollToWizardTop();
+    }
+  };
+
+  /**
+   * Picking a suite in step 0 advances straight to Extras (Option A: no
+   * separate suite step). If the guest is just changing their mind on the
+   * suite, they stay put until they choose.
+   */
+  const chooseSuite = (u: UnitId) => {
+    setUnit(u);
+    setStep(1);
+    scrollToWizardTop();
   };
 
   /* ---- Confirmation screen ---- */
-  if (step === 4 && booking) {
+  if (step === DONE_STEP && booking) {
     return (
-      <div className="bk-app">
+      <div className="bk-app" ref={rootRef}>
         <div className="bk-done">
           <p className="bk-done__eyebrow">Request Received</p>
           <p className="bk-done__ref">{booking.reference}</p>
@@ -222,32 +328,63 @@ export default function BookApp({ suites }: Props) {
   }
 
   return (
-    <div className="bk-app">
-      {/* Step rail */}
-      <ol className="bk-steps">
-        {STEPS.map((label, i) => (
-          <li
-            key={label}
-            className={[
-              "bk-steps__item",
-              i === step && "is-current",
-              i < step && "is-done",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <button type="button" onClick={() => goto(i)} disabled={i >= step}>
-              <span className="bk-steps__num">{String(i + 1).padStart(2, "0")}</span>
-              {label}
-            </button>
-          </li>
-        ))}
+    <div className="bk-app" ref={rootRef}>
+      {/* Step rail — numbered circles joined by a progress line. */}
+      <ol
+        className="bk-steps"
+        style={{ "--bk-progress": step / (STEPS.length - 1) } as React.CSSProperties}
+      >
+        {STEPS.map((label, i) => {
+          const state = i < step ? "is-done" : i === step ? "is-current" : "is-todo";
+          return (
+            <li key={label} className={`bk-steps__item ${state}`}>
+              <button
+                type="button"
+                onClick={() => goto(i)}
+                disabled={i >= step}
+                aria-current={i === step ? "step" : undefined}
+              >
+                <span className="bk-steps__dot" aria-hidden="true">
+                  {i < step ? (
+                    <svg viewBox="0 0 24 24" className="bk-steps__check" fill="none">
+                      <path
+                        d="M5 12.5l4.5 4.5L19 7"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    <span className="bk-steps__num">{i + 1}</span>
+                  )}
+                </span>
+                <span className="bk-steps__label">
+                  <span className="bk-steps__eyebrow">
+                    {i < step ? "Done" : i === step ? "Step " + (i + 1) : "Step " + (i + 1)}
+                  </span>
+                  <span className="bk-steps__name">{label}</span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
       </ol>
 
       <div className="bk-layout">
         <div className="bk-main">
+          {step < DONE_STEP && (
+            <header className="bk-stephead" key={step}>
+              <p className="bk-stephead__eyebrow">
+                Step {step + 1} of {STEPS.length}
+              </p>
+              <h2 className="bk-stephead__title">{STEP_META[step].title}</h2>
+              <p className="bk-stephead__copy">{STEP_META[step].copy}</p>
+            </header>
+          )}
+
           {step === 0 && (
-            <section aria-label="Choose your dates">
+            <section aria-label="Choose your dates and suite">
               <div className="bk-guestrow">
                 <p className="bk-guestrow__label">Guests</p>
                 <div className="bk-stepper">
@@ -283,31 +420,107 @@ export default function BookApp({ suites }: Props) {
                 onVisibleRange={loadRange}
                 loading={occLoading}
               />
+
+              {/* Available suites appear the moment a range is chosen — priced,
+                  clickable, and advancing straight to Extras (Option A). */}
+              {arrive && depart && (
+                <div className="bk-avail" aria-live="polite">
+                  <div className="bk-avail__head">
+                    <h3 className="bk-avail__title">
+                      {optionsLoading
+                        ? "Checking availability…"
+                        : availableCount > 0
+                          ? `${availableCount} of ${suites.length} suites available`
+                          : "No suites for these dates"}
+                    </h3>
+                    <p className="bk-avail__sub">
+                      {longDate(arrive)} → {longDate(depart)} · {nights}{" "}
+                      {nights === 1 ? "night" : "nights"} · {guests}{" "}
+                      {guests === 1 ? "guest" : "guests"}
+                    </p>
+                  </div>
+
+                  {!optionsLoading && availableCount === 0 && (
+                    <p className="bk-avail__empty">
+                      Every suite is taken (or too small for {guests} guests) across these nights.
+                      Try different dates or adjust the party size — the calendar shows which
+                      nights are open.
+                    </p>
+                  )}
+
+                  <SuitePicker
+                    suites={suites}
+                    options={options}
+                    selected={unit}
+                    nights={nights}
+                    onSelect={chooseSuite}
+                    loading={optionsLoading}
+                  />
+                </div>
+              )}
             </section>
           )}
 
           {step === 1 && (
-            <section aria-label="Choose your suite">
-              <SuitePicker
-                suites={suites}
-                options={options}
-                selected={unit}
-                nights={nights}
-                onSelect={setUnit}
-                loading={optionsLoading}
-              />
-            </section>
-          )}
-
-          {step === 2 && (
             <section aria-label="Add to your stay">
               <ExtrasPicker extras={extras} selected={selectedExtras} onToggle={toggleExtra} />
             </section>
           )}
 
-          {step === 3 && (
+          {step === 2 && (
             <section aria-label="Your details">
               <GuestDetailsForm value={guest} onChange={setGuest} disabled={submitting} />
+
+              {/* Promo code — validated by the API; the discount lands in
+                  the quote rail as its own line. */}
+              <div className="bk-promo">
+                <label className="bk-field bk-promo__field">
+                  <span className="bk-field__label">Promo code</span>
+                  <input
+                    type="text"
+                    className="bk-field__input"
+                    placeholder="DOLCE10"
+                    value={promoInput}
+                    onChange={(e) => {
+                      setPromoInput(e.target.value.toUpperCase());
+                      setPromoError(null);
+                    }}
+                    disabled={submitting || Boolean(quote?.promo?.code)}
+                  />
+                </label>
+                {quote?.promo?.code ? (
+                  <button
+                    type="button"
+                    className="bk-btn bk-btn--ghost"
+                    onClick={() => {
+                      setPromoCode(null);
+                      setPromoInput("");
+                      setPromoError(null);
+                    }}
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="bk-btn bk-btn--ghost"
+                    disabled={!promoInput.trim() || quoteLoading || submitting}
+                    onClick={() => {
+                      setPromoError(null);
+                      setPromoCode(promoInput.trim());
+                    }}
+                  >
+                    Apply
+                  </button>
+                )}
+              </div>
+              {quote?.promo?.code && (
+                <p className="bk-promo__ok">
+                  {quote.promo.name} applied — the discount is in your summary.
+                </p>
+              )}
+              {promoError && <p className="bk-error">{promoError}</p>}
+
               {submitError && <p className="bk-error">{submitError}</p>}
             </section>
           )}
@@ -321,10 +534,14 @@ export default function BookApp({ suites }: Props) {
             ) : (
               <span />
             )}
-            {step < 3 ? (
-              <button type="button" className="bk-btn" onClick={next} disabled={!canContinue}>
-                Continue →
-              </button>
+            {step < STEPS.length - 1 ? (
+              // On step 0 a suite click already advances; Continue only shows
+              // once a suite is chosen, so the guest can resume after going back.
+              (step !== 0 || unit) && (
+                <button type="button" className="bk-btn" onClick={next} disabled={!canContinue}>
+                  Continue →
+                </button>
+              )
             ) : (
               <button
                 type="button"

@@ -1,10 +1,9 @@
 ---
 /**
- * /book — the booking wizard (UNLINKED while the backend is built).
- *
- * Not referenced from the nav, footer or any page; direct URL only, and
- * noindex'd. Runs against the mock API (src/lib/booking/api.ts) — swapping
- * in Supabase later touches the data layer, not this page.
+ * /book — the in-house booking wizard. Every "Check Availability" CTA across
+ * the site flows here (see bookingHref in src/data/site.ts). Runs against
+ * the live Supabase backend when the PUBLIC_SUPABASE_* env vars are set,
+ * else the in-memory mock (offline dev).
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BookApp from "../components/booking/BookApp.tsx";
@@ -35,7 +34,6 @@ const suiteCards: SuiteCardData[] = await Promise.all(
 <BaseLayout
   title="Book Your Stay"
   description="Choose your dates, your suite and the shape of the week — the concierge confirms personally."
-  noindex
 >
   <section class="section bg-dark bookpage">
     <div class="wrap">

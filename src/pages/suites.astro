@@ -13,7 +13,7 @@ import Reveal from "../components/Reveal.astro";
 import { Image } from "astro:assets";
 import { suites, roomsIntro } from "../data/suites";
 import { mockups } from "../data/media";
-import { bookingHref, bookingMessageHref, contact } from "../data/site";
+import { bookingHref, bookingSuiteHref, contact } from "../data/site";
 import { galleryItems } from "../data/gallery";
 
 // One canonical order everywhere on the page: by editorial rank, flagship first.
@@ -160,12 +160,7 @@ const [heroDek] = roomsIntro.split(/(?<=\.)\s+/);
             </Reveal>
             <Reveal delay={0.18}>
               <div class="suite-detail__foot">
-                <Button
-                  href={bookingMessageHref({ suite: suite.name })}
-                  variant="primary"
-                  target="_blank"
-                  rel="noopener"
-                >
+                <Button href={bookingSuiteHref(suite.slug)} variant="primary">
                   Reserve This Suite
                 </Button>
                 <Button href="/gallery" variant="ghost">

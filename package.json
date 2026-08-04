@@ -19,6 +19,7 @@
     "@fontsource/inter": "^5.1.0",
     "@fontsource/playfair-display": "^5.1.0",
     "@gsap/react": "^2.1.2",
+    "@supabase/supabase-js": "^2.111.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "astro": "^5.2.0",

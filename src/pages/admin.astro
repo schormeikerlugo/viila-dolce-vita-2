@@ -1,0 +1,33 @@
+---
+/**
+ * /admin — the owner panel ("Concierge Desk"). UNLINKED and noindex'd.
+ *
+ * Standalone shell on purpose: no site Nav/Footer/StickyCta/Lenis — this is
+ * a workspace, not a marketing page. The island runs client-only (its data
+ * lives in the browser until Supabase is connected; the login gate is a
+ * placeholder for Supabase Auth).
+ */
+import "../styles/global.css";
+import "../styles/booking.css";
+import "../styles/admin.css";
+import AdminApp from "../components/admin/AdminApp.tsx";
+import { suites as suiteData } from "../data/suites";
+
+const suiteMeta = [...suiteData]
+  .sort((a, b) => a.rank - b.rank)
+  .map((s) => ({ slug: s.slug, name: s.name, sleeps: s.sleeps }));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Concierge Desk — Villa Dolce Vita</title>
+  </head>
+  <body class="adm-body">
+    <AdminApp client:only="react" suites={suiteMeta} />
+  </body>
+</html>

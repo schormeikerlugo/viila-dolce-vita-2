@@ -1,0 +1,1024 @@
+/* ==========================================================================
+   admin.css — Styles for the /admin owner panel (Concierge Desk).
+   Reuses booking.css primitives (.bk-btn, .bk-field, .bk-error) and adds
+   the workspace chrome: header, tabs, occupancy grid, tables, panels.
+   ========================================================================== */
+
+.adm-body {
+  background: #0a0908;
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  /* Panel-wide readable base — larger than the marketing site. */
+  font-size: 15px;
+}
+
+/* ---- Shell: sidebar + main ------------------------------------------------- */
+
+.adm {
+  display: grid;
+  grid-template-columns: 17rem 1fr;
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+.adm-side {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem 1.4rem;
+  background: #000;
+  border-right: 1px solid var(--line);
+}
+
+.adm-side__brand {
+  padding: 0 0.4rem;
+}
+.adm-side__mark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+.adm-side__mark em {
+  font-style: italic;
+  text-transform: none;
+}
+.adm-side__desk {
+  margin: 0.35rem 0 0;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.adm-side__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.adm-navitem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: left;
+  padding: 0.75rem 0.9rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.adm-navitem:hover {
+  background: rgba(244, 241, 234, 0.04);
+  color: var(--text);
+}
+.adm-navitem.is-active {
+  background: rgba(192, 138, 88, 0.12);
+  border-color: rgba(192, 138, 88, 0.4);
+  color: var(--text);
+}
+.adm-navitem__label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.adm-navitem__hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+.adm-navitem.is-active .adm-navitem__hint {
+  color: var(--accent);
+}
+
+.adm-side__out {
+  margin-top: auto;
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
+}
+.adm-side__out:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+/* ---- Main column ----------------------------------------------------------- */
+
+.adm-main {
+  padding: clamp(1.75rem, 3vw, 2.75rem) clamp(1.5rem, 3.5vw, 3rem) 6rem;
+  max-width: 1400px;
+}
+
+.adm-main__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: clamp(1.75rem, 3vw, 2.5rem);
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--line);
+}
+.adm-main__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 1.5rem + 1.4vw, 2.8rem);
+  letter-spacing: 0.02em;
+}
+.adm-main__hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.adm-main__demo {
+  font-size: 0.72rem;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ---- Toolbars (search/filters, month nav) ---------------------------------- */
+
+.adm-toolbar,
+.adm-cal__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.adm-cal__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem);
+  letter-spacing: 0.04em;
+}
+.adm-cal__nav {
+  display: flex;
+  gap: 0.5rem;
+}
+.adm-cal__nav .bk-cal__navbtn {
+  width: auto;
+  min-width: 2.6rem;
+  padding: 0 0.9rem;
+  font-size: 0.8rem;
+}
+
+/* ---- Occupancy grid ----------------------------------------------------------- */
+
+.adm-cal {
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.adm-cal.is-loading {
+  opacity: 0.6;
+}
+
+.adm-cal__scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+}
+
+.adm-cal__grid {
+  display: grid;
+  min-width: 900px;
+}
+
+.adm-cal__corner {
+  border-bottom: 1px solid var(--line);
+}
+
+.adm-cal__dayhead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.5rem 0 0.45rem;
+  font-size: 0.72rem;
+  color: var(--text);
+  border-bottom: 1px solid var(--line);
+  border-left: 1px solid rgba(244, 241, 234, 0.06);
+}
+.adm-cal__dayhead em {
+  font-style: normal;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+.adm-cal__dayhead.is-weekend {
+  background: rgba(244, 241, 234, 0.03);
+}
+.adm-cal__dayhead.is-today {
+  color: var(--accent);
+}
+.adm-cal__dayhead.is-today em {
+  color: var(--accent);
+}
+
+.adm-cal__suite {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  justify-content: center;
+  padding: 0.9rem 1rem;
+  font-size: 0.82rem;
+  border-top: 1px solid rgba(244, 241, 234, 0.08);
+  white-space: nowrap;
+}
+.adm-cal__suite em {
+  font-style: normal;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.adm-cal__cell {
+  position: relative;
+  min-height: 3.1rem;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(244, 241, 234, 0.08);
+  border-left: 1px solid rgba(244, 241, 234, 0.06);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.adm-cal__cell.is-weekend {
+  background: rgba(244, 241, 234, 0.03);
+}
+.adm-cal__cell:hover {
+  background: rgba(244, 241, 234, 0.1);
+}
+.adm-cal__cell.is-past {
+  opacity: 0.45;
+}
+.adm-cal__cell.is-selected {
+  outline: 1px solid var(--c-ivory);
+  outline-offset: -1px;
+}
+
+.adm-cal__cell.is-booking {
+  background: var(--accent);
+}
+.adm-cal__cell.is-booking:hover {
+  background: #d09a66;
+}
+.adm-cal__cell.is-block {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(244, 241, 234, 0.28),
+    rgba(244, 241, 234, 0.28) 3px,
+    rgba(244, 241, 234, 0.08) 3px,
+    rgba(244, 241, 234, 0.08) 8px
+  );
+}
+.adm-cal__cell.is-external {
+  background: rgba(244, 241, 234, 0.18);
+}
+
+/* ---- Legend --------------------------------------------------------------------- */
+
+.adm-cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.6rem;
+  margin-top: 1rem;
+}
+.adm-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.adm-key::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--line-strong);
+}
+.adm-key--booking::before {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.adm-key--block::before {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(244, 241, 234, 0.4),
+    rgba(244, 241, 234, 0.4) 2px,
+    transparent 2px,
+    transparent 5px
+  );
+}
+.adm-key--external::before {
+  background: rgba(244, 241, 234, 0.2);
+  border-color: transparent;
+}
+
+/* ---- Detail / action panel --------------------------------------------------------- */
+
+.adm-panel {
+  margin-top: 1.5rem;
+  border: 1px solid var(--line);
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+}
+.adm-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.adm-panel__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+}
+.adm-panel__close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.adm-panel__close:hover {
+  color: var(--text);
+}
+.adm-panel__hint {
+  margin: 0 0 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  max-width: 70ch;
+}
+.adm-panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  align-items: flex-start;
+}
+.adm-panel__form .bk-field {
+  width: 100%;
+}
+.adm-panel__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(10rem, 16rem));
+  gap: 1rem;
+  width: 100%;
+}
+.adm-panel__actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.adm-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+/* ---- Tables --------------------------------------------------------------------------- */
+
+.adm-tablewrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: rgba(244, 241, 234, 0.02);
+}
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.adm-table th {
+  text-align: left;
+  padding: 0.95rem 1.1rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: rgba(244, 241, 234, 0.03);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.adm-table td {
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgba(244, 241, 234, 0.07);
+  vertical-align: middle;
+}
+.adm-table tr:last-child td {
+  border-bottom: none;
+}
+.adm-table td em {
+  display: block;
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+.adm-table .is-num {
+  text-align: right;
+  white-space: nowrap;
+}
+.adm-table__ref {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.adm-table--edit input {
+  width: 6.5rem;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  padding: 0.4rem 0.6rem;
+  text-align: right;
+}
+.adm-table--edit input:focus {
+  outline: none;
+  border-color: var(--line-strong);
+}
+
+.adm-table__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.adm-mini {
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.adm-mini:hover:not(:disabled) {
+  background: var(--c-ivory);
+  color: var(--c-ink);
+}
+.adm-mini:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---- Status chips ------------------------------------------------------------------------- */
+
+.adm-status {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 2px;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  background: rgba(244, 241, 234, 0.06);
+}
+.adm-status--requested {
+  color: var(--accent);
+  background: rgba(192, 138, 88, 0.14);
+}
+.adm-status--confirmed {
+  color: #a7c893;
+  background: rgba(157, 192, 139, 0.14);
+}
+.adm-status--completed {
+  color: var(--text);
+  background: rgba(244, 241, 234, 0.1);
+}
+.adm-status--cancelled,
+.adm-status--expired {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* ---- Filters, notes, misc ------------------------------------------------------------------- */
+
+.adm-filter {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.adm-filter__opt {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
+}
+.adm-filter__opt:hover {
+  color: var(--text);
+}
+.adm-filter__opt.is-active {
+  color: var(--c-ink);
+  background: var(--c-ivory);
+  border-color: var(--c-ivory);
+}
+
+.adm-empty {
+  padding: 2.25rem 1.4rem;
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  background: rgba(244, 241, 234, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.adm-notes {
+  margin-top: 1.75rem;
+}
+.adm-notes__title {
+  margin: 0 0 0.8rem;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.adm-notes__item {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.adm-notes__item strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.adm-flash {
+  margin: 0 0 1.25rem;
+  font-size: 0.8rem;
+  color: #9dc08b;
+}
+
+/* ---- Rates screen ------------------------------------------------------------------------------ */
+
+.adm-rates__actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.adm-rates__sub,
+.adm-sectiontitle {
+  margin: 0 0 1.1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+/* Rates screen keeps its own top spacing between stacked sub-sections. */
+.adm-rates__sub {
+  margin-top: 2.25rem;
+}
+
+/* Overview blocks — clear breathing room so eyebrow titles never touch the
+   box above them. The KPI row, Needs-attention block and the arrivals/
+   departures row are each separated top and bottom. */
+.adm-over > * + * {
+  margin-top: clamp(2rem, 4vw, 3rem);
+}
+.adm-rates__pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 18rem));
+  gap: 1.25rem;
+}
+
+/* ---- Overview: KPIs -------------------------------------------------------------------------------- */
+
+.adm-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin-bottom: clamp(2rem, 3.5vw, 3rem);
+}
+.adm-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: rgba(244, 241, 234, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1.25rem 1.3rem;
+}
+.adm-kpi.is-accent {
+  background: rgba(192, 138, 88, 0.1);
+  border-color: rgba(192, 138, 88, 0.35);
+}
+.adm-kpi__value {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.9rem);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.adm-kpi.is-accent .adm-kpi__value {
+  color: var(--accent);
+}
+.adm-kpi__label {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ---- Overview: request queue ------------------------------------------------------------------------ */
+
+.adm-queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.adm-queue__item {
+  display: grid;
+  grid-template-columns: 1.3fr 1.3fr auto auto;
+  align-items: center;
+  gap: 1rem 1.75rem;
+  padding: 1.1rem 1.25rem;
+  background: rgba(244, 241, 234, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.adm-queue__item:hover {
+  border-color: var(--line-strong);
+}
+.adm-queue__who,
+.adm-queue__stay {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.98rem;
+}
+.adm-queue__who strong {
+  font-weight: 500;
+  font-size: 1.02rem;
+}
+.adm-queue__who em,
+.adm-queue__stay em {
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.adm-queue__total {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  white-space: nowrap;
+}
+.adm-queue__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ---- Overview: arrivals & departures ------------------------------------------------------------------ */
+
+.adm-move {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+}
+.adm-movecard {
+  background: rgba(244, 241, 234, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1.25rem 1.4rem;
+}
+.adm-movelist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.adm-movelist li {
+  display: flex;
+  gap: 1.25rem;
+  align-items: baseline;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(244, 241, 234, 0.08);
+}
+.adm-movelist li:last-child {
+  border-bottom: none;
+}
+.adm-movelist__date {
+  min-width: 9.5rem;
+  font-size: 0.86rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.adm-movelist__who {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.98rem;
+}
+.adm-movelist__who em {
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ---- Bookings: search + row affordance ------------------------------------------------------------------ */
+
+.adm-search {
+  flex: 1;
+  min-width: 14rem;
+  max-width: 24rem;
+  appearance: none;
+  background: rgba(244, 241, 234, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.7rem 1rem;
+}
+.adm-search:focus {
+  outline: none;
+  border-color: var(--line-strong);
+}
+.adm-search::placeholder {
+  color: rgba(244, 241, 234, 0.35);
+}
+
+.adm-table__row {
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.adm-table__row:hover {
+  background: rgba(244, 241, 234, 0.04);
+}
+
+/* ---- Booking detail drawer --------------------------------------------------------------------------------- */
+
+.adm-drawer__scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 90;
+}
+.adm-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(30rem, 100%);
+  background: var(--bg);
+  border-left: 1px solid var(--line-strong);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  overflow-y: auto;
+  z-index: 91;
+  animation: adm-slide 0.28s var(--ease-out);
+}
+@keyframes adm-slide {
+  from {
+    transform: translateX(2rem);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.adm-drawer__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.adm-drawer__ref {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+.adm-drawer__guest {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.03em;
+}
+.adm-drawer__contact {
+  margin: 0 0 1.2rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.adm-drawer__contactbtns {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.6rem;
+}
+.adm-drawer__meta {
+  margin-bottom: 1.4rem;
+}
+.adm-drawer__notes {
+  margin: 1.2rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+.adm-drawer__notes strong {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.35rem;
+}
+.adm-drawer__fine {
+  margin: 1.2rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.adm-drawer__actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-top: 1.6rem;
+}
+
+/* ---- Promotions ----------------------------------------------------------------------------------------------- */
+
+.adm-promoform {
+  border: 1px solid var(--line);
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  margin-bottom: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+.adm-promoform__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.1rem;
+  width: 100%;
+}
+.adm-promoform__pair {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.6rem;
+}
+.adm-promo--off td {
+  opacity: 0.55;
+}
+.adm-promo--off .adm-table__actions {
+  opacity: 1;
+}
+
+/* ---- Login gate ----------------------------------------------------------------------------------------- */
+
+.adm-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+}
+.adm-login__card {
+  width: min(26rem, 100%);
+  border: 1px solid var(--line);
+  padding: clamp(2rem, 5vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.adm-login__brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.adm-login__brand em {
+  font-style: italic;
+  text-transform: none;
+}
+.adm-login__sub {
+  margin: -0.75rem 0 0.75rem;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.adm-login__btn {
+  width: 100%;
+}
+.adm-login__note {
+  margin: 0;
+  text-align: center;
+  font-size: 0.7rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ---- Responsive -------------------------------------------------------------------------------------- */
+
+/* Sidebar collapses to a horizontal top bar on narrow screens. */
+@media (max-width: 900px) {
+  .adm {
+    grid-template-columns: 1fr;
+  }
+  .adm-side {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    padding: 1rem var(--gutter);
+  }
+  .adm-side__brand {
+    margin-right: auto;
+  }
+  .adm-side__nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 0;
+    width: 100%;
+    order: 3;
+  }
+  .adm-navitem {
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: baseline;
+    padding: 0.5rem 0.8rem;
+  }
+  .adm-navitem__hint {
+    display: none;
+  }
+  .adm-side__out {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .adm-main__head {
+    align-items: flex-start;
+  }
+  .adm-panel__row {
+    grid-template-columns: 1fr;
+  }
+  .adm-queue__item {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+  .adm-move {
+    grid-template-columns: 1fr;
+  }
+}

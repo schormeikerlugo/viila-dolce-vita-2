@@ -1,25 +1,16 @@
 ---
 /**
- * BookingBar — the enquiry composer: arrival / departure / guests on a
- * hairline row. Submitting opens WhatsApp with the stay details pre-filled
- * (no backend). Without JS it degrades to the plain availability link.
+ * BookingBar — the availability composer: arrival / departure / guests on a
+ * hairline row. Submitting goes to the /book wizard with the stay pre-filled
+ * in the query string. Without JS it degrades to a plain GET form to /book.
  *
  * Themes: "light" (ivory sections) | "dark" (ink sections).
  */
 import { bookingHref } from "../data/site";
 
-/**
- * TEMP: the owners take bookings manually while the real booking system
- * is built (see Docs/booking-system-plan.md). While false, the composer is
- * hidden and a single "Check Availability" button renders in its place,
- * leading to the enquiry form on /contact#enquiry (WhatsApp / email).
- * Flip to true to restore the date/guests composer.
- */
-const SHOW_COMPOSER = false;
-
 interface Props {
   theme?: "light" | "dark";
-  /** Pre-fill the enquiry with a suite name (suite pages). */
+  /** Deep-link the wizard to a suite (its slug), from suite pages. */
   suite?: string;
   class?: string;
 }
@@ -36,24 +27,14 @@ const defaultArrive = plus(30);
 const defaultDepart = plus(37);
 ---
 
-{!SHOW_COMPOSER && (
-  <div class:list={["bookbar-solo", `bookbar-solo--${theme}`, className]}>
-    <a href="/contact#enquiry" class="bookbar__submit bookbar-solo__btn">
-      Check Availability <span aria-hidden="true">↗</span>
-    </a>
-  </div>
-)}
-
-{SHOW_COMPOSER && (
 <form
   class:list={["bookbar", `bookbar--${theme}`, className]}
   data-bookbar
   data-suite={suite}
   action={bookingHref}
   method="get"
-  target="_blank"
-  rel="noopener"
 >
+  {suite && <input type="hidden" name="suite" value={suite} />}
   <div class="bookbar__field">
     <label for={`bb-arrive-${suite ?? "x"}`}>Arrival</label>
     <input
@@ -90,18 +71,8 @@ const defaultDepart = plus(37);
     Check Availability <span aria-hidden="true">↗</span>
   </button>
 </form>
-)}
 
 <style>
-  /* ── Solo CTA — the interim WhatsApp button (SHOW_COMPOSER = false) ───── */
-  .bookbar-solo {
-    display: flex;
-    justify-content: center;
-  }
-  .bookbar-solo__btn {
-    text-decoration: none;
-  }
-
   .bookbar {
     --bb-line: var(--line);
     --bb-fg: var(--text);
@@ -218,8 +189,6 @@ const defaultDepart = plus(37);
 </style>
 
 <script>
-  import { bookingMessageHref } from "../data/site";
-
   function initBookbars() {
     document
       .querySelectorAll<HTMLFormElement>("[data-bookbar]:not([data-bound])")
@@ -261,23 +230,16 @@ const defaultDepart = plus(37);
           }
         });
 
+        // Navigate to the /book wizard with the stay pre-filled (ISO dates).
         form.addEventListener("submit", (e) => {
           e.preventDefault();
-          const fmt = (v?: string) =>
-            v
-              ? new Date(`${v}T12:00:00`).toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })
-              : undefined;
-          const href = bookingMessageHref({
-            arrive: fmt(arrive?.value),
-            depart: fmt(depart?.value),
-            guests: guests?.value,
-            suite: form.dataset.suite || undefined,
-          });
-          window.open(href, "_blank", "noopener");
+          const params = new URLSearchParams();
+          if (arrive?.value) params.set("arrive", arrive.value);
+          if (depart?.value) params.set("depart", depart.value);
+          if (guests?.value) params.set("guests", guests.value);
+          if (form.dataset.suite) params.set("suite", form.dataset.suite);
+          const qs = params.toString();
+          window.location.href = qs ? `/book?${qs}` : "/book";
         });
       });
   }

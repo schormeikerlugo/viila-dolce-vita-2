@@ -21,48 +21,207 @@
   min-height: 20rem;
 }
 
-/* ---- Step rail -------------------------------------------------------------- */
+/* ---- Step rail — numbered circles + progress line --------------------------- */
 
 .bk-steps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem clamp(1.5rem, 3vw, 3rem);
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   list-style: none;
-  margin: 0 0 clamp(2rem, 4vw, 3rem);
-  padding: 1.1rem 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  margin: 0 0 clamp(2.25rem, 4vw, 3.25rem);
+  padding: 0;
+}
+
+/* The connecting track, drawn behind the dots, centred on the circle row. */
+.bk-steps::before,
+.bk-steps::after {
+  content: "";
+  position: absolute;
+  top: 1.35rem; /* half the dot height */
+  left: calc(100% / 8); /* centre of the first dot (1 of 4 columns) */
+  right: calc(100% / 8); /* centre of the last dot */
+  height: 2px;
+  transform: translateY(-50%);
+}
+.bk-steps::before {
+  background: var(--line);
+}
+.bk-steps::after {
+  background: var(--accent);
+  /* Track spans between the first and last dot centres (75% of the row).
+     --bk-progress is a 0–1 fraction of that span already completed. */
+  right: auto;
+  width: calc(75% * var(--bk-progress, 0));
+  transition: width var(--dur) var(--ease-out);
+}
+
+.bk-steps__item {
+  position: relative;
+  z-index: 1;
+  text-align: center;
 }
 
 .bk-steps__item button {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.6rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
   background: none;
   border: none;
   padding: 0;
   font-family: var(--font-body);
-  font-size: var(--fs-eyebrow);
+  color: var(--text-muted);
+  cursor: default;
+}
+.bk-steps__item.is-done button {
+  cursor: pointer;
+}
+
+/* The circle. */
+.bk-steps__dot {
+  display: grid;
+  place-items: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 1rem;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.bk-steps__check {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+/* Labels under the circle. */
+.bk-steps__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.bk-steps__eyebrow {
+  font-size: 0.58rem;
   font-weight: 500;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--text-muted);
-  cursor: default;
+}
+.bk-steps__name {
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.bk-steps__item.is-done button {
-  cursor: pointer;
+/* --- Done: filled accent circle with a check. --- */
+.bk-steps__item.is-done .bk-steps__dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--c-ink);
 }
-.bk-steps__item.is-done button:hover {
+.bk-steps__item.is-done .bk-steps__eyebrow {
   color: var(--accent);
 }
-.bk-steps__item.is-current button {
+.bk-steps__item.is-done .bk-steps__name {
+  color: var(--text);
+}
+.bk-steps__item.is-done button:hover .bk-steps__dot {
+  transform: scale(1.06);
+}
+
+/* --- Current: outlined accent circle, brightest label. --- */
+.bk-steps__item.is-current .bk-steps__dot {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(192, 138, 88, 0.12);
+  box-shadow: 0 0 0 4px rgba(192, 138, 88, 0.1);
+}
+.bk-steps__item.is-current .bk-steps__eyebrow {
+  color: var(--accent);
+}
+.bk-steps__item.is-current .bk-steps__name {
   color: var(--text);
 }
 
-.bk-steps__num {
+/* --- Todo: muted. --- */
+.bk-steps__item.is-todo .bk-steps__dot {
+  background: transparent;
+}
+
+@media (max-width: 560px) {
+  .bk-steps__eyebrow {
+    display: none;
+  }
+  .bk-steps__name {
+    font-size: 0.68rem;
+  }
+  .bk-steps__dot {
+    width: 2.3rem;
+    height: 2.3rem;
+    font-size: 0.9rem;
+  }
+  .bk-steps::before,
+  .bk-steps::after {
+    top: 1.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bk-steps::after {
+    transition: none;
+  }
+}
+
+/* ---- Per-step header (title + guidance) ------------------------------------ */
+
+.bk-stephead {
+  margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+  animation: bk-stephead-in 0.4s var(--ease-out);
+}
+.bk-stephead__eyebrow {
+  margin: 0 0 0.6rem;
   font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
   color: var(--accent);
+}
+.bk-stephead__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.2rem);
+  letter-spacing: 0.02em;
+}
+.bk-stephead__copy {
+  margin: 0.6rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 48ch;
+}
+@keyframes bk-stephead-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bk-stephead {
+    animation: none;
+  }
 }
 
 /* ---- Buttons ----------------------------------------------------------------- */
@@ -255,6 +414,10 @@
     border-color var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out);
 }
+.bk-cal__daynum {
+  position: relative;
+  z-index: 1;
+}
 .bk-cal__day:hover:not(:disabled):not(.is-full) {
   border-color: var(--line-strong);
 }
@@ -271,10 +434,11 @@
   cursor: not-allowed;
 }
 
-.bk-cal__day.is-limited::after {
+/* "Some suites taken" dot — moved off ::after so ::after is free elsewhere. */
+.bk-cal__day.is-limited .bk-cal__daynum::after {
   content: "";
   position: absolute;
-  bottom: 15%;
+  bottom: -0.5rem;
   left: 50%;
   transform: translateX(-50%);
   width: 4px;
@@ -293,9 +457,68 @@
   color: var(--c-ink);
   border-color: var(--c-ivory);
 }
-.bk-cal__day.is-arrive.is-limited::after,
-.bk-cal__day.is-depart.is-limited::after {
+.bk-cal__day.is-arrive.is-limited .bk-cal__daynum::after,
+.bk-cal__day.is-depart.is-limited .bk-cal__daynum::after {
   background: var(--c-ink);
+}
+
+/* A fully-booked night the hovered range would cross — flag it in red. */
+.bk-cal__day.is-blocking {
+  background: rgba(192, 88, 88, 0.22);
+  border-color: rgba(210, 120, 120, 0.55);
+  color: #e7c9c9;
+}
+
+/* ---- Day bubble (hover tooltip) ---- */
+.bk-cal__bubble {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  z-index: 6;
+  white-space: nowrap;
+  padding: 0.4rem 0.65rem;
+  background: var(--c-ink-soft, #262320);
+  border: 1px solid var(--line-strong);
+  color: var(--c-ivory);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  border-radius: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.bk-cal__bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--c-ink-soft, #262320);
+}
+.bk-cal__day:hover .bk-cal__bubble,
+.bk-cal__day:focus-visible .bk-cal__bubble {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.bk-cal__day.is-full .bk-cal__bubble {
+  border-color: rgba(210, 120, 120, 0.6);
+  color: #eecccc;
+}
+
+/* ---- Range warning under the calendar ---- */
+.bk-cal__warn {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  background: rgba(192, 88, 88, 0.12);
+  border: 1px solid rgba(210, 120, 120, 0.4);
+  border-radius: 3px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #e7c9c9;
 }
 
 .bk-cal__legend {
@@ -329,6 +552,60 @@
 .bk-cal__key--full::before {
   background: rgba(244, 241, 234, 0.25);
   border-color: transparent;
+}
+
+/* ---- Available-suites panel (under the calendar, step 0) -------------------- */
+
+.bk-avail {
+  margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
+  padding-top: clamp(1.5rem, 3vw, 2.25rem);
+  border-top: 1px solid var(--line);
+  animation: bk-avail-in 0.45s var(--ease-out);
+}
+@keyframes bk-avail-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bk-avail {
+    animation: none;
+  }
+}
+
+.bk-avail__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.bk-avail__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1rem + 0.7vw, 1.55rem);
+  letter-spacing: 0.02em;
+}
+.bk-avail__sub {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+.bk-avail__empty {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.2rem;
+  background: rgba(192, 138, 88, 0.08);
+  border: 1px solid rgba(192, 138, 88, 0.3);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text);
 }
 
 /* ---- Suite cards ---------------------------------------------------------------------- */
@@ -647,6 +924,26 @@
 .bk-consent input {
   margin-top: 0.25rem;
   accent-color: var(--accent);
+}
+
+/* ---- Promo code ------------------------------------------------------------------------------ */
+
+.bk-promo {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-top: 1.6rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line);
+}
+.bk-promo__field {
+  flex: 1;
+  max-width: 18rem;
+}
+.bk-promo__ok {
+  margin-top: 0.7rem;
+  font-size: 0.8rem;
+  color: #9dc08b;
 }
 
 /* ---- Quote rail ---------------------------------------------------------------------------- */

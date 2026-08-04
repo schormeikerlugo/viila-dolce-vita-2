@@ -31,15 +31,24 @@ export const social = [
   { label: "Facebook", href: "https://www.facebook.com/villadolcevita.eu" },
 ] as const;
 
-/** The "Check Availability" CTA target. Currently a WhatsApp mock. */
-export const bookingHref = `${contact.whatsappHref}?text=${encodeURIComponent(
-  "Hello Villa Dolce Vita, I'd like to check availability for a stay.",
-)}`;
+/**
+ * The "Check Availability" CTA target — the in-house booking engine at /book.
+ * (Was a WhatsApp mock; now every CTA across the site flows to the wizard.)
+ */
+export const bookingHref = "/book";
 
 /**
- * Build a WhatsApp enquiry URL with a pre-filled message.
- * Used by the booking composer (dates + guests) and per-suite CTAs so the
- * conversation opens with everything the concierge needs.
+ * Deep-link the booking wizard to a specific suite, e.g. /book?suite=roma.
+ * `slug` is a suite slug ("roma", "napoli", …); omit for the open wizard.
+ */
+export function bookingSuiteHref(slug?: string): string {
+  return slug ? `/book?suite=${encodeURIComponent(slug)}` : "/book";
+}
+
+/**
+ * Build a WhatsApp enquiry URL with a pre-filled message. Kept for the
+ * Contact page and any "talk to the concierge" affordance — the primary
+ * booking path is now /book.
  */
 export function bookingMessageHref(opts: {
   arrive?: string;

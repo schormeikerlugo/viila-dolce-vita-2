@@ -17,6 +17,16 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 
+declare global {
+  interface Window {
+    /** Lenis-aware scroll helper for React islands; set once Lenis boots. */
+    __lenisScrollTo?: (
+      target: number | string | HTMLElement,
+      opts?: { offset?: number; duration?: number; immediate?: boolean },
+    ) => void;
+  }
+}
+
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
 const prefersReducedMotion = () =>
@@ -45,6 +55,19 @@ function initSmoothScroll() {
   rafCallback = (time: number) => lenis?.raf(time * 1000);
   gsap.ticker.add(rafCallback);
   gsap.ticker.lagSmoothing(0);
+
+  // Expose a scroll helper for React islands (e.g. the /book wizard), which
+  // can't reach this module's private `lenis` instance. Recalculate limits
+  // first: when the new step is shorter, the document shrinks and Lenis would
+  // otherwise clamp to a stale (too-low) max, leaving the page scrolled down.
+  window.__lenisScrollTo = (target, opts) => {
+    if (lenis) {
+      lenis.resize();
+      lenis.scrollTo(target, opts);
+    } else {
+      window.scrollTo({ top: typeof target === "number" ? target : 0, behavior: "smooth" });
+    }
+  };
 }
 
 /**
