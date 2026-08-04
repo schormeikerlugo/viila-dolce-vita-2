@@ -9,6 +9,7 @@ import { adminApi } from "../../lib/booking/api";
 import type { DashboardStats } from "../../lib/booking/types";
 import { longDate, money } from "../../lib/booking/dates";
 import type { SuiteMeta } from "./AdminApp";
+import CopyButton from "./CopyButton";
 
 interface Props {
   suites: SuiteMeta[];
@@ -83,16 +84,27 @@ export default function AdminOverview({ suites }: Props) {
             <li key={b.reference} className="adm-queue__item">
               <div className="adm-queue__who">
                 <strong>{b.guest}</strong>
-                <em>
-                  {b.reference} · {b.email}
-                  {b.phone ? ` · ${b.phone}` : ""}
-                </em>
+                <span className="adm-queue__contact">
+                  <span className="adm-copyable">
+                    {b.reference}
+                    <CopyButton value={b.reference} label="Copy reference" />
+                  </span>
+                  <span className="adm-copyable">
+                    {b.email}
+                    <CopyButton value={b.email} label="Copy email" />
+                  </span>
+                  {b.phone && (
+                    <span className="adm-copyable">
+                      {b.phone}
+                      <CopyButton value={b.phone} label="Copy phone" />
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="adm-queue__stay">
                 {unitName(b.unit)}
                 <em>
-                  {longDate(b.arrive)} → {longDate(b.depart)} · {b.guests}{" "}
-                  {b.guests === 1 ? "guest" : "guests"}
+                  {longDate(b.arrive)} → {longDate(b.depart)}
                 </em>
               </div>
               <span className="adm-queue__total">{money(b.total)}</span>

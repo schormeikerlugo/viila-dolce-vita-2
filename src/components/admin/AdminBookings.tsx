@@ -11,6 +11,7 @@ import type { Booking, BookingStatus } from "../../lib/booking/types";
 import { ESTATE } from "../../lib/booking/types";
 import { longDate, money } from "../../lib/booking/dates";
 import type { SuiteMeta } from "./AdminApp";
+import CopyButton from "./CopyButton";
 
 const FILTERS: (BookingStatus | "all")[] = [
   "all",
@@ -235,10 +236,37 @@ function BookingDrawer({
         </header>
 
         <h3 className="adm-drawer__guest">{g.name}</h3>
-        <p className="adm-drawer__contact">
-          {g.email}
-          {g.phone ? ` · ${g.phone}` : ""}
-        </p>
+        <dl className="adm-drawer__data">
+          <div>
+            <dt>Reference</dt>
+            <dd>
+              <span className="adm-copyable">
+                {b.reference}
+                <CopyButton value={b.reference} label="Copy reference" />
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd>
+              <span className="adm-copyable">
+                {g.email}
+                <CopyButton value={g.email} label="Copy email" />
+              </span>
+            </dd>
+          </div>
+          {g.phone && (
+            <div>
+              <dt>Phone</dt>
+              <dd>
+                <span className="adm-copyable">
+                  {g.phone}
+                  <CopyButton value={g.phone} label="Copy phone" />
+                </span>
+              </dd>
+            </div>
+          )}
+        </dl>
 
         <div className="adm-drawer__contactbtns">
           {waHref && (

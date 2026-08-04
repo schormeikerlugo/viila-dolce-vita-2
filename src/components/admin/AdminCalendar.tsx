@@ -1,8 +1,8 @@
 /**
- * AdminCalendar — the panel's home screen: one month, five suites as rows,
- * every night colored by source (booking / block / imported stay). Click a
- * cell to inspect it: free nights offer a block form, bookings offer status
- * actions, blocks can be deleted.
+ * AdminCalendar — one month, a single "The Entire Villa" row (the whole
+ * estate is the bookable unit). Each night is coloured by source (booking /
+ * block / imported stay). Click a night to inspect it: free nights offer a
+ * block form, booked nights offer status actions, blocks can be deleted.
  */
 import { useCallback, useEffect, useState } from "react";
 import { adminApi } from "../../lib/booking/api";
@@ -27,24 +27,21 @@ interface Props {
   suites: SuiteMeta[];
 }
 
-interface Selection {
-  suite: SuiteSlug;
-  date: string;
-}
-
 export default function AdminCalendar({ suites }: Props) {
   const today = todayISO();
   const [cursor, setCursor] = useState(() => monthStart(today));
   const [cal, setCal] = useState<CalData>({});
   const [loading, setLoading] = useState(false);
-  const [sel, setSel] = useState<Selection | null>(null);
+  const [sel, setSel] = useState<string | null>(null); // selected date
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Block form (prefilled from the selected cell).
   const [blockEnd, setBlockEnd] = useState("");
-  const [blockScope, setBlockScope] = useState<"suite" | "estate">("estate");
   const [blockReason, setBlockReason] = useState("");
+
+  // All active suite slugs (order from the AdminApp meta).
+  const suiteSlugs = suites.map((s) => s.slug);
 
   const monthEnd = addMonths(cursor, 1);
   const daysInMonth = Array.from(
@@ -65,13 +62,26 @@ export default function AdminCalendar({ suites }: Props) {
     setSel(null);
   }, [load]);
 
-  const cellOf = (date: string, suite: SuiteSlug) => cal[date]?.[suite];
+  /**
+   * The Villa is booked/blocked on a night if ANY suite is occupied. Pick the
+   * most meaningful cell (booking > block > imported) to represent the night.
+   */
+  const villaCell = (date: string): CalendarCell | undefined => {
+    const day = cal[date];
+    if (!day) return undefined;
+    const cells = suiteSlugs.map((s) => day[s]).filter(Boolean) as CalendarCell[];
+    return (
+      cells.find((c) => c.kind === "booking") ??
+      cells.find((c) => c.kind === "block") ??
+      cells.find((c) => c.kind === "external") ??
+      cells[0]
+    );
+  };
 
-  const select = (suite: SuiteSlug, date: string) => {
-    setSel({ suite, date });
+  const select = (date: string) => {
+    setSel(date);
     setError(null);
     setBlockEnd(addDays(date, 1));
-    setBlockScope("estate");
     setBlockReason("");
   };
 
@@ -87,8 +97,7 @@ export default function AdminCalendar({ suites }: Props) {
       .finally(() => setBusy(false));
   };
 
-  const selCell = sel ? cellOf(sel.date, sel.suite) : undefined;
-  const selSuiteName = sel ? suites.find((s) => s.slug === sel.suite)?.name : "";
+  const selCell = sel ? villaCell(sel) : undefined;
 
   const weekdayLetter = (iso: string) =>
     ["S", "M", "T", "W", "T", "F", "S"][fromISO(iso).getUTCDay()];
@@ -147,25 +156,39 @@ export default function AdminCalendar({ suites }: Props) {
             </span>
           ))}
 
-          {suites.map((suite) => (
-            <SuiteRow
-              key={suite.slug}
-              suite={suite}
-              days={daysInMonth}
-              today={today}
-              isWeekend={isWeekend}
-              cellOf={cellOf}
-              sel={sel}
-              onSelect={select}
-            />
-          ))}
+          {/* Single Villa row — the whole estate is the bookable unit. */}
+          <span className="adm-cal__suite">
+            The Entire Villa
+            <em>Five suites · Sleeps 15</em>
+          </span>
+          {daysInMonth.map((d) => {
+            const cell = villaCell(d);
+            const selected = sel === d;
+            return (
+              <button
+                key={d}
+                type="button"
+                className={[
+                  "adm-cal__cell",
+                  cell && `is-${cell.kind}`,
+                  isWeekend(d) && "is-weekend",
+                  d < today && "is-past",
+                  selected && "is-selected",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                title={cell ? cell.label : "Free"}
+                aria-label={`${d}: ${cell ? cell.label : "free"}`}
+                onClick={() => select(d)}
+              />
+            );
+          })}
         </div>
       </div>
 
       <div className="adm-cal__legend">
         <span className="adm-key adm-key--booking">Booking</span>
         <span className="adm-key adm-key--block">Blocked</span>
-        <span className="adm-key adm-key--external">Imported stay</span>
         <span className="adm-key adm-key--free">Free</span>
       </div>
 
@@ -173,9 +196,7 @@ export default function AdminCalendar({ suites }: Props) {
       {sel && (
         <div className="adm-panel">
           <div className="adm-panel__head">
-            <p className="adm-panel__title">
-              {selSuiteName} — {longDate(sel.date)}
-            </p>
+            <p className="adm-panel__title">The Entire Villa — {longDate(sel)}</p>
             <button type="button" className="adm-panel__close" onClick={() => setSel(null)}>
               Close
             </button>
@@ -190,8 +211,8 @@ export default function AdminCalendar({ suites }: Props) {
                 e.preventDefault();
                 run(() =>
                   adminApi.createBlock({
-                    suite: blockScope === "estate" ? null : sel.suite,
-                    start: sel.date,
+                    suite: null, // the whole Villa
+                    start: sel,
                     end: blockEnd,
                     reason: blockReason,
                   }),
@@ -205,7 +226,7 @@ export default function AdminCalendar({ suites }: Props) {
               <div className="adm-panel__row">
                 <label className="bk-field">
                   <span className="bk-field__label">From</span>
-                  <input type="date" className="bk-field__input" value={sel.date} readOnly />
+                  <input type="date" className="bk-field__input" value={sel} readOnly />
                 </label>
                 <label className="bk-field">
                   <span className="bk-field__label">Until (check-out)</span>
@@ -213,21 +234,10 @@ export default function AdminCalendar({ suites }: Props) {
                     type="date"
                     className="bk-field__input"
                     value={blockEnd}
-                    min={addDays(sel.date, 1)}
+                    min={addDays(sel, 1)}
                     onChange={(e) => setBlockEnd(e.target.value)}
                     required
                   />
-                </label>
-                <label className="bk-field">
-                  <span className="bk-field__label">Scope</span>
-                  <select
-                    className="bk-field__input"
-                    value={blockScope}
-                    onChange={(e) => setBlockScope(e.target.value as "suite" | "estate")}
-                  >
-                    <option value="estate">Entire Villa</option>
-                    <option value="suite">{selSuiteName} only</option>
-                  </select>
                 </label>
               </div>
               <label className="bk-field">
@@ -295,56 +305,5 @@ export default function AdminCalendar({ suites }: Props) {
         </div>
       )}
     </section>
-  );
-}
-
-/* ---- One suite row ---- */
-
-function SuiteRow({
-  suite,
-  days,
-  today,
-  isWeekend,
-  cellOf,
-  sel,
-  onSelect,
-}: {
-  suite: SuiteMeta;
-  days: string[];
-  today: string;
-  isWeekend(iso: string): boolean;
-  cellOf(date: string, suite: SuiteSlug): CalendarCell | undefined;
-  sel: Selection | null;
-  onSelect(suite: SuiteSlug, date: string): void;
-}) {
-  return (
-    <>
-      <span className="adm-cal__suite">
-        {suite.name}
-        <em>sleeps {suite.sleeps}</em>
-      </span>
-      {days.map((d) => {
-        const cell = cellOf(d, suite.slug);
-        const selected = sel?.suite === suite.slug && sel?.date === d;
-        return (
-          <button
-            key={`${suite.slug}-${d}`}
-            type="button"
-            className={[
-              "adm-cal__cell",
-              cell && `is-${cell.kind}`,
-              isWeekend(d) && "is-weekend",
-              d < today && "is-past",
-              selected && "is-selected",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            title={cell ? `${cell.label}` : "Free"}
-            aria-label={`${suite.name} ${d}: ${cell ? cell.label : "free"}`}
-            onClick={() => onSelect(suite.slug, d)}
-          />
-        );
-      })}
-    </>
   );
 }

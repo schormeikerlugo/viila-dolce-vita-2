@@ -644,6 +644,40 @@
   max-width: 52ch;
 }
 
+/* ---- Copy-to-clipboard button + copyable data chips ---- */
+
+.adm-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  vertical-align: middle;
+  transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+}
+.adm-copy:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+  background: rgba(244, 241, 234, 0.05);
+}
+.adm-copy.is-copied {
+  color: #a7c893;
+  border-color: rgba(167, 200, 147, 0.5);
+}
+
+/* An inline value + its copy button. */
+.adm-copyable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 /* ---- Overview: KPIs -------------------------------------------------------------------------------- */
 
 .adm-kpis {
@@ -720,6 +754,13 @@
 .adm-queue__who em,
 .adm-queue__stay em {
   font-style: normal;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.adm-queue__contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
   font-size: 0.8rem;
   color: var(--text-muted);
 }
@@ -864,6 +905,31 @@
   margin: 0 0 1.2rem;
   font-size: 0.82rem;
   color: var(--text-muted);
+}
+.adm-drawer__data {
+  margin: 0 0 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.adm-drawer__data > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(244, 241, 234, 0.07);
+  padding-bottom: 0.7rem;
+}
+.adm-drawer__data dt {
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.adm-drawer__data dd {
+  margin: 0;
+  font-size: 0.9rem;
 }
 .adm-drawer__contactbtns {
   display: flex;

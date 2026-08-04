@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { adminApi } from "../../lib/booking/api";
 import type { LeadCapture } from "../../lib/booking/types";
 import { longDate } from "../../lib/booking/dates";
+import CopyButton from "./CopyButton";
 
 const FILTERS = ["incomplete", "converted", "all"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -92,8 +93,18 @@ export default function AdminLeads() {
                 <tr key={l.id}>
                   <td className="adm-table__ref">{l.name ?? "—"}</td>
                   <td>
-                    {l.email}
-                    {l.phone && <em>{l.phone}</em>}
+                    <span className="adm-copyable">
+                      {l.email}
+                      <CopyButton value={l.email} label="Copy email" />
+                    </span>
+                    {l.phone && (
+                      <em>
+                        <span className="adm-copyable">
+                          {l.phone}
+                          <CopyButton value={l.phone} label="Copy phone" />
+                        </span>
+                      </em>
+                    )}
                   </td>
                   <td>{dates(l)}</td>
                   <td>
