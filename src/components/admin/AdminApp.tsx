@@ -15,6 +15,7 @@ import type { SuiteSlug } from "../../lib/booking/types";
 import AdminOverview from "./AdminOverview";
 import AdminCalendar from "./AdminCalendar";
 import AdminBookings from "./AdminBookings";
+import AdminLeads from "./AdminLeads";
 import AdminPromotions from "./AdminPromotions";
 import AdminRates from "./AdminRates";
 
@@ -27,8 +28,9 @@ export interface SuiteMeta {
 const DEMO_AUTH_KEY = "vdv-admin-auth";
 const TABS = [
   { id: "overview", label: "Overview", hint: "Today at a glance" },
-  { id: "calendar", label: "Calendar", hint: "Occupancy by suite" },
+  { id: "calendar", label: "Calendar", hint: "Villa availability" },
   { id: "bookings", label: "Bookings", hint: "Requests & guests" },
+  { id: "leads", label: "Leads", hint: "Incomplete submissions" },
   { id: "promotions", label: "Promotions", hint: "Offers & codes" },
   { id: "rates", label: "Rates & Extras", hint: "Pricing" },
 ] as const;
@@ -124,6 +126,7 @@ export default function AdminApp({ suites }: Props) {
         {tab === "overview" && <AdminOverview suites={suites} />}
         {tab === "calendar" && <AdminCalendar suites={suites} />}
         {tab === "bookings" && <AdminBookings suites={suites} />}
+        {tab === "leads" && <AdminLeads />}
         {tab === "promotions" && <AdminPromotions suites={suites} />}
         {tab === "rates" && <AdminRates />}
       </main>

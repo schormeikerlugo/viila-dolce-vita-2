@@ -15,11 +15,10 @@ import CardCarousel from "../components/CardCarousel.astro";
 import DarkTimeline from "../components/DarkTimeline.astro";
 import FaqAccordion from "../components/FaqAccordion.astro";
 import CtaBanner from "../components/CtaBanner.astro";
-import BookingBar from "../components/BookingBar.astro";
 import BackgroundVideo from "../components/BackgroundVideo.astro";
 import TestimonialCarousel from "../components/TestimonialCarousel.tsx";
 import { Image } from "astro:assets";
-import { contact } from "../data/site";
+import { contact, bookingHref } from "../data/site";
 import { testimonials } from "../data/testimonials";
 import { photos, suitePhotos } from "../data/media";
 import { galleryItems } from "../data/gallery";
@@ -111,10 +110,12 @@ const weddingSlides = [
 
 <BaseLayout navTheme="dark" schemas={[faqSchema(homeFaqs)]}>
   <!-- HERO -->
-  <Hero eyebrow="Massa Marittima, Tuscany" video="laDolceVita" booking>
+  <Hero eyebrow="Massa Marittima, Tuscany" video="laDolceVita" hideBar>
     <Fragment slot="title">Villa <em>Dolce Vita</em></Fragment>
     <Fragment slot="subtitle">Under the Tuscan Stars — A Private Hilltop Estate in the Maremma</Fragment>
-    <BookingBar slot="bar" theme="dark" />
+    <a slot="actions" class="hero__cta" href={bookingHref}>
+      Check Availability <span aria-hidden="true">↗</span>
+    </a>
   </Hero>
 
   <!-- OVERVIEW — ink band with the large serif statement (Masseto). -->
@@ -412,14 +413,15 @@ const weddingSlides = [
     </div>
   </section>
 
-  <!-- FINAL CTA — enquiry composer over the night sky. -->
+  <!-- FINAL CTA — invite to the booking flow over the night sky. -->
   <CtaBanner
     eyebrow="Plan Your Stay"
     title="Choose Your Dates"
-    sub="Send us your dates and party size — the concierge replies personally on WhatsApp, usually within the hour."
+    sub="Pick your dates and the whole Villa is yours — the concierge confirms personally, usually within the hour."
+    ctaLabel="Check Availability"
+    ctaHref={bookingHref}
   >
     <BackgroundVideo slot="media" video="hilltownDusk" />
-    <BookingBar slot="bar" theme="dark" />
   </CtaBanner>
 </BaseLayout>
 

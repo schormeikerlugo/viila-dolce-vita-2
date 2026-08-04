@@ -74,6 +74,22 @@ export const supabaseApi: BookingApi = {
     return data as Quote;
   },
 
+  async captureLead(lead) {
+    // Fire-and-forget: swallow errors so it never blocks the guest.
+    try {
+      await supabase().rpc("capture_lead", {
+        p_name: lead.name ?? "",
+        p_email: lead.email,
+        p_phone: lead.phone ?? "",
+        p_arrive: lead.arrive ?? null,
+        p_depart: lead.depart ?? null,
+        p_guests: lead.guests ?? null,
+      });
+    } catch {
+      /* best-effort */
+    }
+  },
+
   async createBooking(req) {
     const { data, error } = await supabase().rpc("create_booking_request", {
       p_arrive: req.stay.arrive,

@@ -636,6 +636,13 @@
   color: var(--text-muted);
   max-width: 70ch;
 }
+.adm-leads__intro {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 52ch;
+}
 
 /* ---- Overview: KPIs -------------------------------------------------------------------------------- */
 

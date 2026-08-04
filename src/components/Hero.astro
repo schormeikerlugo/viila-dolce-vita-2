@@ -14,8 +14,10 @@ interface Props {
   video: keyof typeof videos;
   /** Show the availability CTA in the bottom meta bar. */
   booking?: boolean;
+  /** Hide the bottom meta bar entirely (when the hero already has its own CTA). */
+  hideBar?: boolean;
 }
-const { eyebrow, video, booking = false } = Astro.props;
+const { eyebrow, video, booking = false, hideBar = false } = Astro.props;
 ---
 
 <section class="hero">
@@ -38,7 +40,7 @@ const { eyebrow, video, booking = false } = Astro.props;
   </div>
 
   {
-    Astro.slots.has("bar") ? (
+    hideBar ? null : Astro.slots.has("bar") ? (
       <div class="hero__bookbar wrap">
         <slot name="bar" />
       </div>
@@ -141,6 +143,24 @@ const { eyebrow, video, booking = false } = Astro.props;
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
+  }
+  /* White booking CTA under the subtitle. */
+  .hero__actions :global(.hero__cta) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.95rem 2rem;
+    background: var(--c-ivory);
+    color: var(--c-ink);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  .hero__actions :global(.hero__cta:hover) {
+    opacity: 0.85;
   }
 
   /* Bottom meta bar — hairline top rule, three quiet labels. */

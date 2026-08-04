@@ -100,8 +100,8 @@ export interface Quote {
   lines: QuoteLine[];
   /** Selected extras (inquire-only ones never appear here). */
   extrasLines: QuoteLine[];
-  /** Tassa di soggiorno (per person per night, city-set). */
-  taxLine: QuoteLine;
+  /** Tourist tax line, or null when not charged online (handled by concierge). */
+  taxLine: QuoteLine | null;
   total: number;
   /** Payable at confirmation (deposit percentage of total). */
   depositDue: number;
@@ -159,6 +159,31 @@ export interface Booking {
   createdAt: string;
   request: BookingRequest;
   quote: Quote;
+}
+
+/** A captured lead (contact given before the booking completed). */
+export interface LeadCapture {
+  id: string;
+  name: string | null;
+  email: string;
+  phone: string | null;
+  arrive: string | null;
+  depart: string | null;
+  guests: number | null;
+  status: "incomplete" | "converted";
+  reference: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Payload to capture/refresh a lead (best-effort, keyed by email). */
+export interface LeadInput {
+  name?: string;
+  email: string;
+  phone?: string;
+  arrive?: string | null;
+  depart?: string | null;
+  guests?: number | null;
 }
 
 /** Manual calendar block — mirrors the `blocks` table. */

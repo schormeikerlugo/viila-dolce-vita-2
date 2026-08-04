@@ -21,6 +21,7 @@ import type {
   CalendarCell,
   DashboardStats,
   Extra,
+  LeadCapture,
   Promotion,
   Quote,
   QuoteLine,
@@ -186,6 +187,8 @@ const blocksStore = makeStore<CalendarBlock[]>("vdv-mock-blocks", defaultBlocks)
 /* ---- Guest-created bookings -------------------------------------------------- */
 
 const bookingsStore = makeStore<Booking[]>("vdv-mock-bookings", () => []);
+
+const leadsStore = makeStore<LeadCapture[]>("vdv-mock-leads", () => []);
 
 /* ---- Promotions (seeded with the demo code) -------------------------------- */
 
@@ -390,17 +393,10 @@ function computeQuote(stay: StayRequest, extraIds: string[], promoCode?: string)
     .map((e) => extraLine(e, villaStay, nights))
     .filter((l): l is QuoteLine => Boolean(l));
 
-  const taxNights = Math.min(nights, cfg.touristTaxMaxNights);
-  const taxLine: QuoteLine = {
-    label: "Tourist tax (tassa di soggiorno)",
-    detail: `€${cfg.touristTaxPerPersonNight} × ${villaStay.guests} guests × ${taxNights} nights`,
-    amount: cfg.touristTaxPerPersonNight * villaStay.guests * taxNights,
-  };
-
+  // No tourist tax online — handled by the concierge.
   let total =
     lines.reduce((t, l) => t + l.amount, 0) +
-    extrasLines.reduce((t, l) => t + l.amount, 0) +
-    taxLine.amount;
+    extrasLines.reduce((t, l) => t + l.amount, 0);
 
   // Minimum booking floor: top up transparently so 3 nights is always €3,000+.
   if (total < cfg.minBookingTotal) {
@@ -418,7 +414,7 @@ function computeQuote(stay: StayRequest, extraIds: string[], promoCode?: string)
     minNights,
     lines,
     extrasLines,
-    taxLine,
+    taxLine: null,
     total,
     depositDue: eur((total * cfg.depositPct) / 100),
     depositPct: cfg.depositPct,
@@ -456,12 +452,12 @@ export const mockApi: BookingApi = {
   },
 
   async getStayOptions(stay) {
-    // The Villa is the only bookable unit.
+    // The Villa is the only bookable unit. Return the REAL total (floor
+    // applied) so the card matches the quote exactly.
     try {
       const quote = computeQuote({ ...stay, unit: ESTATE }, []);
-      const acc = quote.lines.reduce((t, l) => t + l.amount, 0);
       return delay(
-        [{ unit: ESTATE, available: true, total: acc, nightly: eur(acc / quote.nights) }],
+        [{ unit: ESTATE, available: true, total: quote.total, nightly: eur(quote.total / quote.nights) }],
         350,
       );
     } catch (err) {
@@ -497,13 +493,71 @@ export const mockApi: BookingApi = {
         promosStore.read().map((p) => (p.id === quote.promo!.id ? { ...p, used: p.used + 1 } : p)),
       );
     }
+    // Convert any matching incomplete lead.
+    const email = req.guest.email.toLowerCase();
+    leadsStore.write(
+      leadsStore.read().map((l) =>
+        l.email === email && l.status === "incomplete"
+          ? { ...l, status: "converted", reference: booking.reference, updatedAt: booking.createdAt }
+          : l,
+      ),
+    );
     return delay(booking, 600);
+  },
+
+  async captureLead(lead) {
+    const email = lead.email.trim().toLowerCase();
+    if (!email.includes("@")) return;
+    const now = new Date().toISOString();
+    const leads = leadsStore.read();
+    const existing = leads.find((l) => l.email === email && l.status === "incomplete");
+    if (existing) {
+      leadsStore.write(
+        leads.map((l) =>
+          l.id === existing.id
+            ? {
+                ...l,
+                name: lead.name?.trim() || l.name,
+                phone: lead.phone?.trim() || l.phone,
+                arrive: lead.arrive ?? l.arrive,
+                depart: lead.depart ?? l.depart,
+                guests: lead.guests ?? l.guests,
+                updatedAt: now,
+              }
+            : l,
+        ),
+      );
+    } else {
+      leadsStore.write([
+        ...leads,
+        {
+          id: `lead-${Date.now().toString(36)}`,
+          name: lead.name?.trim() || null,
+          email,
+          phone: lead.phone?.trim() || null,
+          arrive: lead.arrive ?? null,
+          depart: lead.depart ?? null,
+          guests: lead.guests ?? null,
+          status: "incomplete",
+          reference: null,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ]);
+    }
   },
 };
 
 /* ---- The admin API ------------------------------------------------------------------------ */
 
 export const mockAdminApi: AdminBookingApi = {
+  async listLeads() {
+    return delay(
+      [...leadsStore.read()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+      200,
+    );
+  },
+
   async getDashboardStats() {
     const today = todayISO();
     const monthStart = `${today.slice(0, 7)}-01`;

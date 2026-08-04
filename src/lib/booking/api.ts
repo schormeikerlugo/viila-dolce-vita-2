@@ -16,6 +16,8 @@ import type {
   CalendarBlock,
   DashboardStats,
   Extra,
+  LeadCapture,
+  LeadInput,
   Promotion,
   PromotionInput,
   Quote,
@@ -49,6 +51,12 @@ export interface BookingApi {
 
   /** Submit a booking request. Returns the stored booking with reference. */
   createBooking(req: BookingRequest): Promise<Booking>;
+
+  /**
+   * Best-effort capture of a guest's contact details before they finish, so
+   * abandoned bookings stay reachable. Never rejects hard (fire-and-forget).
+   */
+  captureLead(lead: LeadInput): Promise<void>;
 }
 
 /**
@@ -62,6 +70,9 @@ export interface AdminBookingApi {
   /** Bookings created in this system (newest first). */
   listBookings(): Promise<Booking[]>;
   setBookingStatus(reference: string, status: BookingStatus): Promise<Booking>;
+
+  /** Captured leads — incomplete submissions with contact details. */
+  listLeads(): Promise<LeadCapture[]>;
 
   /** Promotions (code-based and automatic offers). */
   listPromotions(): Promise<Promotion[]>;

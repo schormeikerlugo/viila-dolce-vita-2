@@ -271,7 +271,7 @@ function BookingDrawer({
         </dl>
 
         <ul className="bk-quote__lines">
-          {[...b.quote.lines, ...b.quote.extrasLines, b.quote.taxLine].map((line, i) => (
+          {[...b.quote.lines, ...b.quote.extrasLines, ...(b.quote.taxLine ? [b.quote.taxLine] : [])].map((line, i) => (
             <li key={`${line.label}-${i}`} className="bk-quote__line">
               <span className="bk-quote__linelabel">
                 {line.label}

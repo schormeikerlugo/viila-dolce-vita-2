@@ -12,6 +12,7 @@ import type {
   Booking,
   CalendarBlock,
   DashboardStats,
+  LeadCapture,
   Extra,
   Promotion,
   PromotionInput,
@@ -133,6 +134,29 @@ export const supabaseAdminApi: AdminBookingApi = {
     const { data, error } = await supabase().rpc("get_dashboard_stats");
     if (error) fail(error, "Could not load the dashboard.");
     return data as DashboardStats;
+  },
+
+  async listLeads() {
+    const { data, error } = await supabase()
+      .from("lead_captures")
+      .select("id, name, email, phone, arrive, depart, guests, status, reference, created_at, updated_at")
+      .order("updated_at", { ascending: false });
+    if (error) fail(error, "Could not load leads.");
+    return (data ?? []).map(
+      (r): LeadCapture => ({
+        id: r.id,
+        name: r.name,
+        email: r.email,
+        phone: r.phone,
+        arrive: r.arrive,
+        depart: r.depart,
+        guests: r.guests,
+        status: r.status,
+        reference: r.reference,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      }),
+    );
   },
 
   async listPromotions() {

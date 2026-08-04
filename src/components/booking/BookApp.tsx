@@ -24,13 +24,12 @@ import ExtrasPicker from "./ExtrasPicker";
 import GuestDetailsForm from "./GuestDetailsForm";
 import QuoteSummary from "./QuoteSummary";
 
-const STEPS = ["Dates", "Extras", "Details"] as const;
+const STEPS = ["Dates", "Your Details", "Extras"] as const;
 const STEP_META = [
-  { title: "When would you like to stay?", copy: "The whole Villa is yours — pick your dates and party size, and we'll price the stay for you." },
-  { title: "Shape your stay", copy: "Add anything that makes it yours — or continue with what's included." },
-  { title: "Almost there", copy: "A few details and your request is on its way to the concierge." },
+  { title: "When would you like to stay?", copy: "The whole Villa is yours — pick your dates and we'll price the stay for you." },
+  { title: "Who shall we hold it for?", copy: "Your details so the concierge can confirm — we'll hold your dates while you finish." },
+  { title: "Shape your stay", copy: "Add anything that makes it yours — or send your request with what's included." },
 ] as const;
-const MAX_GUESTS = 15;
 /** Index of the confirmation screen (one past the last real step). */
 const DONE_STEP = STEPS.length; // 3
 
@@ -38,32 +37,21 @@ interface Props {
   suites: SuiteCardData[];
 }
 
-/** Read prefill params from the URL (?suite=&arrive=&depart=&guests=). */
-function readPrefill(suites: SuiteCardData[]) {
+/** Read prefill params from the URL (?arrive=&depart=). */
+function readPrefill() {
   if (typeof window === "undefined") return {};
   const p = new URLSearchParams(window.location.search);
   const iso = /^\d{4}-\d{2}-\d{2}$/;
   const today = new Date().toISOString().slice(0, 10);
-  const suiteParam = p.get("suite");
-  const validSuite =
-    suiteParam && (suiteParam === ESTATE || suites.some((s) => s.slug === suiteParam))
-      ? (suiteParam as UnitId)
-      : null;
   const a = p.get("arrive");
   const d = p.get("depart");
-  const g = Number(p.get("guests"));
   const arrive = a && iso.test(a) && a >= today ? a : null;
   const depart = d && iso.test(d) && arrive && d > arrive ? d : null;
-  return {
-    suite: validSuite,
-    arrive,
-    depart,
-    guests: Number.isInteger(g) && g >= 1 && g <= MAX_GUESTS ? g : undefined,
-  };
+  return { arrive, depart };
 }
 
 export default function BookApp({ suites }: Props) {
-  const prefill = useRef(readPrefill(suites)).current;
+  const prefill = useRef(readPrefill()).current;
   const rootRef = useRef<HTMLDivElement>(null);
 
   /* ---- Wizard position ---- */
@@ -71,9 +59,10 @@ export default function BookApp({ suites }: Props) {
 
   /* ---- Stay (URL-prefilled where valid) ---- */
   // The whole Villa is the only bookable unit, so `unit` is always ESTATE.
+  // The guest-count field was removed (flat Villa price); we pass 0 to the API.
   const [arrive, setArrive] = useState<string | null>(prefill.arrive ?? null);
   const [depart, setDepart] = useState<string | null>(prefill.depart ?? null);
-  const [guests, setGuests] = useState(prefill.guests ?? 2);
+  const guests = 0;
   const unit: UnitId = ESTATE;
 
   /* ---- Availability (merged windows, cached per month) ---- */
@@ -213,13 +202,16 @@ export default function BookApp({ suites }: Props) {
 
   /* ---- Step gating ---- */
   // Step 0 = Dates (needs a valid, priced, available Villa stay);
-  // Step 1 = Extras (always continuable); Step 2 = Details (submits).
+  // Step 1 = Details (needs name + valid email + animal consent);
+  // Step 2 = Extras (submits).
   const nights = arrive && depart ? nightsBetween(arrive, depart) : 0;
+  const detailsValid =
+    guest.name.trim().length > 0 && guest.email.includes("@") && guest.acceptsAnimals;
   const canContinue =
     step === 0
       ? Boolean(arrive && depart && quote)
       : step === 1
-        ? Boolean(quote)
+        ? detailsValid
         : false;
 
   /**
@@ -254,10 +246,20 @@ export default function BookApp({ suites }: Props) {
     }
   };
   const next = () => {
-    if (canContinue && step < STEPS.length - 1) {
-      setStep(step + 1);
-      scrollToWizardTop();
+    if (!canContinue || step >= STEPS.length - 1) return;
+    // Leaving the Details step: capture the lead so an abandoned booking is
+    // still reachable (best-effort, fire-and-forget).
+    if (step === 1) {
+      void api.captureLead({
+        name: guest.name,
+        email: guest.email,
+        phone: guest.phone,
+        arrive,
+        depart,
+      });
     }
+    setStep(step + 1);
+    scrollToWizardTop();
   };
 
   /* ---- Confirmation screen ---- */
@@ -275,8 +277,7 @@ export default function BookApp({ suites }: Props) {
                 ? "the entire Villa"
                 : suites.find((s) => s.slug === booking.request.stay.unit)?.name}
             </strong>{" "}
-            — {longDate(booking.request.stay.arrive)} to {longDate(booking.request.stay.depart)},{" "}
-            {booking.request.stay.guests} {booking.request.stay.guests === 1 ? "guest" : "guests"}{" "}
+            — {longDate(booking.request.stay.arrive)} to {longDate(booking.request.stay.depart)}{" "}
             — is with the concierge. We confirm personally, by WhatsApp or email, usually within
             the hour. Nothing has been charged.
           </p>
@@ -313,6 +314,18 @@ export default function BookApp({ suites }: Props) {
 
   return (
     <div className="bk-app" ref={rootRef}>
+      {/* Fixed header: the whole Villa, its gallery, and the live price for
+          the chosen dates — visible through the whole flow. */}
+      <VillaHeader
+        suites={suites}
+        arrive={arrive}
+        depart={depart}
+        nights={nights}
+        option={villaOption}
+        loading={optionsLoading}
+        available={villaAvailable}
+      />
+
       {/* Step rail — numbered circles joined by a progress line. */}
       <ol
         className="bk-steps"
@@ -369,29 +382,6 @@ export default function BookApp({ suites }: Props) {
 
           {step === 0 && (
             <section aria-label="Choose your dates">
-              <div className="bk-guestrow">
-                <p className="bk-guestrow__label">Guests</p>
-                <div className="bk-stepper">
-                  <button
-                    type="button"
-                    onClick={() => setGuests((g) => Math.max(1, g - 1))}
-                    aria-label="Fewer guests"
-                    disabled={guests <= 1}
-                  >
-                    −
-                  </button>
-                  <span aria-live="polite">{guests}</span>
-                  <button
-                    type="button"
-                    onClick={() => setGuests((g) => Math.min(MAX_GUESTS, g + 1))}
-                    aria-label="More guests"
-                    disabled={guests >= MAX_GUESTS}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
               <AvailabilityCalendar
                 occ={occ}
                 arrive={arrive}
@@ -403,53 +393,18 @@ export default function BookApp({ suites }: Props) {
                 onVisibleRange={loadRange}
                 loading={occLoading}
               />
-
-              {/* The whole Villa, priced for the chosen dates. */}
-              {arrive && depart && (
-                <div className="bk-villa" aria-live="polite">
-                  <div className="bk-villa__body">
-                    <span className="bk-villa__eyebrow">Five suites · Sleeps 15 · The whole estate</span>
-                    <h3 className="bk-villa__name">The Entire Villa</h3>
-                    <p className="bk-villa__sub">
-                      {longDate(arrive)} → {longDate(depart)} · {nights}{" "}
-                      {nights === 1 ? "night" : "nights"} · {guests}{" "}
-                      {guests === 1 ? "guest" : "guests"}
-                    </p>
-
-                    {optionsLoading ? (
-                      <p className="bk-villa__price bk-villa__price--muted">Checking availability…</p>
-                    ) : villaAvailable && villaOption?.nightly != null && villaOption?.total != null ? (
-                      <p className="bk-villa__price">
-                        {money(villaOption.nightly)} <em>/ night</em>
-                        <span className="bk-villa__total">
-                          {money(villaOption.total)} · {nights} {nights === 1 ? "night" : "nights"}
-                        </span>
-                      </p>
-                    ) : (
-                      <p className="bk-villa__price bk-villa__price--off">
-                        {villaOption?.reason ?? "Unavailable for these dates"}
-                      </p>
-                    )}
-
-                    <p className="bk-villa__note">
-                      Minimum 3 nights · from €3,000. Breakfast and three chef-cooked dinners a
-                      week are included; add anything else in the next step.
-                    </p>
-                  </div>
-                </div>
-              )}
             </section>
           )}
 
           {step === 1 && (
-            <section aria-label="Add to your stay">
-              <ExtrasPicker extras={extras} selected={selectedExtras} onToggle={toggleExtra} />
+            <section aria-label="Your details">
+              <GuestDetailsForm value={guest} onChange={setGuest} disabled={submitting} />
             </section>
           )}
 
           {step === 2 && (
-            <section aria-label="Your details">
-              <GuestDetailsForm value={guest} onChange={setGuest} disabled={submitting} />
+            <section aria-label="Add to your stay">
+              <ExtrasPicker extras={extras} selected={selectedExtras} onToggle={toggleExtra} />
 
               {/* Promo code — validated by the API; the discount lands in
                   the quote rail as its own line. */}
@@ -534,9 +489,6 @@ export default function BookApp({ suites }: Props) {
         <QuoteSummary
           arrive={arrive}
           depart={depart}
-          guests={guests}
-          unit={unit}
-          suites={suites}
           quote={quote}
           requests={requestNames}
           loading={quoteLoading}
@@ -544,5 +496,66 @@ export default function BookApp({ suites }: Props) {
         />
       </div>
     </div>
+  );
+}
+
+/* ---- Fixed Villa header: one image left, details + live price right ---- */
+
+function VillaHeader({
+  suites,
+  arrive,
+  depart,
+  nights,
+  option,
+  loading,
+  available,
+}: {
+  suites: SuiteCardData[];
+  arrive: string | null;
+  depart: string | null;
+  nights: number;
+  option: UnitOption | null;
+  loading: boolean;
+  available: boolean;
+}) {
+  // A single lead image of the Villa (the flagship suite's photo).
+  const hero = [...suites].sort((a, b) => a.rank - b.rank)[0];
+
+  return (
+    <header className="bk-villahead">
+      <div className="bk-villahead__media">
+        {hero && <img src={hero.image} alt={hero.imageAlt} className="bk-villahead__hero" />}
+      </div>
+
+      <div className="bk-villahead__body">
+        <span className="bk-villahead__eyebrow">Five suites · Sleeps 15 · The whole estate</span>
+        <h2 className="bk-villahead__name">The Entire Villa</h2>
+        <p className="bk-villahead__note">
+          The hilltop entirely yours — all five suites, the pool and the grounds. Breakfast and
+          three chef-cooked dinners a week included. Minimum 3 nights · from €3,000.
+        </p>
+
+        <div className="bk-villahead__price">
+          {!arrive || !depart ? (
+            <span className="bk-villahead__price-muted">Select your dates below</span>
+          ) : loading ? (
+            <span className="bk-villahead__price-muted">Checking availability…</span>
+          ) : available && option?.nightly != null && option?.total != null ? (
+            <>
+              <span className="bk-villahead__amount">
+                {money(option.nightly)} <em>/ night</em>
+              </span>
+              <span className="bk-villahead__total">
+                {money(option.total)} · {nights} {nights === 1 ? "night" : "nights"}
+              </span>
+            </>
+          ) : (
+            <span className="bk-villahead__price-off">
+              {option?.reason ?? "Unavailable for these dates"}
+            </span>
+          )}
+        </div>
+      </div>
+    </header>
   );
 }
