@@ -33,7 +33,7 @@ export default function QuoteSummary({
 }: Props) {
   const unitName =
     unit === ESTATE
-      ? "The Entire Estate"
+      ? "The Entire Villa"
       : unit
         ? (suites.find((s) => s.slug === unit)?.name ?? null)
         : null;

@@ -53,8 +53,9 @@ export default function AvailabilityCalendar({
   }, [cursor]);
 
   const busyCount = (d: string) => occ[d]?.length ?? 0;
-  const freeCount = (d: string) => SUITE_COUNT - busyCount(d);
-  const isFull = (d: string) => busyCount(d) >= SUITE_COUNT;
+  // The Villa is the only unit: a night is "full" (unavailable) if ANY suite
+  // is occupied that night, since booking takes the whole estate.
+  const isFull = (d: string) => busyCount(d) > 0;
 
   /** Fully-booked nights inside `[a, b)` — the ones that block the stay. */
   const blockedNightsIn = (a: string, b: string): string[] => {
@@ -131,14 +132,10 @@ export default function AvailabilityCalendar({
     setTappedBlocked([]);
   }, [arrive, depart]);
 
-  /** Per-day bubble label (only when meaningful). */
+  /** Per-day bubble label (only for booked days). */
   const bubbleFor = (d: string): string | null => {
     if (d < today) return null;
-    if (isFull(d)) return "Fully booked";
-    // If picking a departure and this blocked-crossing hover, the empty ones
-    // still show their free count.
-    const free = freeCount(d);
-    if (free < SUITE_COUNT) return `${free} of ${SUITE_COUNT} suites free`;
+    if (isFull(d)) return "Booked";
     return null;
   };
 
@@ -183,7 +180,6 @@ export default function AvailabilityCalendar({
                     <span key={`${m}-pad-${i}`} className="bk-cal__pad" aria-hidden="true" />
                   );
                 const full = d >= today && isFull(d);
-                const limited = d >= today && !full && busyCount(d) > 0;
                 // A blocked night the tentative range would cross.
                 const blocksHover = flaggedBlocked.includes(d);
                 const bubble = bubbleFor(d);
@@ -195,7 +191,6 @@ export default function AvailabilityCalendar({
                       "bk-cal__day",
                       d < today && "is-past",
                       full && "is-full",
-                      limited && "is-limited",
                       blocksHover && "is-blocking",
                       d === arrive && "is-arrive",
                       d === (depart ?? previewEnd) && "is-depart",
@@ -239,8 +234,7 @@ export default function AvailabilityCalendar({
 
       <div className="bk-cal__legend">
         <span className="bk-cal__key bk-cal__key--free">Available</span>
-        <span className="bk-cal__key bk-cal__key--limited">Some suites taken</span>
-        <span className="bk-cal__key bk-cal__key--full">Fully booked</span>
+        <span className="bk-cal__key bk-cal__key--full">Booked</span>
       </div>
     </div>
   );

@@ -43,7 +43,7 @@ export default function AdminCalendar({ suites }: Props) {
 
   // Block form (prefilled from the selected cell).
   const [blockEnd, setBlockEnd] = useState("");
-  const [blockScope, setBlockScope] = useState<"suite" | "estate">("suite");
+  const [blockScope, setBlockScope] = useState<"suite" | "estate">("estate");
   const [blockReason, setBlockReason] = useState("");
 
   const monthEnd = addMonths(cursor, 1);
@@ -71,7 +71,7 @@ export default function AdminCalendar({ suites }: Props) {
     setSel({ suite, date });
     setError(null);
     setBlockEnd(addDays(date, 1));
-    setBlockScope("suite");
+    setBlockScope("estate");
     setBlockReason("");
   };
 
@@ -225,8 +225,8 @@ export default function AdminCalendar({ suites }: Props) {
                     value={blockScope}
                     onChange={(e) => setBlockScope(e.target.value as "suite" | "estate")}
                   >
-                    <option value="suite">{selSuiteName}</option>
-                    <option value="estate">Entire estate</option>
+                    <option value="estate">Entire Villa</option>
+                    <option value="suite">{selSuiteName} only</option>
                   </select>
                 </label>
               </div>

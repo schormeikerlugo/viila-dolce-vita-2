@@ -283,6 +283,10 @@ export const supabaseAdminApi: AdminBookingApi = {
       depositPct: settings.data.deposit_pct,
       touristTaxPerPersonNight: Number(settings.data.tourist_tax),
       touristTaxMaxNights: settings.data.tourist_tax_max_nights,
+      villaNightlyRate: settings.data.estate_nightly_rate,
+      villaMinNights: settings.data.estate_min_nights,
+      minBookingTotal: settings.data.min_booking_total,
+      villaSleeps: settings.data.estate_sleeps,
     } satisfies RatesConfig;
   },
 
@@ -310,6 +314,9 @@ export const supabaseAdminApi: AdminBookingApi = {
           deposit_pct: config.depositPct,
           tourist_tax: config.touristTaxPerPersonNight,
           tourist_tax_max_nights: config.touristTaxMaxNights,
+          estate_nightly_rate: config.villaNightlyRate,
+          estate_min_nights: config.villaMinNights,
+          min_booking_total: config.minBookingTotal,
         })
         .eq("id", true),
     ]);

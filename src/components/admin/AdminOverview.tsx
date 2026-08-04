@@ -29,7 +29,7 @@ export default function AdminOverview({ suites }: Props) {
   useEffect(load, [load]);
 
   const unitName = (unit: string) =>
-    unit === "estate" ? "Entire Estate" : (suites.find((s) => s.slug === unit)?.name ?? unit);
+    unit === "estate" ? "Entire Villa" : (suites.find((s) => s.slug === unit)?.name ?? unit);
 
   const decide = (reference: string, status: "confirmed" | "cancelled") => {
     setBusyRef(reference);

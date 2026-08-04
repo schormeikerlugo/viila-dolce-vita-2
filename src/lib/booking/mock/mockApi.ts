@@ -110,6 +110,10 @@ function defaultRates(): RatesConfig {
     depositPct: paymentRules.depositPct,
     touristTaxPerPersonNight: taxRules.touristTaxPerPersonNight,
     touristTaxMaxNights: taxRules.touristTaxMaxNights,
+    villaNightlyRate: estateRules.nightlyRate,
+    villaMinNights: estateRules.minNights,
+    minBookingTotal: estateRules.minBookingTotal,
+    villaSleeps: estateRules.sleeps,
   };
 }
 
@@ -296,60 +300,24 @@ function unitFreeForStay(stay: StayRequest, occ: AvailabilityMap): boolean {
 
 const eur = Math.round;
 
+/** The Villa is the only unit: flat nightly rate × each night's season. */
 function accommodationLines(cfg: RatesConfig, stay: StayRequest, nights: number): QuoteLine[] {
-  const lines: QuoteLine[] = [];
-  const nightly = (base: number, night: string) => eur(base * seasonOf(cfg, night).multiplier);
-
-  if (stay.unit === ESTATE) {
-    const sumBase = cfg.suites.reduce((t, s) => t + s.baseRate, 0);
-    let gross = 0;
-    for (const night of eachNight(stay.arrive, stay.depart)) gross += nightly(sumBase, night);
-    const discount = eur((gross * estateRules.discountPct) / 100);
-    lines.push({
-      label: "Entire Estate — five suites",
-      detail: `${nights} ${nights === 1 ? "night" : "nights"}, all suites & grounds`,
-      amount: gross,
-    });
-    lines.push({
-      label: `Full-buyout rate (−${estateRules.discountPct}%)`,
-      amount: -discount,
-    });
-    const extraGuests = Math.max(0, stay.guests - estateRules.baseOccupancy);
-    if (extraGuests > 0) {
-      lines.push({
-        label: "Additional guests",
-        detail: `${extraGuests} × €${estateRules.extraGuestRate} × ${nights} nights`,
-        amount: extraGuests * estateRules.extraGuestRate * nights,
-      });
-    }
-    return lines;
-  }
-
-  const suite = cfg.suites.find((s) => s.slug === stay.unit);
-  if (!suite) throw new Error("Unknown suite.");
-  let sum = 0;
   const rates = new Set<number>();
+  let gross = 0;
   for (const night of eachNight(stay.arrive, stay.depart)) {
-    const r = nightly(suite.baseRate, night);
+    const r = eur(cfg.villaNightlyRate * seasonOf(cfg, night).multiplier);
     rates.add(r);
-    sum += r;
+    gross += r;
   }
   const rateText =
     rates.size === 1 ? `€${[...rates][0]}` : `€${Math.min(...rates)}–€${Math.max(...rates)}`;
-  lines.push({
-    label: `${cap(suite.slug)} Suite`,
-    detail: `${nights} ${nights === 1 ? "night" : "nights"} × ${rateText}`,
-    amount: sum,
-  });
-  const extraGuests = Math.max(0, stay.guests - suite.baseOccupancy);
-  if (extraGuests > 0) {
-    lines.push({
-      label: "Additional guests",
-      detail: `${extraGuests} × €${suite.extraGuestRate} × ${nights} nights`,
-      amount: extraGuests * suite.extraGuestRate * nights,
-    });
-  }
-  return lines;
+  return [
+    {
+      label: "The Entire Villa",
+      detail: `${nights} ${nights === 1 ? "night" : "nights"} × ${rateText}`,
+      amount: gross,
+    },
+  ];
 }
 
 function extraLine(extra: Extra, stay: StayRequest, nights: number): QuoteLine | null {
@@ -375,34 +343,31 @@ function extraLine(extra: Extra, stay: StayRequest, nights: number): QuoteLine |
 
 function computeQuote(stay: StayRequest, extraIds: string[], promoCode?: string): Quote {
   const cfg = ratesStore.read();
-  const nights = nightsBetween(stay.arrive, stay.depart);
+  // The Villa is the only bookable unit — force it regardless of input.
+  const villaStay: StayRequest = { ...stay, unit: ESTATE };
+  const nights = nightsBetween(villaStay.arrive, villaStay.depart);
   if (!(nights > 0)) throw new Error("Departure must be after arrival.");
-  if (stay.arrive < todayISO()) throw new Error("Arrival cannot be in the past.");
+  if (villaStay.arrive < todayISO()) throw new Error("Arrival cannot be in the past.");
 
-  const capacity =
-    stay.unit === ESTATE
-      ? estateRules.sleeps
-      : (cfg.suites.find((s) => s.slug === stay.unit)?.sleeps ?? 0);
-  if (stay.guests < 1) throw new Error("At least one guest.");
-  if (stay.guests > capacity)
-    throw new Error(
-      `${stay.unit === ESTATE ? "The estate" : `The ${cap(stay.unit)} Suite`} sleeps up to ${capacity} guests.`,
-    );
+  if (villaStay.guests < 1) throw new Error("At least one guest.");
+  if (villaStay.guests > cfg.villaSleeps)
+    throw new Error(`The Villa sleeps up to ${cfg.villaSleeps} guests.`);
 
   const minNights = Math.max(
-    ...eachNight(stay.arrive, stay.depart).map((n) => seasonOf(cfg, n).minNights),
+    cfg.villaMinNights,
+    ...eachNight(villaStay.arrive, villaStay.depart).map((n) => seasonOf(cfg, n).minNights),
   );
   if (nights < minNights)
-    throw new Error(`These dates require a minimum stay of ${minNights} nights.`);
+    throw new Error(`The Villa is booked for a minimum of ${minNights} nights.`);
 
-  if (!unitFreeForStay(stay, occupancy(stay.arrive, stay.depart)))
-    throw new Error("Those dates are no longer available for this selection.");
+  if (!unitFreeForStay(villaStay, occupancy(villaStay.arrive, villaStay.depart)))
+    throw new Error("Those dates are no longer available.");
 
-  const lines = accommodationLines(cfg, stay, nights);
+  const lines = accommodationLines(cfg, villaStay, nights);
 
   // Promotion (explicit code or best automatic offer) on accommodation only.
   const accSubtotal = lines.reduce((t, l) => t + l.amount, 0);
-  const promo = resolvePromo(promoCode, stay, nights);
+  const promo = resolvePromo(promoCode, villaStay, nights);
   let promoInfo: Quote["promo"];
   if (promo) {
     const discount =
@@ -422,20 +387,30 @@ function computeQuote(stay: StayRequest, extraIds: string[], promoCode?: string)
   const extrasLines = extraIds
     .map((id) => cfg.extras.find((e) => e.id === id))
     .filter((e): e is Extra => Boolean(e))
-    .map((e) => extraLine(e, stay, nights))
+    .map((e) => extraLine(e, villaStay, nights))
     .filter((l): l is QuoteLine => Boolean(l));
 
   const taxNights = Math.min(nights, cfg.touristTaxMaxNights);
   const taxLine: QuoteLine = {
     label: "Tourist tax (tassa di soggiorno)",
-    detail: `€${cfg.touristTaxPerPersonNight} × ${stay.guests} guests × ${taxNights} nights`,
-    amount: cfg.touristTaxPerPersonNight * stay.guests * taxNights,
+    detail: `€${cfg.touristTaxPerPersonNight} × ${villaStay.guests} guests × ${taxNights} nights`,
+    amount: cfg.touristTaxPerPersonNight * villaStay.guests * taxNights,
   };
 
-  const total =
+  let total =
     lines.reduce((t, l) => t + l.amount, 0) +
     extrasLines.reduce((t, l) => t + l.amount, 0) +
     taxLine.amount;
+
+  // Minimum booking floor: top up transparently so 3 nights is always €3,000+.
+  if (total < cfg.minBookingTotal) {
+    lines.push({
+      label: "Minimum stay adjustment",
+      detail: `to reach the €${cfg.minBookingTotal} minimum`,
+      amount: cfg.minBookingTotal - total,
+    });
+    total = cfg.minBookingTotal;
+  }
 
   return {
     currency: "EUR",
@@ -481,28 +456,20 @@ export const mockApi: BookingApi = {
   },
 
   async getStayOptions(stay) {
-    const units: UnitId[] = [...allSuiteSlugs, ESTATE];
-    const options = units.map((unit) => {
-      try {
-        // Capacity errors should read as "not for this party size", while
-        // date conflicts read as "booked" — computeQuote's message carries it.
-        const quote = computeQuote({ ...stay, unit }, []);
-        const total = quote.lines.reduce((t, l) => t + l.amount, 0);
-        return {
-          unit,
-          available: true,
-          total,
-          nightly: eur(total / quote.nights),
-        };
-      } catch (err) {
-        return {
-          unit,
-          available: false,
-          reason: err instanceof Error ? err.message : "Unavailable",
-        };
-      }
-    });
-    return delay(options, 350);
+    // The Villa is the only bookable unit.
+    try {
+      const quote = computeQuote({ ...stay, unit: ESTATE }, []);
+      const acc = quote.lines.reduce((t, l) => t + l.amount, 0);
+      return delay(
+        [{ unit: ESTATE, available: true, total: acc, nightly: eur(acc / quote.nights) }],
+        350,
+      );
+    } catch (err) {
+      return delay(
+        [{ unit: ESTATE, available: false, reason: err instanceof Error ? err.message : "Unavailable" }],
+        350,
+      );
+    }
   },
 
   async getQuote(stay, extraIds, promoCode) {

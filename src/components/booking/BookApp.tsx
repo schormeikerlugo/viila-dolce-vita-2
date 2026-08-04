@@ -20,14 +20,13 @@ import type {
 import { ESTATE } from "../../lib/booking/types";
 import { longDate, money, nightsBetween } from "../../lib/booking/dates";
 import AvailabilityCalendar from "./AvailabilityCalendar";
-import SuitePicker from "./SuitePicker";
 import ExtrasPicker from "./ExtrasPicker";
 import GuestDetailsForm from "./GuestDetailsForm";
 import QuoteSummary from "./QuoteSummary";
 
-const STEPS = ["Dates & Suite", "Extras", "Details"] as const;
+const STEPS = ["Dates", "Extras", "Details"] as const;
 const STEP_META = [
-  { title: "When would you like to stay?", copy: "Pick your dates and party size — the suites free for those nights appear below, priced for your stay." },
+  { title: "When would you like to stay?", copy: "The whole Villa is yours — pick your dates and party size, and we'll price the stay for you." },
   { title: "Shape your stay", copy: "Add anything that makes it yours — or continue with what's included." },
   { title: "Almost there", copy: "A few details and your request is on its way to the concierge." },
 ] as const;
@@ -68,18 +67,14 @@ export default function BookApp({ suites }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   /* ---- Wizard position ---- */
-  // Deep-linked with a suite → jump straight to the suite step once dates
-  // exist; otherwise start at dates.
-  const [step, setStep] = useState(0); // 0..3, 4 = confirmation
+  const [step, setStep] = useState(0); // 0..2, 3 = confirmation
 
   /* ---- Stay (URL-prefilled where valid) ---- */
+  // The whole Villa is the only bookable unit, so `unit` is always ESTATE.
   const [arrive, setArrive] = useState<string | null>(prefill.arrive ?? null);
   const [depart, setDepart] = useState<string | null>(prefill.depart ?? null);
   const [guests, setGuests] = useState(prefill.guests ?? 2);
-  const [unit, setUnit] = useState<UnitId | null>(prefill.suite ?? null);
-
-  // Dates and suite now share step 0, so a date prefill needs no step jump —
-  // the available-suites panel appears under the calendar automatically.
+  const unit: UnitId = ESTATE;
 
   /* ---- Availability (merged windows, cached per month) ---- */
   const [occ, setOcc] = useState<AvailabilityMap>({});
@@ -103,20 +98,21 @@ export default function BookApp({ suites }: Props) {
       .finally(() => setOccLoading(false));
   }, []);
 
-  /* ---- Options for the chosen dates ---- */
-  const [options, setOptions] = useState<UnitOption[]>([]);
+  /* ---- The Villa priced for the chosen dates ---- */
+  const [villaOption, setVillaOption] = useState<UnitOption | null>(null);
   const [optionsLoading, setOptionsLoading] = useState(false);
   useEffect(() => {
-    if (!arrive || !depart) return;
+    if (!arrive || !depart) {
+      setVillaOption(null);
+      return;
+    }
     let alive = true;
     setOptionsLoading(true);
     api
       .getStayOptions({ arrive, depart, guests })
       .then((opts) => {
         if (!alive) return;
-        setOptions(opts);
-        // Drop the selection if it became unavailable (dates/guests changed).
-        setUnit((u) => (u && !opts.find((o) => o.unit === u)?.available ? null : u));
+        setVillaOption(opts.find((o) => o.unit === ESTATE) ?? opts[0] ?? null);
       })
       .finally(() => alive && setOptionsLoading(false));
     return () => {
@@ -213,16 +209,15 @@ export default function BookApp({ suites }: Props) {
   };
 
   /* ---- Derived ---- */
-  // How many suites (not the estate) are bookable for the chosen range.
-  const availableCount = options.filter((o) => o.unit !== ESTATE && o.available).length;
+  const villaAvailable = villaOption?.available ?? false;
 
   /* ---- Step gating ---- */
-  // Step 0 = Dates & Suite (must have a dated, priced suite selected);
+  // Step 0 = Dates (needs a valid, priced, available Villa stay);
   // Step 1 = Extras (always continuable); Step 2 = Details (submits).
   const nights = arrive && depart ? nightsBetween(arrive, depart) : 0;
   const canContinue =
     step === 0
-      ? Boolean(arrive && depart && unit && quote)
+      ? Boolean(arrive && depart && quote)
       : step === 1
         ? Boolean(quote)
         : false;
@@ -265,17 +260,6 @@ export default function BookApp({ suites }: Props) {
     }
   };
 
-  /**
-   * Picking a suite in step 0 advances straight to Extras (Option A: no
-   * separate suite step). If the guest is just changing their mind on the
-   * suite, they stay put until they choose.
-   */
-  const chooseSuite = (u: UnitId) => {
-    setUnit(u);
-    setStep(1);
-    scrollToWizardTop();
-  };
-
   /* ---- Confirmation screen ---- */
   if (step === DONE_STEP && booking) {
     return (
@@ -288,7 +272,7 @@ export default function BookApp({ suites }: Props) {
             Your request for{" "}
             <strong>
               {booking.request.stay.unit === ESTATE
-                ? "the entire estate"
+                ? "the entire Villa"
                 : suites.find((s) => s.slug === booking.request.stay.unit)?.name}
             </strong>{" "}
             — {longDate(booking.request.stay.arrive)} to {longDate(booking.request.stay.depart)},{" "}
@@ -384,7 +368,7 @@ export default function BookApp({ suites }: Props) {
           )}
 
           {step === 0 && (
-            <section aria-label="Choose your dates and suite">
+            <section aria-label="Choose your dates">
               <div className="bk-guestrow">
                 <p className="bk-guestrow__label">Guests</p>
                 <div className="bk-stepper">
@@ -415,47 +399,43 @@ export default function BookApp({ suites }: Props) {
                 onChange={(a, d) => {
                   setArrive(a);
                   setDepart(d);
-                  setUnit(null);
                 }}
                 onVisibleRange={loadRange}
                 loading={occLoading}
               />
 
-              {/* Available suites appear the moment a range is chosen — priced,
-                  clickable, and advancing straight to Extras (Option A). */}
+              {/* The whole Villa, priced for the chosen dates. */}
               {arrive && depart && (
-                <div className="bk-avail" aria-live="polite">
-                  <div className="bk-avail__head">
-                    <h3 className="bk-avail__title">
-                      {optionsLoading
-                        ? "Checking availability…"
-                        : availableCount > 0
-                          ? `${availableCount} of ${suites.length} suites available`
-                          : "No suites for these dates"}
-                    </h3>
-                    <p className="bk-avail__sub">
+                <div className="bk-villa" aria-live="polite">
+                  <div className="bk-villa__body">
+                    <span className="bk-villa__eyebrow">Five suites · Sleeps 15 · The whole estate</span>
+                    <h3 className="bk-villa__name">The Entire Villa</h3>
+                    <p className="bk-villa__sub">
                       {longDate(arrive)} → {longDate(depart)} · {nights}{" "}
                       {nights === 1 ? "night" : "nights"} · {guests}{" "}
                       {guests === 1 ? "guest" : "guests"}
                     </p>
-                  </div>
 
-                  {!optionsLoading && availableCount === 0 && (
-                    <p className="bk-avail__empty">
-                      Every suite is taken (or too small for {guests} guests) across these nights.
-                      Try different dates or adjust the party size — the calendar shows which
-                      nights are open.
+                    {optionsLoading ? (
+                      <p className="bk-villa__price bk-villa__price--muted">Checking availability…</p>
+                    ) : villaAvailable && villaOption?.nightly != null && villaOption?.total != null ? (
+                      <p className="bk-villa__price">
+                        {money(villaOption.nightly)} <em>/ night</em>
+                        <span className="bk-villa__total">
+                          {money(villaOption.total)} · {nights} {nights === 1 ? "night" : "nights"}
+                        </span>
+                      </p>
+                    ) : (
+                      <p className="bk-villa__price bk-villa__price--off">
+                        {villaOption?.reason ?? "Unavailable for these dates"}
+                      </p>
+                    )}
+
+                    <p className="bk-villa__note">
+                      Minimum 3 nights · from €3,000. Breakfast and three chef-cooked dinners a
+                      week are included; add anything else in the next step.
                     </p>
-                  )}
-
-                  <SuitePicker
-                    suites={suites}
-                    options={options}
-                    selected={unit}
-                    nights={nights}
-                    onSelect={chooseSuite}
-                    loading={optionsLoading}
-                  />
+                  </div>
                 </div>
               )}
             </section>
@@ -535,13 +515,9 @@ export default function BookApp({ suites }: Props) {
               <span />
             )}
             {step < STEPS.length - 1 ? (
-              // On step 0 a suite click already advances; Continue only shows
-              // once a suite is chosen, so the guest can resume after going back.
-              (step !== 0 || unit) && (
-                <button type="button" className="bk-btn" onClick={next} disabled={!canContinue}>
-                  Continue →
-                </button>
-              )
+              <button type="button" className="bk-btn" onClick={next} disabled={!canContinue}>
+                Continue →
+              </button>
             ) : (
               <button
                 type="button"

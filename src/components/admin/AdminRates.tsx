@@ -64,56 +64,66 @@ export default function AdminRates() {
 
       {flash && <p className="adm-flash">{flash}</p>}
 
-      {/* ---- Suites ---- */}
-      <h3 className="adm-rates__sub">Nightly rates</h3>
+      {/* ---- The Villa ---- */}
+      <h3 className="adm-rates__sub">The Villa</h3>
+      <div className="adm-rates__pair">
+        <label className="bk-field">
+          <span className="bk-field__label">Nightly rate (€)</span>
+          <input
+            type="number"
+            min={0}
+            className="bk-field__input"
+            value={cfg.villaNightlyRate}
+            onChange={(e) =>
+              setCfg({ ...cfg, villaNightlyRate: num(e.target.value, cfg.villaNightlyRate) })
+            }
+          />
+        </label>
+        <label className="bk-field">
+          <span className="bk-field__label">Minimum nights</span>
+          <input
+            type="number"
+            min={1}
+            className="bk-field__input"
+            value={cfg.villaMinNights}
+            onChange={(e) =>
+              setCfg({
+                ...cfg,
+                villaMinNights: Math.max(1, Math.round(num(e.target.value, cfg.villaMinNights))),
+              })
+            }
+          />
+        </label>
+        <label className="bk-field">
+          <span className="bk-field__label">Minimum booking total (€)</span>
+          <input
+            type="number"
+            min={0}
+            className="bk-field__input"
+            value={cfg.minBookingTotal}
+            onChange={(e) =>
+              setCfg({ ...cfg, minBookingTotal: num(e.target.value, cfg.minBookingTotal) })
+            }
+          />
+        </label>
+      </div>
+      <p className="adm-rates__hint">
+        The whole Villa is the only bookable unit — the five suites below are included. The
+        nightly rate is multiplied by each night's season; stays are floored to the minimum
+        booking total.
+      </p>
       <div className="adm-tablewrap">
-        <table className="adm-table adm-table--edit">
+        <table className="adm-table">
           <thead>
             <tr>
-              <th>Suite</th>
-              <th className="is-num">Base rate / night (€)</th>
-              <th className="is-num">Extra guest / night (€)</th>
-              <th className="is-num">Guests included</th>
+              <th>Included suite</th>
               <th className="is-num">Sleeps</th>
             </tr>
           </thead>
           <tbody>
-            {cfg.suites.map((s, i) => (
+            {cfg.suites.map((s) => (
               <tr key={s.slug}>
                 <td className="adm-table__ref">{s.slug}</td>
-                <td className="is-num">
-                  <input
-                    type="number"
-                    min={0}
-                    value={s.baseRate}
-                    onChange={(e) =>
-                      setCfg({
-                        ...cfg,
-                        suites: cfg.suites.map((x, j) =>
-                          j === i ? { ...x, baseRate: num(e.target.value, x.baseRate) } : x,
-                        ),
-                      })
-                    }
-                  />
-                </td>
-                <td className="is-num">
-                  <input
-                    type="number"
-                    min={0}
-                    value={s.extraGuestRate}
-                    onChange={(e) =>
-                      setCfg({
-                        ...cfg,
-                        suites: cfg.suites.map((x, j) =>
-                          j === i
-                            ? { ...x, extraGuestRate: num(e.target.value, x.extraGuestRate) }
-                            : x,
-                        ),
-                      })
-                    }
-                  />
-                </td>
-                <td className="is-num">{s.baseOccupancy}</td>
                 <td className="is-num">{s.sleeps}</td>
               </tr>
             ))}

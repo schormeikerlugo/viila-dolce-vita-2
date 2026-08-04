@@ -70,7 +70,7 @@ export default function AdminBookings({ suites }: Props) {
   };
 
   const unitName = (unit: string) =>
-    unit === ESTATE ? "Entire Estate" : (suites.find((s) => s.slug === unit)?.name ?? unit);
+    unit === ESTATE ? "Entire Villa" : (suites.find((s) => s.slug === unit)?.name ?? unit);
 
   const q = search.trim().toLowerCase();
   const visible = bookings.filter((b) => {

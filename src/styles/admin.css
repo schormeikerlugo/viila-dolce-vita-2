@@ -629,6 +629,13 @@
   grid-template-columns: repeat(auto-fit, minmax(14rem, 18rem));
   gap: 1.25rem;
 }
+.adm-rates__hint {
+  margin: 1rem 0 1.25rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 70ch;
+}
 
 /* ---- Overview: KPIs -------------------------------------------------------------------------------- */
 

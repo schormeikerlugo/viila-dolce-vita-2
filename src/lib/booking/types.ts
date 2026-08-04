@@ -186,6 +186,7 @@ export interface SeasonSetting {
 
 /** Everything money-related the owners can edit from the admin. */
 export interface RatesConfig {
+  /** The suites are "included" in the Villa now — kept for reference/labels. */
   suites: RateSuite[];
   seasons: SeasonSetting[];
   extras: Extra[];
@@ -193,6 +194,14 @@ export interface RatesConfig {
   /** Tassa di soggiorno, EUR per person per night. */
   touristTaxPerPersonNight: number;
   touristTaxMaxNights: number;
+  /** Whole-Villa flat nightly rate (× the night's season multiplier). */
+  villaNightlyRate: number;
+  /** Minimum stay for the Villa (nights). */
+  villaMinNights: number;
+  /** Floor on the whole booking total. */
+  minBookingTotal: number;
+  /** The Villa's capacity. */
+  villaSleeps: number;
 }
 
 /** A promotion — mirrors the `promotions` table. */

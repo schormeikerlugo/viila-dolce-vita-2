@@ -21,13 +21,15 @@ export const rateSuites: RateSuite[] = [
 
 export const allSuiteSlugs: SuiteSlug[] = rateSuites.map((s) => s.slug);
 
-/* ---- Estate buyout rules ------------------------------------------------- */
+/* ---- Villa (whole-estate) pricing rules ---------------------------------- */
 
 export const estateRules = {
-  /** Whole-estate nightly = sum of suite rates × (1 − discount). */
-  discountPct: 10,
-  baseOccupancy: 10,
-  extraGuestRate: 30,
+  /** Flat Villa nightly rate (× the night's season multiplier). */
+  nightlyRate: 1000,
+  /** Minimum stay for the Villa (nights). */
+  minNights: 3,
+  /** Floor on the whole booking total (accommodation + extras + tax). */
+  minBookingTotal: 3000,
   sleeps: 15,
 } as const;
 
@@ -50,11 +52,12 @@ export interface SeasonTemplate {
 
 export const seasonTemplates: SeasonTemplate[] = [
   // Order matters: first match wins (festive overlaps winter).
+  // Villa minimum is 3 nights year-round.
   { id: "festive", name: "Festive", from: "12-20", to: "01-06", multiplier: 1.2, minNights: 3, mockOccupancy: 0.55 },
   { id: "summer", name: "High Summer", from: "06-01", to: "09-30", multiplier: 1.25, minNights: 3, mockOccupancy: 0.5 },
-  { id: "spring", name: "Spring", from: "04-01", to: "05-31", multiplier: 1.0, minNights: 2, mockOccupancy: 0.35 },
-  { id: "autumn", name: "Autumn", from: "10-01", to: "10-31", multiplier: 1.0, minNights: 2, mockOccupancy: 0.35 },
-  { id: "winter", name: "Winter", from: "11-01", to: "03-31", multiplier: 0.85, minNights: 2, mockOccupancy: 0.2 },
+  { id: "spring", name: "Spring", from: "04-01", to: "05-31", multiplier: 1.0, minNights: 3, mockOccupancy: 0.35 },
+  { id: "autumn", name: "Autumn", from: "10-01", to: "10-31", multiplier: 1.0, minNights: 3, mockOccupancy: 0.35 },
+  { id: "winter", name: "Winter", from: "11-01", to: "03-31", multiplier: 0.85, minNights: 3, mockOccupancy: 0.2 },
 ];
 
 /** Resolve the season for an ISO date (first matching template). */
