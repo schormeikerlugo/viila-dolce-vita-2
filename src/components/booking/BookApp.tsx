@@ -93,11 +93,6 @@ export default function BookApp(_props: Props) {
     };
   }, [arrive, depart]);
 
-  /* ---- Promo code ---- */
-  const [promoInput, setPromoInput] = useState("");
-  const [promoCode, setPromoCode] = useState<string | null>(null); // applied
-  const [promoError, setPromoError] = useState<string | null>(null);
-
   /* ---- Quote (recomputed by the API on every relevant change) ---- */
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
@@ -113,16 +108,11 @@ export default function BookApp(_props: Props) {
     setQuoteError(null);
     const stay = { arrive, depart, guests, unit };
     api
-      .getQuote(stay, [], promoCode ?? undefined)
+      .getQuote(stay, [])
       .then((q) => alive && setQuote(q))
       .catch((err) => {
         if (!alive) return;
         const message = err instanceof Error ? err.message : "Could not price this stay.";
-        if (promoCode) {
-          setPromoCode(null);
-          setPromoError(message);
-          return;
-        }
         setQuote(null);
         setQuoteError(message);
       })
@@ -130,7 +120,7 @@ export default function BookApp(_props: Props) {
     return () => {
       alive = false;
     };
-  }, [arrive, depart, promoCode]);
+  }, [arrive, depart]);
 
   /* ---- Guest & submission ---- */
   const [guest, setGuest] = useState<GuestDetails>({
@@ -180,7 +170,6 @@ export default function BookApp(_props: Props) {
         stay: { arrive, depart, guests, unit },
         extras: [],
         guest,
-        promoCode: promoCode ?? undefined,
       })
       .then((b) => {
         setBooking(b);
@@ -279,54 +268,6 @@ export default function BookApp(_props: Props) {
             </h2>
             <GuestDetailsForm value={guest} onChange={setGuest} disabled={submitting} />
 
-            {/* Promo code */}
-            <div className="bk-promo">
-              <label className="bk-field bk-promo__field">
-                <span className="bk-field__label">Promo code</span>
-                <input
-                  type="text"
-                  className="bk-field__input"
-                  placeholder="DOLCE10"
-                  value={promoInput}
-                  onChange={(e) => {
-                    setPromoInput(e.target.value.toUpperCase());
-                    setPromoError(null);
-                  }}
-                  disabled={submitting || Boolean(quote?.promo?.code)}
-                />
-              </label>
-              {quote?.promo?.code ? (
-                <button
-                  type="button"
-                  className="bk-btn bk-btn--ghost"
-                  onClick={() => {
-                    setPromoCode(null);
-                    setPromoInput("");
-                    setPromoError(null);
-                  }}
-                >
-                  Remove
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="bk-btn bk-btn--ghost"
-                  disabled={!promoInput.trim() || quoteLoading || submitting}
-                  onClick={() => {
-                    setPromoError(null);
-                    setPromoCode(promoInput.trim());
-                  }}
-                >
-                  Apply
-                </button>
-              )}
-            </div>
-            {quote?.promo?.code && (
-              <p className="bk-promo__ok">
-                {quote.promo.name} applied — the discount is in your summary.
-              </p>
-            )}
-            {promoError && <p className="bk-error">{promoError}</p>}
             {submitError && <p className="bk-error">{submitError}</p>}
 
             <div className="bk-nav bk-nav--end">

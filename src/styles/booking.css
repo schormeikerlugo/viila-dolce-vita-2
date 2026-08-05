@@ -1078,26 +1078,6 @@
   justify-content: flex-end;
 }
 
-/* ---- Promo code ------------------------------------------------------------------------------ */
-
-.bk-promo {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-  margin-top: 1.6rem;
-  padding-top: 1.4rem;
-  border-top: 1px solid var(--line);
-}
-.bk-promo__field {
-  flex: 1;
-  max-width: 18rem;
-}
-.bk-promo__ok {
-  margin-top: 0.7rem;
-  font-size: 0.8rem;
-  color: #9dc08b;
-}
-
 /* ---- Quote rail ---------------------------------------------------------------------------- */
 
 .bk-quote {
