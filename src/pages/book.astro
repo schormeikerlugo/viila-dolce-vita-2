@@ -9,7 +9,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import BookApp from "../components/booking/BookApp.tsx";
 import { getImage } from "astro:assets";
 import { suites } from "../data/suites";
-import type { SuiteCardData, SuiteSlug } from "../lib/booking/types";
+import { galleryItems } from "../data/gallery";
+import type { SuiteCardData, SuiteSlug, ExteriorPhoto } from "../lib/booking/types";
 import "../styles/booking.css";
 
 // Resolve each suite's lead photo to an optimized URL — islands take plain
@@ -29,6 +30,27 @@ const suiteCards: SuiteCardData[] = await Promise.all(
     };
   }),
 );
+
+// Exterior shots of the estate for the header mosaic (in display order).
+// Slugs reference src/data/gallery.ts; resolved to optimized WebP here.
+const EXTERIOR_SLUGS = [
+  "villa-aerial-day",
+  "villa-pool-day",
+  "pool-terrace-above",
+  "patio-sail-lounge",
+  "villa-lavender-path",
+  "lavender-gravel-drive",
+  "breakfast-terrace-pool",
+  "villa-aerial-night",
+];
+const exterior: ExteriorPhoto[] = await Promise.all(
+  EXTERIOR_SLUGS.map(async (slug) => {
+    const item = galleryItems.find((g) => g.slug === slug);
+    if (!item) throw new Error(`book.astro: missing gallery image "${slug}"`);
+    const img = await getImage({ src: item.image, width: 900, format: "webp", quality: 78 });
+    return { src: img.src, alt: item.alt };
+  }),
+);
 ---
 
 <BaseLayout
@@ -37,7 +59,7 @@ const suiteCards: SuiteCardData[] = await Promise.all(
 >
   <section class="section bg-dark bookpage">
     <div class="wrap">
-      <BookApp client:load suites={suiteCards} />
+      <BookApp client:load suites={suiteCards} exterior={exterior} />
     </div>
   </section>
 </BaseLayout>

@@ -331,3 +331,10 @@ export interface SuiteCardData {
   imageAlt: string;
   rank: number;
 }
+
+/** An optimized exterior photo for the booking header mosaic. */
+export interface ExteriorPhoto {
+  /** Optimized image URL (resolved in book.astro). */
+  src: string;
+  alt: string;
+}

@@ -637,35 +637,61 @@
 
 .bk-villahead {
   display: grid;
-  grid-template-columns: 1fr 1.15fr;
-  gap: clamp(1.25rem, 3vw, 2.5rem);
+  grid-template-columns: 1.15fr 1fr;
+  gap: clamp(1.5rem, 3vw, 2.75rem);
   align-items: stretch;
   margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
   padding-bottom: clamp(1.5rem, 3vw, 2.25rem);
   border-bottom: 1px solid var(--line);
 }
 
-/* One image on the left, matching the copy column's height. */
+/* Left: a compact exterior mosaic — 8 tiles, height capped to limit scroll. */
 .bk-villahead__media {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  grid-template-areas:
+    "big big t2 t3"
+    "big big t4 t5"
+    "t6  t7  t8 t8"
+    "t6  t7  t8 t8";
+  gap: 6px;
+  aspect-ratio: 5 / 4;
+  max-height: 32rem;
+  background: var(--surface-sunk);
+}
+.bk-villahead__tile {
   position: relative;
-  min-height: 100%;
+  margin: 0;
   overflow: hidden;
   background: var(--surface-sunk);
 }
-.bk-villahead__hero {
+.bk-villahead__tile img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.6s ease;
 }
+.bk-villahead__tile:hover img {
+  transform: scale(1.05);
+}
+.bk-villahead__tile--1 { grid-area: big; }
+.bk-villahead__tile--2 { grid-area: t2; }
+.bk-villahead__tile--3 { grid-area: t3; }
+.bk-villahead__tile--4 { grid-area: t4; }
+.bk-villahead__tile--5 { grid-area: t5; }
+.bk-villahead__tile--6 { grid-area: t6; }
+.bk-villahead__tile--7 { grid-area: t7; }
+.bk-villahead__tile--8 { grid-area: t8; }
 
 .bk-villahead__body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.55rem;
-  padding: clamp(0.5rem, 1.5vw, 1.25rem) 0;
+  gap: 0.7rem;
+  padding: clamp(0.5rem, 1.5vw, 1rem) 0;
 }
 .bk-villahead__eyebrow {
   font-size: 0.62rem;
@@ -685,10 +711,34 @@
   font-size: 0.82rem;
   line-height: 1.6;
   color: var(--text-muted);
-  max-width: 48ch;
+  max-width: 52ch;
+}
+.bk-villahead__features {
+  list-style: none;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem 1.2rem;
+}
+.bk-villahead__features li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text);
+}
+.bk-villahead__features li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 .bk-villahead__price {
-  margin-top: 0.6rem;
+  margin-top: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--line);
   display: flex;
@@ -718,13 +768,40 @@
   color: var(--accent);
 }
 
-@media (max-width: 760px) {
+@media (min-width: 620px) {
+  /* Two-column feature list on wider bodies. */
+  .bk-villahead__features {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 900px) {
   .bk-villahead {
     grid-template-columns: 1fr;
   }
   .bk-villahead__media {
-    min-height: 0;
+    max-height: none;
+    aspect-ratio: 16 / 11;
+  }
+}
+
+@media (max-width: 520px) {
+  /* Simplify the mosaic to a tidy 2-col grid on phones. */
+  .bk-villahead__media {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: none;
+    grid-auto-rows: auto;
+    aspect-ratio: auto;
+  }
+  .bk-villahead__tile {
+    aspect-ratio: 4 / 3;
+  }
+  .bk-villahead__tile--1 {
+    grid-column: 1 / 3;
     aspect-ratio: 16 / 10;
+  }
+  .bk-villahead__features {
+    grid-template-columns: 1fr;
   }
 }
 

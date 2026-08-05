@@ -23,10 +23,22 @@ import { longDate, money, nightsBetween } from "../../lib/booking/dates";
 import AvailabilityCalendar from "./AvailabilityCalendar";
 import GuestDetailsForm from "./GuestDetailsForm";
 import QuoteSummary from "./QuoteSummary";
-import villaCollage from "../../assets/images/villa-collage.png";
+import type { ExteriorPhoto } from "../../lib/booking/types";
+
+/* What the guest is actually renting — the whole estate, at a glance. */
+const VILLA_FEATURES = [
+  "Five en-suite bedrooms · sleeps 15",
+  "Heated infinity pool & sun terrace",
+  "Private chef — breakfast daily + 3 dinners/week",
+  "Barrel sauna & open-air gym",
+  "50 acres of gardens, olive groves & valley views",
+  "Full villa exclusivity — no other guests",
+] as const;
 
 interface Props {
   suites: SuiteCardData[];
+  /** Optimized exterior photos for the header mosaic (resolved in book.astro). */
+  exterior: ExteriorPhoto[];
 }
 
 /** Read prefill params from the URL (?arrive=&depart=). */
@@ -42,7 +54,7 @@ function readPrefill() {
   return { arrive, depart };
 }
 
-export default function BookApp(_props: Props) {
+export default function BookApp({ exterior }: Props) {
   const prefill = useRef(readPrefill()).current;
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -233,6 +245,7 @@ export default function BookApp(_props: Props) {
   return (
     <div className="bk-app" ref={rootRef}>
       <VillaHeader
+        exterior={exterior}
         arrive={arrive}
         depart={depart}
         nights={nights}
@@ -294,6 +307,7 @@ export default function BookApp(_props: Props) {
 /* ---- Fixed Villa header: one image left, details + live price right ---- */
 
 function VillaHeader({
+  exterior,
   arrive,
   depart,
   nights,
@@ -301,6 +315,7 @@ function VillaHeader({
   loading,
   available,
 }: {
+  exterior: ExteriorPhoto[];
   arrive: string | null;
   depart: string | null;
   nights: number;
@@ -310,17 +325,29 @@ function VillaHeader({
 }) {
   return (
     <header className="bk-villahead">
-      <div className="bk-villahead__media">
-        <img src={villaCollage.src} alt="The Entire Villa" className="bk-villahead__hero" />
+      <div className="bk-villahead__media" aria-label="Photographs of the villa exterior">
+        {exterior.map((p, i) => (
+          <figure key={p.src} className={`bk-villahead__tile bk-villahead__tile--${i + 1}`}>
+            <img src={p.src} alt={p.alt} loading={i < 2 ? "eager" : "lazy"} />
+          </figure>
+        ))}
       </div>
 
       <div className="bk-villahead__body">
         <span className="bk-villahead__eyebrow">Five suites · Sleeps 15 · The whole estate</span>
         <h2 className="bk-villahead__name">The Entire Villa</h2>
         <p className="bk-villahead__note">
-          The hilltop entirely yours — all five suites, the pool and the grounds. Breakfast and
-          three chef-cooked dinners a week included. Minimum 3 nights.
+          Take the hilltop entirely — a private 50-acre estate that is yours alone for the stay.
+          All five en-suite bedrooms, the heated pool and every terrace, garden and grove. Your
+          days come with a private chef (breakfast each morning and three dinners a week), a barrel
+          sauna and open-air gym, and a concierge who lives on the hill. Minimum 3 nights.
         </p>
+
+        <ul className="bk-villahead__features">
+          {VILLA_FEATURES.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
+        </ul>
 
         <div className="bk-villahead__price">
           {!arrive || !depart ? (
