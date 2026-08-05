@@ -30,7 +30,7 @@ interface Props {
   description?: string;
   /** Dark nav (default) sits over hero media; light nav for inner pages w/o hero. */
   navTheme?: "dark" | "light";
-  /** Social share image — defaults to the estate at golden hour. */
+  /** Social share image — defaults to the villa terrace + valley view. */
   ogImage?: ImageMetadata;
   /** Extra JSON-LD blocks (FAQPage, Article, …). */
   schemas?: object[];
@@ -42,7 +42,7 @@ const {
   title,
   description = site.description,
   navTheme = "light",
-  ogImage = photos.hillsPinkDawn,
+  ogImage = photos.houseTerraceView,
   schemas = [],
   noindex = false,
 } = Astro.props;
@@ -59,6 +59,10 @@ const ogProcessed = await getImage({
   fit: "cover",
 });
 const ogUrl = new URL(ogProcessed.src, Astro.site ?? site.url).href;
+
+// Canonical URL for this page — strip query/hash, drop trailing slash.
+const canonicalPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const canonicalUrl = new URL(canonicalPath, Astro.site ?? site.url).href;
 
 // Structured data: the estate card everywhere + page-level extras.
 const jsonLd = [lodgingBusinessSchema(), ...schemas];
@@ -79,10 +83,12 @@ const jsonLd = [lodgingBusinessSchema(), ...schemas];
 
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:site_name" content={site.name} />

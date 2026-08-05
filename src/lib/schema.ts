@@ -6,6 +6,7 @@
 import { site, contact, social } from "../data/site";
 import type { FaqItem } from "../data/faq";
 import type { ImageMetadata } from "astro";
+import { photos } from "../data/media";
 
 /** The estate as a LodgingBusiness — global card for search engines. */
 export function lodgingBusinessSchema() {
@@ -16,6 +17,7 @@ export function lodgingBusinessSchema() {
     slogan: site.tagline,
     description: site.description,
     url: site.url,
+    image: `${site.url}${photos.houseTerraceView.src}`,
     email: contact.email,
     telephone: contact.whatsapp,
     address: {
