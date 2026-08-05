@@ -67,12 +67,19 @@ export interface Extra {
 
 /* ---- Availability -------------------------------------------------------- */
 
+/** Per-night info: the weekday price, and any occupied suites (booked/blocked). */
+export interface AvailabilityNight {
+  /** The Villa's price for a night starting on this date (weekday rate). */
+  price: number;
+  /** Suites NOT available that night. Absent/empty = the Villa is free. */
+  suites?: SuiteSlug[];
+}
+
 /**
- * Occupancy map for a date window: for each ISO date, the suites that are
- * NOT available that night (booked or blocked). A missing date = all free.
- * The estate buyout is available on a night iff this array is empty.
+ * Availability for a date window, keyed by ISO date. The Villa is free on a
+ * night iff `suites` is absent/empty; `price` is that night's weekday rate.
  */
-export type AvailabilityMap = Record<string, SuiteSlug[]>;
+export type AvailabilityMap = Record<string, AvailabilityNight>;
 
 /* ---- Quote --------------------------------------------------------------- */
 
@@ -209,22 +216,24 @@ export interface SeasonSetting {
   minNights: number;
 }
 
+/** Per-weekday Villa rates (a night is priced by its check-in weekday). */
+export interface WeekdayRates {
+  monThu: number;
+  fri: number;
+  sat: number;
+  sun: number;
+}
+
 /** Everything money-related the owners can edit from the admin. */
 export interface RatesConfig {
   /** The suites are "included" in the Villa now — kept for reference/labels. */
   suites: RateSuite[];
-  seasons: SeasonSetting[];
   extras: Extra[];
   depositPct: number;
-  /** Tassa di soggiorno, EUR per person per night. */
-  touristTaxPerPersonNight: number;
-  touristTaxMaxNights: number;
-  /** Whole-Villa flat nightly rate (× the night's season multiplier). */
-  villaNightlyRate: number;
+  /** Per-weekday nightly rates for the whole Villa. */
+  weekdayRates: WeekdayRates;
   /** Minimum stay for the Villa (nights). */
   villaMinNights: number;
-  /** Floor on the whole booking total. */
-  minBookingTotal: number;
   /** The Villa's capacity. */
   villaSleeps: number;
 }

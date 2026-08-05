@@ -56,7 +56,6 @@ const estateStats = [
   { value: "5", label: "Suites" },
   { value: "7", label: "Bedrooms" },
   { value: "50", label: "Acre Estate" },
-  { value: "15", label: "Guests Max" },
 ];
 
 // Reviews — headline stats shown above the guest review carousel.
@@ -169,7 +168,7 @@ const weddingSlides = [
     <div class="wrap">
       <Reveal as="p" class="eyebrow">Features &amp; Amenities</Reveal>
 
-      <ul class="statband__row statband__row--four" data-reveal data-reveal-delay={0.08}>
+      <ul class="statband__row statband__row--three" data-reveal data-reveal-delay={0.08}>
         {
           estateStats.map((s) => (
             <li class="statband__stat">
@@ -506,6 +505,9 @@ const weddingSlides = [
   .statband__row--four {
     grid-template-columns: repeat(4, 1fr);
   }
+  .statband__row--three {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .statband__stat {
     display: flex;
     flex-direction: column;
@@ -548,6 +550,15 @@ const weddingSlides = [
       display: none;
     }
     .statband__row--four .statband__stat:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+    .statband__row--three {
+      grid-template-columns: 1fr;
+    }
+    .statband__row--three .statband__stat:not(:first-child)::before {
+      display: none;
+    }
+    .statband__row--three .statband__stat:not(:first-child) {
       border-top: 1px solid var(--line);
     }
   }

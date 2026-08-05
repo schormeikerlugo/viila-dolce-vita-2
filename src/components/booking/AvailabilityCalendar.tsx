@@ -19,8 +19,14 @@ import {
   todayISO,
 } from "../../lib/booking/dates";
 
-const SUITE_COUNT = 5;
 const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+
+/** Minimalist per-day price: €3,000 → "€3k", €4,250 → "€4.25k". */
+function compactPrice(n: number): string {
+  const k = n / 1000;
+  const s = Number.isInteger(k) ? `${k}` : k.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  return `€${s}k`;
+}
 
 interface Props {
   occ: AvailabilityMap;
@@ -52,10 +58,11 @@ export default function AvailabilityCalendar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cursor]);
 
-  const busyCount = (d: string) => occ[d]?.length ?? 0;
   // The Villa is the only unit: a night is "full" (unavailable) if ANY suite
   // is occupied that night, since booking takes the whole estate.
-  const isFull = (d: string) => busyCount(d) > 0;
+  const isFull = (d: string) => (occ[d]?.suites?.length ?? 0) > 0;
+  /** The Villa's price for a night (weekday rate), if known. */
+  const priceOf = (d: string) => occ[d]?.price ?? null;
 
   /** Fully-booked nights inside `[a, b)` — the ones that block the stay. */
   const blockedNightsIn = (a: string, b: string): string[] => {
@@ -208,6 +215,9 @@ export default function AvailabilityCalendar({
                     onFocus={() => setHover(d)}
                   >
                     <span className="bk-cal__daynum">{Number(d.slice(8))}</span>
+                    {d >= today && !full && priceOf(d) != null && (
+                      <span className="bk-cal__price">{compactPrice(priceOf(d)!)}</span>
+                    )}
                     {bubble && (
                       <span className="bk-cal__bubble" role="tooltip">
                         {bubble}

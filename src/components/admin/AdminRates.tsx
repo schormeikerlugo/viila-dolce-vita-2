@@ -64,18 +64,66 @@ export default function AdminRates() {
 
       {flash && <p className="adm-flash">{flash}</p>}
 
-      {/* ---- The Villa ---- */}
-      <h3 className="adm-rates__sub">The Villa</h3>
+      {/* ---- The Villa: per-weekday rates ---- */}
+      <h3 className="adm-rates__sub">Nightly rates by day</h3>
       <div className="adm-rates__pair">
         <label className="bk-field">
-          <span className="bk-field__label">Nightly rate (€)</span>
+          <span className="bk-field__label">Mon–Thu (€)</span>
           <input
             type="number"
             min={0}
             className="bk-field__input"
-            value={cfg.villaNightlyRate}
+            value={cfg.weekdayRates.monThu}
             onChange={(e) =>
-              setCfg({ ...cfg, villaNightlyRate: num(e.target.value, cfg.villaNightlyRate) })
+              setCfg({
+                ...cfg,
+                weekdayRates: { ...cfg.weekdayRates, monThu: num(e.target.value, cfg.weekdayRates.monThu) },
+              })
+            }
+          />
+        </label>
+        <label className="bk-field">
+          <span className="bk-field__label">Friday (€)</span>
+          <input
+            type="number"
+            min={0}
+            className="bk-field__input"
+            value={cfg.weekdayRates.fri}
+            onChange={(e) =>
+              setCfg({
+                ...cfg,
+                weekdayRates: { ...cfg.weekdayRates, fri: num(e.target.value, cfg.weekdayRates.fri) },
+              })
+            }
+          />
+        </label>
+        <label className="bk-field">
+          <span className="bk-field__label">Saturday (€)</span>
+          <input
+            type="number"
+            min={0}
+            className="bk-field__input"
+            value={cfg.weekdayRates.sat}
+            onChange={(e) =>
+              setCfg({
+                ...cfg,
+                weekdayRates: { ...cfg.weekdayRates, sat: num(e.target.value, cfg.weekdayRates.sat) },
+              })
+            }
+          />
+        </label>
+        <label className="bk-field">
+          <span className="bk-field__label">Sunday (€)</span>
+          <input
+            type="number"
+            min={0}
+            className="bk-field__input"
+            value={cfg.weekdayRates.sun}
+            onChange={(e) =>
+              setCfg({
+                ...cfg,
+                weekdayRates: { ...cfg.weekdayRates, sun: num(e.target.value, cfg.weekdayRates.sun) },
+              })
             }
           />
         </label>
@@ -94,100 +142,11 @@ export default function AdminRates() {
             }
           />
         </label>
-        <label className="bk-field">
-          <span className="bk-field__label">Minimum booking total (€)</span>
-          <input
-            type="number"
-            min={0}
-            className="bk-field__input"
-            value={cfg.minBookingTotal}
-            onChange={(e) =>
-              setCfg({ ...cfg, minBookingTotal: num(e.target.value, cfg.minBookingTotal) })
-            }
-          />
-        </label>
       </div>
       <p className="adm-rates__hint">
-        The whole Villa is the only bookable unit — the five suites below are included. The
-        nightly rate is multiplied by each night's season; stays are floored to the minimum
-        booking total.
+        The whole Villa is the only bookable unit (all five suites included). Each night is
+        priced by its check-in weekday.
       </p>
-      <div className="adm-tablewrap">
-        <table className="adm-table">
-          <thead>
-            <tr>
-              <th>Included suite</th>
-              <th className="is-num">Sleeps</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cfg.suites.map((s) => (
-              <tr key={s.slug}>
-                <td className="adm-table__ref">{s.slug}</td>
-                <td className="is-num">{s.sleeps}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ---- Seasons ---- */}
-      <h3 className="adm-rates__sub">Seasons</h3>
-      <div className="adm-tablewrap">
-        <table className="adm-table adm-table--edit">
-          <thead>
-            <tr>
-              <th>Season</th>
-              <th>Dates</th>
-              <th className="is-num">Rate multiplier</th>
-              <th className="is-num">Minimum nights</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cfg.seasons.map((s, i) => (
-              <tr key={s.id}>
-                <td className="adm-table__ref">{s.name}</td>
-                <td>
-                  {s.from} → {s.to}
-                </td>
-                <td className="is-num">
-                  <input
-                    type="number"
-                    min={0}
-                    step={0.05}
-                    value={s.multiplier}
-                    onChange={(e) =>
-                      setCfg({
-                        ...cfg,
-                        seasons: cfg.seasons.map((x, j) =>
-                          j === i ? { ...x, multiplier: num(e.target.value, x.multiplier) } : x,
-                        ),
-                      })
-                    }
-                  />
-                </td>
-                <td className="is-num">
-                  <input
-                    type="number"
-                    min={1}
-                    value={s.minNights}
-                    onChange={(e) =>
-                      setCfg({
-                        ...cfg,
-                        seasons: cfg.seasons.map((x, j) =>
-                          j === i
-                            ? { ...x, minNights: Math.max(1, Math.round(num(e.target.value, x.minNights))) }
-                            : x,
-                        ),
-                      })
-                    }
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
 
       {/* ---- Extras ---- */}
       <h3 className="adm-rates__sub">Extras</h3>
@@ -230,8 +189,8 @@ export default function AdminRates() {
         </table>
       </div>
 
-      {/* ---- Payment & tax ---- */}
-      <h3 className="adm-rates__sub">Payment & tax</h3>
+      {/* ---- Payment ---- */}
+      <h3 className="adm-rates__sub">Payment</h3>
       <div className="adm-rates__pair">
         <label className="bk-field">
           <span className="bk-field__label">Deposit at confirmation (%)</span>
@@ -242,40 +201,6 @@ export default function AdminRates() {
             className="bk-field__input"
             value={cfg.depositPct}
             onChange={(e) => setCfg({ ...cfg, depositPct: num(e.target.value, cfg.depositPct) })}
-          />
-        </label>
-        <label className="bk-field">
-          <span className="bk-field__label">Tourist tax (€ / person / night)</span>
-          <input
-            type="number"
-            min={0}
-            step={0.5}
-            className="bk-field__input"
-            value={cfg.touristTaxPerPersonNight}
-            onChange={(e) =>
-              setCfg({
-                ...cfg,
-                touristTaxPerPersonNight: num(e.target.value, cfg.touristTaxPerPersonNight),
-              })
-            }
-          />
-        </label>
-        <label className="bk-field">
-          <span className="bk-field__label">Tax capped after (nights)</span>
-          <input
-            type="number"
-            min={1}
-            className="bk-field__input"
-            value={cfg.touristTaxMaxNights}
-            onChange={(e) =>
-              setCfg({
-                ...cfg,
-                touristTaxMaxNights: Math.max(
-                  1,
-                  Math.round(num(e.target.value, cfg.touristTaxMaxNights)),
-                ),
-              })
-            }
           />
         </label>
       </div>

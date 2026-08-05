@@ -268,13 +268,12 @@ export const supabaseAdminApi: AdminBookingApi = {
 
   async getRates() {
     const sb = supabase();
-    const [suites, seasons, extras, settings] = await Promise.all([
+    const [suites, extras, settings] = await Promise.all([
       sb.from("suites").select("*").order("rank"),
-      sb.from("seasons").select("*").order("priority"),
       sb.from("extras").select("*").order("sort"),
       sb.from("settings").select("*").single(),
     ]);
-    const err = suites.error ?? seasons.error ?? extras.error ?? settings.error;
+    const err = suites.error ?? extras.error ?? settings.error;
     if (err) fail(err, "Could not load rates.");
     return {
       suites: (suites.data ?? []).map((s) => ({
@@ -284,14 +283,6 @@ export const supabaseAdminApi: AdminBookingApi = {
         baseOccupancy: s.base_occupancy,
         sleeps: s.sleeps,
         active: s.active,
-      })),
-      seasons: (seasons.data ?? []).map((s) => ({
-        id: s.id,
-        name: s.name,
-        from: s.from_md,
-        to: s.to_md,
-        multiplier: Number(s.multiplier),
-        minNights: s.min_nights,
       })),
       extras: (extras.data ?? []).map(
         (x): Extra => ({
@@ -305,11 +296,13 @@ export const supabaseAdminApi: AdminBookingApi = {
         }),
       ),
       depositPct: settings.data.deposit_pct,
-      touristTaxPerPersonNight: Number(settings.data.tourist_tax),
-      touristTaxMaxNights: settings.data.tourist_tax_max_nights,
-      villaNightlyRate: settings.data.estate_nightly_rate,
+      weekdayRates: {
+        monThu: settings.data.rate_mon_thu,
+        fri: settings.data.rate_fri,
+        sat: settings.data.rate_sat,
+        sun: settings.data.rate_sun,
+      },
       villaMinNights: settings.data.estate_min_nights,
-      minBookingTotal: settings.data.min_booking_total,
       villaSleeps: settings.data.estate_sleeps,
     } satisfies RatesConfig;
   },
@@ -317,18 +310,6 @@ export const supabaseAdminApi: AdminBookingApi = {
   async saveRates(config) {
     const sb = supabase();
     const results = await Promise.all([
-      ...config.suites.map((s) =>
-        sb
-          .from("suites")
-          .update({ base_rate: s.baseRate, extra_guest_rate: s.extraGuestRate })
-          .eq("slug", s.slug),
-      ),
-      ...config.seasons.map((s) =>
-        sb
-          .from("seasons")
-          .update({ multiplier: s.multiplier, min_nights: s.minNights })
-          .eq("id", s.id),
-      ),
       ...config.extras
         .filter((x) => !x.inquireOnly)
         .map((x) => sb.from("extras").update({ price: x.price }).eq("id", x.id)),
@@ -336,11 +317,11 @@ export const supabaseAdminApi: AdminBookingApi = {
         .from("settings")
         .update({
           deposit_pct: config.depositPct,
-          tourist_tax: config.touristTaxPerPersonNight,
-          tourist_tax_max_nights: config.touristTaxMaxNights,
-          estate_nightly_rate: config.villaNightlyRate,
           estate_min_nights: config.villaMinNights,
-          min_booking_total: config.minBookingTotal,
+          rate_mon_thu: config.weekdayRates.monThu,
+          rate_fri: config.weekdayRates.fri,
+          rate_sat: config.weekdayRates.sat,
+          rate_sun: config.weekdayRates.sun,
         })
         .eq("id", true),
     ]);

@@ -27,6 +27,21 @@ interface Props {
   suites: SuiteMeta[];
 }
 
+/** Weekday nightly rates (default catalogue). */
+const WEEKDAY_RATES = { monThu: 3000, fri: 4250, sat: 4750, sun: 3750 };
+function nightPrice(iso: string): number {
+  const dow = fromISO(iso).getUTCDay();
+  if (dow === 5) return WEEKDAY_RATES.fri;
+  if (dow === 6) return WEEKDAY_RATES.sat;
+  if (dow === 0) return WEEKDAY_RATES.sun;
+  return WEEKDAY_RATES.monThu;
+}
+function compactPrice(n: number): string {
+  const k = n / 1000;
+  const s = Number.isInteger(k) ? `${k}` : k.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  return `€${s}k`;
+}
+
 export default function AdminCalendar({ suites }: Props) {
   const today = todayISO();
   const [cursor, setCursor] = useState(() => monthStart(today));
@@ -177,10 +192,12 @@ export default function AdminCalendar({ suites }: Props) {
                 ]
                   .filter(Boolean)
                   .join(" ")}
-                title={cell ? cell.label : "Free"}
+                title={cell ? cell.label : `Free · €${nightPrice(d).toLocaleString()}`}
                 aria-label={`${d}: ${cell ? cell.label : "free"}`}
                 onClick={() => select(d)}
-              />
+              >
+                {!cell && <span className="adm-cal__cellprice">{compactPrice(nightPrice(d))}</span>}
+              </button>
             );
           })}
         </div>

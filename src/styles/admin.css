@@ -256,12 +256,23 @@
 .adm-cal__cell {
   position: relative;
   min-height: 3.1rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 3px;
   background: transparent;
   border: none;
   border-top: 1px solid rgba(244, 241, 234, 0.08);
   border-left: 1px solid rgba(244, 241, 234, 0.06);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out);
+}
+/* Minimalist per-day price on free nights. */
+.adm-cal__cellprice {
+  font-size: 0.5rem;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  line-height: 1;
 }
 .adm-cal__cell.is-weekend {
   background: rgba(244, 241, 234, 0.03);

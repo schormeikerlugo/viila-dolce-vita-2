@@ -26,7 +26,6 @@ import type {
   Quote,
   QuoteLine,
   RatesConfig,
-  SeasonSetting,
   StayRequest,
   SuiteSlug,
   UnitId,
@@ -38,9 +37,6 @@ import {
   extras as extrasCatalog,
   paymentRules,
   rateSuites,
-  seasonFor,
-  seasonTemplates,
-  taxRules,
 } from "./data";
 
 /* ---- Date helpers (ISO YYYY-MM-DD, UTC-safe) ------------------------------ */
@@ -106,29 +102,24 @@ function makeStore<T>(key: string, seed: () => T) {
 function defaultRates(): RatesConfig {
   return {
     suites: rateSuites.map((s) => ({ ...s })),
-    seasons: seasonTemplates.map(({ mockOccupancy: _occ, ...season }) => ({ ...season })),
     extras: extrasCatalog.map((e) => ({ ...e })),
     depositPct: paymentRules.depositPct,
-    touristTaxPerPersonNight: taxRules.touristTaxPerPersonNight,
-    touristTaxMaxNights: taxRules.touristTaxMaxNights,
-    villaNightlyRate: estateRules.nightlyRate,
+    weekdayRates: { monThu: 3000, fri: 4250, sat: 4750, sun: 3750 },
     villaMinNights: estateRules.minNights,
-    minBookingTotal: estateRules.minBookingTotal,
     villaSleeps: estateRules.sleeps,
   };
 }
 
 const ratesStore = makeStore<RatesConfig>("vdv-mock-rates", defaultRates);
 
-/** The season a night falls in, using the owner-edited settings. */
-function seasonOf(cfg: RatesConfig, iso: string): SeasonSetting {
-  const md = iso.slice(5); // "MM-DD"
-  for (const s of cfg.seasons) {
-    const wraps = s.from > s.to;
-    const hit = wraps ? md >= s.from || md <= s.to : md >= s.from && md <= s.to;
-    if (hit) return s;
-  }
-  return cfg.seasons[cfg.seasons.length - 1];
+/** The Villa's rate for a night, by its check-in weekday. */
+function nightRate(cfg: RatesConfig, iso: string): number {
+  const dow = fromISO(iso).getUTCDay(); // 0=Sun … 6=Sat
+  const w = cfg.weekdayRates;
+  if (dow === 5) return w.fri;
+  if (dow === 6) return w.sat;
+  if (dow === 0) return w.sun;
+  return w.monThu;
 }
 
 /* ---- Deterministic PRNG (seeded occupancy) -------------------------------- */
@@ -143,46 +134,9 @@ function rand(seed: string): number {
   return (h >>> 0) / 0xffffffff;
 }
 
-/* ---- Seeded occupancy ------------------------------------------------------
-   Per suite, per week: a hash decides whether that week holds a stay, where
-   it starts and how long it runs. Contiguous spans → realistic calendar.
-   (Always uses the static seed templates — seeding isn't owner-editable.) */
+/* ---- Blocks (owner-created only) ------------------------------------------- */
 
-function weekIndex(iso: string): number {
-  return Math.floor(fromISO(iso).getTime() / DAY / 7);
-}
-
-/** Nights occupied by the seed for one suite inside `[start, end)`. */
-function seededNights(suite: SuiteSlug, start: string, end: string): Set<string> {
-  const nights = new Set<string>();
-  const firstWeek = weekIndex(start) - 1; // stays can spill in from the previous week
-  const lastWeek = weekIndex(end);
-  for (let w = firstWeek; w <= lastWeek; w++) {
-    const weekStart = toISO(new Date((w * 7 + 4) * DAY)); // epoch was a Thursday
-    const season = seasonFor(weekStart);
-    if (rand(`${suite}:${w}:has`) >= season.mockOccupancy) continue;
-    const offset = Math.floor(rand(`${suite}:${w}:off`) * 5); // start day 0–4
-    const len = 2 + Math.floor(rand(`${suite}:${w}:len`) * 4); // 2–5 nights
-    let night = addDays(weekStart, offset);
-    for (let i = 0; i < len; i++, night = addDays(night, 1)) {
-      if (night >= start && night < end) nights.add(night);
-    }
-  }
-  return nights;
-}
-
-/* ---- Blocks (seeded wedding weekend + owner-created) ----------------------- */
-
-function defaultBlocks(): CalendarBlock[] {
-  // A wedding buyout ~75 days out, Friday to Monday.
-  let d = addDays(todayISO(), 75);
-  while (fromISO(d).getUTCDay() !== 5) d = addDays(d, 1);
-  return [
-    { id: "seed-wedding", suite: null, start: d, end: addDays(d, 3), reason: "Wedding — full estate" },
-  ];
-}
-
-const blocksStore = makeStore<CalendarBlock[]>("vdv-mock-blocks", defaultBlocks);
+const blocksStore = makeStore<CalendarBlock[]>("vdv-mock-blocks", () => []);
 
 /* ---- Guest-created bookings -------------------------------------------------- */
 
@@ -263,17 +217,18 @@ function bookingSuites(unit: UnitId): SuiteSlug[] {
 /* ---- Availability ------------------------------------------------------------- */
 
 function occupancy(start: string, end: string): AvailabilityMap {
+  const cfg = ratesStore.read();
   const map: AvailabilityMap = {};
+  // Seed every night with its weekday price.
+  for (const night of eachNight(start, end)) {
+    map[night] = { price: nightRate(cfg, night) };
+  }
   const take = (night: string, suite: SuiteSlug) => {
-    if (night < start || night >= end) return;
-    const list = (map[night] ??= []);
+    if (!map[night]) return;
+    const list = (map[night].suites ??= []);
     if (!list.includes(suite)) list.push(suite);
   };
 
-  // Seeded stays per suite.
-  for (const suite of allSuiteSlugs) {
-    for (const night of seededNights(suite, start, end)) take(night, suite);
-  }
   // Manual blocks (suite-level or estate-wide).
   for (const block of blocksStore.read()) {
     for (const night of eachNight(block.start, block.end)) {
@@ -292,7 +247,7 @@ function occupancy(start: string, end: string): AvailabilityMap {
 
 function unitFreeForStay(stay: StayRequest, occ: AvailabilityMap): boolean {
   for (const night of eachNight(stay.arrive, stay.depart)) {
-    const busy = occ[night] ?? [];
+    const busy = occ[night]?.suites ?? [];
     if (stay.unit === ESTATE ? busy.length > 0 : busy.includes(stay.unit as SuiteSlug))
       return false;
   }
@@ -303,21 +258,23 @@ function unitFreeForStay(stay: StayRequest, occ: AvailabilityMap): boolean {
 
 const eur = Math.round;
 
-/** The Villa is the only unit: flat nightly rate × each night's season. */
+/** The Villa is the only unit: sum of each night's weekday rate. */
 function accommodationLines(cfg: RatesConfig, stay: StayRequest, nights: number): QuoteLine[] {
   const rates = new Set<number>();
   let gross = 0;
   for (const night of eachNight(stay.arrive, stay.depart)) {
-    const r = eur(cfg.villaNightlyRate * seasonOf(cfg, night).multiplier);
+    const r = nightRate(cfg, night);
     rates.add(r);
     gross += r;
   }
   const rateText =
-    rates.size === 1 ? `€${[...rates][0]}` : `€${Math.min(...rates)}–€${Math.max(...rates)}`;
+    rates.size === 1
+      ? `× €${[...rates][0]}`
+      : `· €${Math.min(...rates)}–€${Math.max(...rates)}/night`;
   return [
     {
       label: "The Entire Villa",
-      detail: `${nights} ${nights === 1 ? "night" : "nights"} × ${rateText}`,
+      detail: `${nights} ${nights === 1 ? "night" : "nights"} ${rateText}`,
       amount: gross,
     },
   ];
@@ -352,14 +309,10 @@ function computeQuote(stay: StayRequest, extraIds: string[], promoCode?: string)
   if (!(nights > 0)) throw new Error("Departure must be after arrival.");
   if (villaStay.arrive < todayISO()) throw new Error("Arrival cannot be in the past.");
 
-  if (villaStay.guests < 1) throw new Error("At least one guest.");
   if (villaStay.guests > cfg.villaSleeps)
     throw new Error(`The Villa sleeps up to ${cfg.villaSleeps} guests.`);
 
-  const minNights = Math.max(
-    cfg.villaMinNights,
-    ...eachNight(villaStay.arrive, villaStay.depart).map((n) => seasonOf(cfg, n).minNights),
-  );
+  const minNights = cfg.villaMinNights;
   if (nights < minNights)
     throw new Error(`The Villa is booked for a minimum of ${minNights} nights.`);
 
@@ -393,20 +346,11 @@ function computeQuote(stay: StayRequest, extraIds: string[], promoCode?: string)
     .map((e) => extraLine(e, villaStay, nights))
     .filter((l): l is QuoteLine => Boolean(l));
 
-  // No tourist tax online — handled by the concierge.
-  let total =
+  // No tourist tax online — handled by the concierge. No floor (weekday
+  // rates × 3-night minimum already exceed the old €3,000 minimum).
+  const total =
     lines.reduce((t, l) => t + l.amount, 0) +
     extrasLines.reduce((t, l) => t + l.amount, 0);
-
-  // Minimum booking floor: top up transparently so 3 nights is always €3,000+.
-  if (total < cfg.minBookingTotal) {
-    lines.push({
-      label: "Minimum stay adjustment",
-      detail: `to reach the €${cfg.minBookingTotal} minimum`,
-      amount: cfg.minBookingTotal - total,
-    });
-    total = cfg.minBookingTotal;
-  }
 
   return {
     currency: "EUR",
@@ -567,7 +511,7 @@ export const mockAdminApi: AdminBookingApi = {
     const won = bookings.filter((b) => b.status === "confirmed" || b.status === "completed");
     const requested = bookings.filter((b) => b.status === "requested");
     const occ = occupancy(monthStart, nextMonth);
-    const occupiedNights = Object.values(occ).reduce((t, suites) => t + suites.length, 0);
+    const occupiedNights = Object.values(occ).reduce((t, n) => t + (n.suites?.length ?? 0), 0);
     const move = (list: Booking[], key: "arrive" | "depart"): DashboardStats["arrivals"] =>
       list
         .filter((b) => b.request.stay[key] >= today && b.request.stay[key] < addDays(today, 14))
@@ -687,11 +631,6 @@ export const mockAdminApi: AdminBookingApi = {
       const cell: CalendarCell = { kind: "block", label: block.reason, blockId: block.id };
       for (const night of eachNight(block.start, block.end)) {
         for (const suite of block.suite ? [block.suite] : allSuiteSlugs) put(night, suite, cell);
-      }
-    }
-    for (const suite of allSuiteSlugs) {
-      for (const night of seededNights(suite, startISO, endISO)) {
-        put(night, suite, { kind: "external", label: "Imported stay" });
       }
     }
     return delay(cal, 300);
