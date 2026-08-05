@@ -6,26 +6,26 @@
  * Google cookies. A single terracotta marker sits on the villa, with a popup
  * linking to Google Maps for turn-by-turn directions.
  *
- * Coordinates are the geocoded location for the estate near Massa Marittima
- * (SP441, 56, 58024 Massa Marittima GR). Adjust `lat`/`lng` for a precise pin.
+ * Coordinates are the exact location of the estate on SP441, 56, 58024 Massa
+ * Marittima GR (from Google Maps). Adjust `lat`/`lng` to move the pin.
  */
 import { contact, site } from "../data/site";
 
 interface Props {
   class?: string;
-  /** Villa latitude — geocoded near Massa Marittima. */
+  /** Villa latitude — exact estate location. */
   lat?: number;
-  /** Villa longitude — geocoded near Massa Marittima. */
+  /** Villa longitude — exact estate location. */
   lng?: number;
-  /** Initial zoom (13 ≈ town + surrounding hills). */
+  /** Initial zoom (15 ≈ estate + immediate surroundings). */
   zoom?: number;
 }
 
 const {
   class: className = "",
-  lat = 43.0500376,
-  lng = 10.8879707,
-  zoom = 13,
+  lat = 43.08421,
+  lng = 10.9671672,
+  zoom = 15,
 } = Astro.props;
 
 const directionsHref =

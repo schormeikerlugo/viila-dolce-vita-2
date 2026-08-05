@@ -28,6 +28,12 @@ export function lodgingBusinessSchema() {
       postalCode: "58024",
       addressCountry: "IT",
     },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 43.08421,
+      longitude: 10.9671672,
+    },
+    hasMap: "https://maps.google.com/?q=SP441+56+58024+Massa+Marittima+GR+Italy",
     sameAs: social.map((s) => s.href),
     petsAllowed: true,
     numberOfRooms: 7,
