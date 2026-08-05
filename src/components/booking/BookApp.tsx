@@ -23,6 +23,7 @@ import { longDate, money, nightsBetween } from "../../lib/booking/dates";
 import AvailabilityCalendar from "./AvailabilityCalendar";
 import GuestDetailsForm from "./GuestDetailsForm";
 import QuoteSummary from "./QuoteSummary";
+import villaCollage from "../../assets/images/villa-collage.png";
 
 interface Props {
   suites: SuiteCardData[];
@@ -41,7 +42,7 @@ function readPrefill() {
   return { arrive, depart };
 }
 
-export default function BookApp({ suites }: Props) {
+export default function BookApp(_props: Props) {
   const prefill = useRef(readPrefill()).current;
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -243,7 +244,6 @@ export default function BookApp({ suites }: Props) {
   return (
     <div className="bk-app" ref={rootRef}>
       <VillaHeader
-        suites={suites}
         arrive={arrive}
         depart={depart}
         nights={nights}
@@ -353,7 +353,6 @@ export default function BookApp({ suites }: Props) {
 /* ---- Fixed Villa header: one image left, details + live price right ---- */
 
 function VillaHeader({
-  suites,
   arrive,
   depart,
   nights,
@@ -361,7 +360,6 @@ function VillaHeader({
   loading,
   available,
 }: {
-  suites: SuiteCardData[];
   arrive: string | null;
   depart: string | null;
   nights: number;
@@ -369,12 +367,10 @@ function VillaHeader({
   loading: boolean;
   available: boolean;
 }) {
-  const hero = [...suites].sort((a, b) => a.rank - b.rank)[0];
-
   return (
     <header className="bk-villahead">
       <div className="bk-villahead__media">
-        {hero && <img src={hero.image} alt={hero.imageAlt} className="bk-villahead__hero" />}
+        <img src={villaCollage.src} alt="The Entire Villa" className="bk-villahead__hero" />
       </div>
 
       <div className="bk-villahead__body">
