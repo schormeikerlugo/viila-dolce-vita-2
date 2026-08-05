@@ -405,7 +405,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 5px;
   position: relative;
   background: none;
   border: 1px solid transparent;
@@ -422,13 +422,14 @@
   position: relative;
   z-index: 1;
   line-height: 1;
+  font-size: 0.95rem;
 }
 /* Minimalist per-day price under the number. */
 .bk-cal__price {
   position: relative;
   z-index: 1;
-  font-size: 0.52rem;
-  letter-spacing: 0.01em;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
   color: var(--text-muted);
   line-height: 1;
 }
