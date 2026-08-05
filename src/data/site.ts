@@ -16,7 +16,7 @@ export const contact = {
   whatsapp: "+39 331 633 1248",
   whatsappHref: "https://wa.me/393316331248",
   email: "niccolo@villadolcevita.eu",
-  address: "Podere Seccatoi, 56, 58024 Massa Marittima GR, Italy",
+  address: "SP441, 56, 58024 Massa Marittima GR, Italy",
   instagram: "https://instagram.com/villadolcevita.eu",
   instagramHandle: "@villadolcevita.eu",
   // Real booking engine — swap the mock CTA to this when ready (see Docs).

@@ -20,7 +20,7 @@ export function lodgingBusinessSchema() {
     telephone: contact.whatsapp,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Podere Seccatoi, 56",
+      streetAddress: "SP441, 56",
       addressLocality: "Massa Marittima",
       addressRegion: "Tuscany",
       postalCode: "58024",

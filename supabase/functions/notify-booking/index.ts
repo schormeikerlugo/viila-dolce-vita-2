@@ -72,7 +72,7 @@ function shell(title: string, body: string): string {
       ${body}
       <hr style="border:none;border-top:1px solid rgba(244,241,234,0.14);margin:32px 0 16px;">
       <p style="font-size:12px;color:#b6afa2;line-height:1.6;margin:0;">
-        Villa Dolce Vita · Podere Seccatoi 56, Massa Marittima, Tuscany<br>
+        Villa Dolce Vita · SP441 56, Massa Marittima, Tuscany<br>
         Reply to this email to reach the concierge.
       </p>
     </div></body></html>`;

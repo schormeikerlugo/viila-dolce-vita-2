@@ -12,7 +12,7 @@ export interface FaqItem {
 export const faqs: FaqItem[] = [
   {
     q: "Where exactly is the villa?",
-    a: "Villa Dolce Vita sits on a private 50-acre hilltop estate in the Maremma — Podere Seccatoi 56, Massa Marittima, Tuscany. The medieval town is a fifteen-minute drive; on clear days the view reaches the sea, Elba and Corsica.",
+    a: "Villa Dolce Vita sits on a private 50-acre hilltop estate in the Maremma — SP441 56, Massa Marittima, Tuscany. The medieval town is a fifteen-minute drive; on clear days the view reaches the sea, Elba and Corsica.",
   },
   {
     q: "How many guests can the estate host?",
