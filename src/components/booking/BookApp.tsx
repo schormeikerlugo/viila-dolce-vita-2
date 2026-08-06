@@ -208,8 +208,7 @@ export default function BookApp({ exterior }: Props) {
           <p className="bk-done__copy">
             Your request for <strong>the entire Villa</strong> —{" "}
             {longDate(booking.request.stay.arrive)} to {longDate(booking.request.stay.depart)} — is
-            with the concierge. We confirm personally, by WhatsApp or email, usually within the
-            hour. Nothing has been charged.
+            with the concierge. We confirm personally, by WhatsApp or email.
           </p>
           <dl className="bk-done__meta">
             <div>
