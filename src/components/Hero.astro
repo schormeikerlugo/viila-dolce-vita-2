@@ -82,7 +82,7 @@ const { eyebrow, video, booking = false, hideBar = false } = Astro.props;
     position: relative;
     min-height: 100svh;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     color: var(--c-ivory);
     overflow: hidden;
@@ -108,6 +108,9 @@ const { eyebrow, video, booking = false, hideBar = false } = Astro.props;
     display: flex;
     flex-direction: column;
     align-items: center;
+    /* Sit toward the lower edge of the banner. Extra bottom room clears the
+       meta bar on pages that show it. */
+    padding-bottom: clamp(3.5rem, 8vh, 7rem);
   }
   .hero__eyebrow {
     font-size: var(--fs-eyebrow);
