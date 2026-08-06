@@ -26,7 +26,6 @@ export const contact = {
 /** Social profiles — rendered as icon links in the footer. */
 export const social = [
   { label: "Instagram", href: "https://www.instagram.com/villadolcevitatoscana/" },
-  { label: "TikTok", href: "https://www.tiktok.com/@villadolcevita.eu" },
   { label: "Pinterest", href: "https://www.pinterest.com/villadolcevitatoscana/" },
   { label: "Facebook", href: "https://www.facebook.com/profile.php?id=61592923647481" },
 ] as const;
