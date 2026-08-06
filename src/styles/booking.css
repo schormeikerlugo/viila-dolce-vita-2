@@ -12,13 +12,21 @@
 
 .bk-layout {
   display: grid;
-  grid-template-columns: 1fr minmax(320px, 400px);
-  gap: clamp(2rem, 4vw, 4rem);
+  grid-template-columns: 1fr minmax(300px, 360px);
+  gap: clamp(2rem, 4vw, 3.5rem);
   align-items: start;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 3vw, 2.5rem);
 }
 
 .bk-main > section {
   min-height: 20rem;
+}
+
+/* Centre the "Choose your dates" step title. */
+.bk-section[aria-label="Choose your dates"] .bk-section__title {
+  justify-content: center;
 }
 
 /* ---- Step rail — numbered circles + progress line --------------------------- */
@@ -633,19 +641,20 @@
   color: var(--text);
 }
 
-/* ---- Fixed Villa header (gallery + live price, atop the flow) -------------- */
+/* ---- Villa header: exterior mosaic (lightbox) + estate details ------------- */
 
 .bk-villahead {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: clamp(1.5rem, 3vw, 2.75rem);
-  align-items: stretch;
-  margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
-  padding-bottom: clamp(1.5rem, 3vw, 2.25rem);
+  grid-template-columns: 1.15fr 1fr;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  align-items: center;
+  max-width: 68rem;
+  margin: 0 auto clamp(1.5rem, 3vw, 2.25rem);
+  padding: 0 clamp(1rem, 3vw, 2.5rem) clamp(1.5rem, 3vw, 2.25rem);
   border-bottom: 1px solid var(--line);
 }
 
-/* Left: a wide exterior mosaic — 8 tiles filling the media column. */
+/* Left: a compact exterior mosaic — 8 tiles, roughly half the old size. */
 .bk-villahead__media {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -655,16 +664,19 @@
     "big big t4 t5"
     "t6  t7  t8 t8"
     "t6  t7  t8 t8";
-  gap: 8px;
-  aspect-ratio: 16 / 11;
-  max-height: 40rem;
+  gap: 5px;
+  aspect-ratio: 16 / 12;
+  max-height: 22rem;
   background: var(--surface-sunk);
 }
 .bk-villahead__tile {
   position: relative;
   margin: 0;
+  padding: 0;
+  border: 0;
   overflow: hidden;
   background: var(--surface-sunk);
+  cursor: pointer;
 }
 .bk-villahead__tile img {
   position: absolute;
@@ -674,8 +686,13 @@
   object-fit: cover;
   transition: transform 0.6s ease;
 }
-.bk-villahead__tile:hover img {
-  transform: scale(1.05);
+.bk-villahead__tile:hover img,
+.bk-villahead__tile:focus-visible img {
+  transform: scale(1.06);
+}
+.bk-villahead__tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 .bk-villahead__tile--1 { grid-area: big; }
 .bk-villahead__tile--2 { grid-area: t2; }
@@ -690,11 +707,10 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.7rem;
-  padding: clamp(0.5rem, 1.5vw, 1rem) 0;
+  gap: 0.55rem;
 }
 .bk-villahead__eyebrow {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 500;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -703,82 +719,78 @@
 .bk-villahead__name {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.85rem);
   letter-spacing: 0.02em;
 }
 .bk-villahead__note {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.6;
+  font-size: 0.78rem;
+  line-height: 1.55;
   color: var(--text-muted);
-  max-width: 52ch;
+  max-width: 54ch;
 }
+
+/* Three feature columns, each a titled group. */
 .bk-villahead__features {
+  margin: 0.35rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.1rem;
+}
+.bk-villahead__featgroup ul {
   list-style: none;
-  margin: 0.2rem 0 0;
+  margin: 0.35rem 0 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-  gap: 0.5rem 1.4rem;
+  gap: 0.3rem;
 }
-.bk-villahead__features li {
+.bk-villahead__feattitle {
+  margin: 0;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.bk-villahead__featgroup li {
   position: relative;
-  padding-left: 1.1rem;
-  font-size: 0.85rem;
-  line-height: 1.45;
+  padding-left: 0.95rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
   color: var(--text);
 }
-.bk-villahead__features li::before {
+.bk-villahead__featgroup li::before {
   content: "";
   position: absolute;
   left: 0;
   top: 0.5em;
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: var(--accent);
 }
 .bk-villahead__price {
-  margin-top: 0.5rem;
-  padding-top: 1rem;
+  margin-top: 0.6rem;
+  padding-top: 0.9rem;
   border-top: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.bk-villahead__amount {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
-}
-.bk-villahead__amount em {
-  font-style: normal;
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-.bk-villahead__total {
-  font-size: 0.85rem;
-  color: var(--text-muted);
+  text-align: center;
 }
 .bk-villahead__price-muted {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
   color: var(--text-muted);
-}
-.bk-villahead__price-off {
-  font-size: 0.9rem;
-  color: var(--accent);
 }
 
 @media (max-width: 1150px) {
-  /* Ease the ratio before the stack so the copy column keeps room. */
   .bk-villahead {
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: 1.05fr 1fr;
   }
 }
 
 @media (max-width: 900px) {
   .bk-villahead {
     grid-template-columns: 1fr;
+    max-width: 44rem;
   }
   .bk-villahead__media {
     max-height: none;
@@ -786,8 +798,13 @@
   }
 }
 
+@media (max-width: 640px) {
+  .bk-villahead__features {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (max-width: 520px) {
-  /* Simplify the mosaic to a tidy 2-col grid on phones. */
   .bk-villahead__media {
     grid-template-columns: 1fr 1fr;
     grid-template-areas: none;
@@ -803,6 +820,87 @@
   }
   .bk-villahead__features {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Villa photo lightbox ------------------------------------------------- */
+
+.bk-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: clamp(1rem, 4vw, 3rem);
+}
+.bk-lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.88);
+  cursor: zoom-out;
+}
+.bk-lightbox__figure {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-height: 100%;
+}
+.bk-lightbox__figure img {
+  max-width: 100%;
+  max-height: 82vh;
+  object-fit: contain;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.bk-lightbox__figure figcaption {
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 60ch;
+}
+.bk-lightbox__close,
+.bk-lightbox__nav {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  background: rgba(20, 18, 16, 0.7);
+  color: var(--c-ivory);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.bk-lightbox__close:hover,
+.bk-lightbox__nav:hover {
+  background: rgba(40, 36, 32, 0.9);
+}
+.bk-lightbox__nav {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+.bk-lightbox__close {
+  position: absolute;
+  top: clamp(1rem, 3vw, 2rem);
+  right: clamp(1rem, 3vw, 2rem);
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1rem;
+}
+@media (max-width: 640px) {
+  .bk-lightbox__nav {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.4rem;
   }
 }
 
@@ -1063,6 +1161,12 @@
 
 /* ---- Guest form ------------------------------------------------------------------------- */
 
+/* The details step sits a touch narrower than the calendars above it. */
+.bk-section[aria-label="Your details"] {
+  max-width: 90%;
+  margin-inline: auto;
+}
+
 .bk-guest {
   display: flex;
   flex-direction: column;
@@ -1073,6 +1177,10 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.4rem;
+}
+/* Name / email / phone share one row. */
+.bk-guest__row--three {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .bk-field {
@@ -1347,6 +1455,16 @@
   .bk-quote {
     position: static;
     order: 2;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 561px) {
+  /* Name full-width, email + phone share the next row. */
+  .bk-guest__row--three {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bk-guest__row--three > .bk-field:first-child {
+    grid-column: 1 / -1;
   }
 }
 

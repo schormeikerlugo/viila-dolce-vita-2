@@ -16,23 +16,47 @@ import type {
   Quote,
   SuiteCardData,
   UnitId,
-  UnitOption,
 } from "../../lib/booking/types";
 import { ESTATE } from "../../lib/booking/types";
-import { longDate, money, nightsBetween } from "../../lib/booking/dates";
+import { longDate, money } from "../../lib/booking/dates";
 import AvailabilityCalendar from "./AvailabilityCalendar";
 import GuestDetailsForm from "./GuestDetailsForm";
 import QuoteSummary from "./QuoteSummary";
 import type { ExteriorPhoto } from "../../lib/booking/types";
 
-/* What the guest is actually renting — the whole estate, at a glance. */
-const VILLA_FEATURES = [
-  "Five en-suite bedrooms · sleeps 15",
-  "Heated infinity pool & sun terrace",
-  "Private chef — breakfast daily + 3 dinners/week",
-  "Barrel sauna & open-air gym",
-  "50 acres of gardens, olive groves & valley views",
-  "Full villa exclusivity — no other guests",
+/* Everything the guest is renting — the whole estate, at a glance. Grouped so
+   the copy panel can lay them out across three columns. */
+const VILLA_FEATURES: { title: string; items: string[] }[] = [
+  {
+    title: "The Estate",
+    items: [
+      "Five en-suite bedrooms · sleeps 15",
+      "Two stone houses, fully private",
+      "50 acres of gardens & olive groves",
+      "Panoramic valley, sea & island views",
+      "Full villa exclusivity — no other guests",
+    ],
+  },
+  {
+    title: "Dining & Service",
+    items: [
+      "Private in-house chef",
+      "Breakfast daily + three dinners a week",
+      "On-site concierge, living on the hill",
+      "Fully fitted kitchens in every suite",
+      "Chauffeured transfers on request",
+    ],
+  },
+  {
+    title: "Wellness & Grounds",
+    items: [
+      "Heated pool with panoramic terrace",
+      "Handcrafted barrel sauna",
+      "Open-air gym & boxing area",
+      "Golden-hour happy hour & lounges",
+      "Working animal sanctuary on the estate",
+    ],
+  },
 ] as const;
 
 interface Props {
@@ -83,28 +107,6 @@ export default function BookApp({ exterior }: Props) {
       .finally(() => setOccLoading(false));
   }, []);
 
-  /* ---- The Villa priced for the chosen dates ---- */
-  const [villaOption, setVillaOption] = useState<UnitOption | null>(null);
-  const [optionsLoading, setOptionsLoading] = useState(false);
-  useEffect(() => {
-    if (!arrive || !depart) {
-      setVillaOption(null);
-      return;
-    }
-    let alive = true;
-    setOptionsLoading(true);
-    api
-      .getStayOptions({ arrive, depart, guests })
-      .then((opts) => {
-        if (!alive) return;
-        setVillaOption(opts.find((o) => o.unit === ESTATE) ?? opts[0] ?? null);
-      })
-      .finally(() => alive && setOptionsLoading(false));
-    return () => {
-      alive = false;
-    };
-  }, [arrive, depart]);
-
   /* ---- Quote (recomputed by the API on every relevant change) ---- */
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
@@ -140,7 +142,9 @@ export default function BookApp({ exterior }: Props) {
     email: "",
     phone: "",
     notes: "",
-    acceptsAnimals: false,
+    // Consent checkbox removed from the UI; kept true so the backend RPC
+    // (which still requires it) accepts the request.
+    acceptsAnimals: true,
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -167,10 +171,7 @@ export default function BookApp({ exterior }: Props) {
     return () => window.clearTimeout(t);
   }, [guest.email, guest.name, guest.phone, arrive, depart]);
 
-  const nights = arrive && depart ? nightsBetween(arrive, depart) : 0;
-  const villaAvailable = villaOption?.available ?? false;
-  const detailsValid =
-    guest.name.trim().length > 0 && guest.email.includes("@") && guest.acceptsAnimals;
+  const detailsValid = guest.name.trim().length > 0 && guest.email.includes("@");
   const canSubmit = Boolean(arrive && depart && quote) && detailsValid && !submitting;
 
   const submit = () => {
@@ -243,15 +244,7 @@ export default function BookApp({ exterior }: Props) {
 
   return (
     <div className="bk-app" ref={rootRef}>
-      <VillaHeader
-        exterior={exterior}
-        arrive={arrive}
-        depart={depart}
-        nights={nights}
-        option={villaOption}
-        loading={optionsLoading}
-        available={villaAvailable}
-      />
+      <VillaHeader exterior={exterior} />
 
       <div className="bk-layout">
         <div className="bk-main">
@@ -303,32 +296,42 @@ export default function BookApp({ exterior }: Props) {
   );
 }
 
-/* ---- Fixed Villa header: one image left, details + live price right ---- */
+/* ---- Villa header: exterior mosaic (lightbox) + full estate details ---- */
 
-function VillaHeader({
-  exterior,
-  arrive,
-  depart,
-  nights,
-  option,
-  loading,
-  available,
-}: {
-  exterior: ExteriorPhoto[];
-  arrive: string | null;
-  depart: string | null;
-  nights: number;
-  option: UnitOption | null;
-  loading: boolean;
-  available: boolean;
-}) {
+function VillaHeader({ exterior }: { exterior: ExteriorPhoto[] }) {
+  const [lightbox, setLightbox] = useState<number | null>(null);
+
+  const close = useCallback(() => setLightbox(null), []);
+  const step = useCallback(
+    (dir: 1 | -1) =>
+      setLightbox((i) => (i === null ? null : (i + dir + exterior.length) % exterior.length)),
+    [exterior.length],
+  );
+
+  useEffect(() => {
+    if (lightbox === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowRight") step(1);
+      else if (e.key === "ArrowLeft") step(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, close, step]);
+
   return (
     <header className="bk-villahead">
       <div className="bk-villahead__media" aria-label="Photographs of the villa exterior">
         {exterior.map((p, i) => (
-          <figure key={p.src} className={`bk-villahead__tile bk-villahead__tile--${i + 1}`}>
+          <button
+            key={p.src}
+            type="button"
+            className={`bk-villahead__tile bk-villahead__tile--${i + 1}`}
+            onClick={() => setLightbox(i)}
+            aria-label={`View photo: ${p.alt}`}
+          >
             <img src={p.src} alt={p.alt} loading={i < 2 ? "eager" : "lazy"} />
-          </figure>
+          </button>
         ))}
       </div>
 
@@ -342,31 +345,52 @@ function VillaHeader({
           sauna and open-air gym, and a concierge who lives on the hill. Minimum 3 nights.
         </p>
 
-        <ul className="bk-villahead__features">
-          {VILLA_FEATURES.map((f) => (
-            <li key={f}>{f}</li>
+        <div className="bk-villahead__features">
+          {VILLA_FEATURES.map((group) => (
+            <div key={group.title} className="bk-villahead__featgroup">
+              <h3 className="bk-villahead__feattitle">{group.title}</h3>
+              <ul>
+                {group.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
 
         <div className="bk-villahead__price">
-          {!arrive || !depart ? (
-            <span className="bk-villahead__price-muted">Select your dates below</span>
-          ) : loading ? (
-            <span className="bk-villahead__price-muted">Checking availability…</span>
-          ) : available && option?.total != null ? (
-            <>
-              <span className="bk-villahead__amount">{money(option.total)}</span>
-              <span className="bk-villahead__total">
-                {nights} {nights === 1 ? "night" : "nights"} · from {money(option.nightly ?? 0)}/night
-              </span>
-            </>
-          ) : (
-            <span className="bk-villahead__price-off">
-              {option?.reason ?? "Unavailable for these dates"}
-            </span>
-          )}
+          <span className="bk-villahead__price-muted">Select your dates below</span>
         </div>
       </div>
+
+      {lightbox !== null && (
+        <div className="bk-lightbox" role="dialog" aria-modal="true" aria-label="Villa photo">
+          <button type="button" className="bk-lightbox__backdrop" aria-label="Close" onClick={close} />
+          <button type="button" className="bk-lightbox__close" aria-label="Close" onClick={close}>
+            ✕
+          </button>
+          <button
+            type="button"
+            className="bk-lightbox__nav bk-lightbox__nav--prev"
+            aria-label="Previous photo"
+            onClick={() => step(-1)}
+          >
+            ‹
+          </button>
+          <figure className="bk-lightbox__figure">
+            <img src={exterior[lightbox].src} alt={exterior[lightbox].alt} />
+            <figcaption>{exterior[lightbox].alt}</figcaption>
+          </figure>
+          <button
+            type="button"
+            className="bk-lightbox__nav bk-lightbox__nav--next"
+            aria-label="Next photo"
+            onClick={() => step(1)}
+          >
+            ›
+          </button>
+        </div>
+      )}
     </header>
   );
 }

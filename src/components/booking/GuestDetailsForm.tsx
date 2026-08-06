@@ -1,7 +1,6 @@
 /**
- * GuestDetailsForm — name / email / phone / notes plus the animal-sanctuary
- * consent (required — the estate is a working sanctuary). Pure controlled
- * form; validation happens in the API on submit.
+ * GuestDetailsForm — name / email / phone on one row, then notes. Pure
+ * controlled form; validation happens in the API on submit.
  */
 import type { GuestDetails } from "../../lib/booking/types";
 
@@ -17,7 +16,7 @@ export default function GuestDetailsForm({ value, onChange, disabled = false }: 
 
   return (
     <div className="bk-guest">
-      <div className="bk-guest__row">
+      <div className="bk-guest__row bk-guest__row--three">
         <label className="bk-field">
           <span className="bk-field__label">Name *</span>
           <input
@@ -42,19 +41,18 @@ export default function GuestDetailsForm({ value, onChange, disabled = false }: 
             disabled={disabled}
           />
         </label>
+        <label className="bk-field">
+          <span className="bk-field__label">Phone / WhatsApp</span>
+          <input
+            type="tel"
+            className="bk-field__input"
+            value={value.phone ?? ""}
+            onChange={(e) => set("phone", e.target.value)}
+            autoComplete="tel"
+            disabled={disabled}
+          />
+        </label>
       </div>
-
-      <label className="bk-field">
-        <span className="bk-field__label">Phone / WhatsApp</span>
-        <input
-          type="tel"
-          className="bk-field__input"
-          value={value.phone ?? ""}
-          onChange={(e) => set("phone", e.target.value)}
-          autoComplete="tel"
-          disabled={disabled}
-        />
-      </label>
 
       <label className="bk-field">
         <span className="bk-field__label">Notes for the concierge</span>
@@ -66,19 +64,6 @@ export default function GuestDetailsForm({ value, onChange, disabled = false }: 
           onChange={(e) => set("notes", e.target.value)}
           disabled={disabled}
         />
-      </label>
-
-      <label className="bk-consent">
-        <input
-          type="checkbox"
-          checked={value.acceptsAnimals}
-          onChange={(e) => set("acceptsAnimals", e.target.checked)}
-          disabled={disabled}
-        />
-        <span>
-          I understand the villa is also a sanctuary for rescued animals who roam freely across
-          the property, and I'm comfortable sharing the space with these gentle residents. *
-        </span>
       </label>
     </div>
   );
