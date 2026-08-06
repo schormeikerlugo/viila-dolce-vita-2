@@ -1161,13 +1161,6 @@
 
 /* ---- Guest form ------------------------------------------------------------------------- */
 
-/* The details step sits a touch narrower than the calendars above it,
-   left-aligned with the calendar (step 1). */
-.bk-section[aria-label="Your details"] {
-  max-width: 90%;
-  margin-right: auto;
-}
-
 .bk-guest {
   display: flex;
   flex-direction: column;
