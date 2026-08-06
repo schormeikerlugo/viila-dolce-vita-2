@@ -15,20 +15,20 @@ export const site = {
 export const contact = {
   whatsapp: "+39 331 633 1248",
   whatsappHref: "https://wa.me/393316331248",
-  email: "niccolo@villadolcevita.eu",
+  email: "hello@villadolcevita.eu",
   address: "SP441, 56, 58024 Massa Marittima GR, Italy",
-  instagram: "https://instagram.com/villadolcevita.eu",
-  instagramHandle: "@villadolcevita.eu",
+  instagram: "https://www.instagram.com/villadolcevitatoscana/",
+  instagramHandle: "@villadolcevitatoscana",
   // Real booking engine — swap the mock CTA to this when ready (see Docs).
   bookingEngine: "https://bookings.villadolcevita.eu/hotel/villa-dolce-vita",
 } as const;
 
 /** Social profiles — rendered as icon links in the footer. */
 export const social = [
-  { label: "Instagram", href: "https://instagram.com/villadolcevita.eu" },
+  { label: "Instagram", href: "https://www.instagram.com/villadolcevitatoscana/" },
   { label: "TikTok", href: "https://www.tiktok.com/@villadolcevita.eu" },
-  { label: "Pinterest", href: "https://www.pinterest.com/villadolcevita" },
-  { label: "Facebook", href: "https://www.facebook.com/villadolcevita.eu" },
+  { label: "Pinterest", href: "https://www.pinterest.com/villadolcevitatoscana/" },
+  { label: "Facebook", href: "https://www.facebook.com/profile.php?id=61592923647481" },
 ] as const;
 
 /**
