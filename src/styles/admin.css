@@ -187,6 +187,19 @@
   font-size: 0.8rem;
 }
 
+/* ---- Simple availability calendar (book-style) -------------------------------- */
+
+.adm-simplecal {
+  max-width: 62rem;
+}
+.adm-simplecal__error {
+  margin-top: 1rem;
+}
+/* The book calendar renders on dark ground already; give the panel some air. */
+.adm-simplecal .adm-panel {
+  margin-top: 1.5rem;
+}
+
 /* ---- Occupancy grid ----------------------------------------------------------- */
 
 .adm-cal {
