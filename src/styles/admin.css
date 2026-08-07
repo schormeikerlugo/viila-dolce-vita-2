@@ -344,10 +344,7 @@
   color: var(--text-muted);
 }
 
-/* A week row: day cells with an absolutely-positioned bar layer above. */
-.adm-cal2__week {
-  position: relative;
-}
+/* A week row of day cells. */
 .adm-cal2__week + .adm-cal2__week {
   border-top: 1px solid rgba(244, 241, 234, 0.06);
 }
@@ -357,7 +354,10 @@
 }
 .adm-cal2__cell {
   position: relative;
-  min-height: 5.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 6rem;
   padding: 0.4rem 0.5rem;
   background: none;
   border: 0;
@@ -399,86 +399,68 @@
   background: rgba(192, 138, 88, 0.28);
 }
 
-/* Bar layer — a 7-col grid sitting below the day numbers; bars occupy
-   grid-column (day span) and grid-row (stacking lane). */
-.adm-cal2__bars {
-  position: absolute;
-  inset: 1.7rem 0 0.35rem;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-auto-rows: 1.4rem;
-  row-gap: 3px;
-  pointer-events: none;
-}
-.adm-cal2__bar {
-  height: 1.25rem;
-  margin: 0 1px;
-  padding: 0 0.45rem;
-  border: 0;
-  border-radius: 2px;
-  font-size: 0.62rem;
-  line-height: 1.25rem;
-  color: var(--c-ink);
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* ---- Occupied cells: the whole day cell is painted by status ---- */
+.adm-cal2__cell.is-occ {
   cursor: pointer;
-  pointer-events: auto;
-  transition: filter var(--dur-fast) var(--ease-out);
 }
-.adm-cal2__bar:hover {
-  filter: brightness(1.08);
-}
-.adm-cal2__bar.is-selected {
-  outline: 2px solid var(--c-ivory);
-  outline-offset: 1px;
-}
-.adm-cal2__bar.is-dim {
-  opacity: 0.28;
-}
-.adm-cal2__bar.is-barstart {
-  border-top-left-radius: 3px;
-  border-bottom-left-radius: 3px;
-  margin-left: 3px;
-}
-.adm-cal2__bar.is-barend {
-  border-top-right-radius: 3px;
-  border-bottom-right-radius: 3px;
-  margin-right: 3px;
-}
-.adm-cal2__barlabel {
-  display: block;
+/* The guest / reason label, shown on the stay's check-in cell, below the
+   day number so it never touches the numbers. */
+.adm-cal2__celllabel {
+  align-self: stretch;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
+  font-size: 0.66rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.adm-cal2__cell.is-dim {
+  opacity: 0.32;
+}
+.adm-cal2__cell.is-selected {
+  outline: 2px solid var(--c-ivory);
+  outline-offset: -2px;
 }
 
-/* Status colours (bars). */
-.adm-cal2__bar.is-requested {
+/* Status fills. Rounded corners only at the run's start/end so a multi-day
+   stay reads as one continuous block. */
+.adm-cal2__cell.is-requested {
   background: rgba(192, 138, 88, 0.55);
-  color: var(--c-ivory);
 }
-.adm-cal2__bar.is-hold {
+.adm-cal2__cell.is-hold {
   background: var(--accent);
 }
-.adm-cal2__bar.is-confirmed {
+.adm-cal2__cell.is-confirmed {
   background: #9dc08b;
 }
-.adm-cal2__bar.is-completed {
-  background: rgba(157, 192, 139, 0.5);
-  color: var(--c-ivory);
+.adm-cal2__cell.is-completed {
+  background: rgba(157, 192, 139, 0.55);
 }
-.adm-cal2__bar.is-block {
-  color: var(--c-ivory);
+.adm-cal2__cell.is-block {
   background: repeating-linear-gradient(
     45deg,
     rgba(192, 138, 88, 0.5),
-    rgba(192, 138, 88, 0.5) 5px,
-    rgba(192, 138, 88, 0.22) 5px,
-    rgba(192, 138, 88, 0.22) 10px
+    rgba(192, 138, 88, 0.5) 6px,
+    rgba(192, 138, 88, 0.24) 6px,
+    rgba(192, 138, 88, 0.24) 12px
   );
+}
+/* Ink text on the lighter confirmed/hold fills for contrast. */
+.adm-cal2__cell.is-confirmed .adm-cal2__daynum,
+.adm-cal2__cell.is-confirmed .adm-cal2__celllabel,
+.adm-cal2__cell.is-hold .adm-cal2__daynum,
+.adm-cal2__cell.is-hold .adm-cal2__celllabel {
+  color: var(--c-ink);
+}
+/* Ivory text on the darker requested/completed/block fills. */
+.adm-cal2__cell.is-requested .adm-cal2__daynum,
+.adm-cal2__cell.is-requested .adm-cal2__celllabel,
+.adm-cal2__cell.is-completed .adm-cal2__daynum,
+.adm-cal2__cell.is-completed .adm-cal2__celllabel,
+.adm-cal2__cell.is-block .adm-cal2__daynum,
+.adm-cal2__cell.is-block .adm-cal2__celllabel {
+  color: var(--c-ivory);
 }
 
 /* Legend. */

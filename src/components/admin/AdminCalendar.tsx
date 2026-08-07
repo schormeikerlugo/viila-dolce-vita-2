@@ -275,60 +275,6 @@ export default function AdminCalendar(_props: Props) {
     return rows;
   }, [cursor]);
 
-  // For one week row, compute the bar segments to render, each with a lane
-  // (stacking level) so overlapping stays never sit on top of each other.
-  const segmentsForWeek = (week: (string | null)[]) => {
-    // Map each column (0..6) to its date (null for padding).
-    const colDates = week.map((d) => d);
-    const firstReal = colDates.find((d): d is string => d !== null);
-    const lastReal = [...colDates].reverse().find((d): d is string => d !== null);
-    if (!firstReal || !lastReal) return [];
-    const weekStart = firstReal;
-    const weekEndExcl = addDays(lastReal, 1);
-
-    type Seg = {
-      span: Span;
-      colStart: number; // 1-based grid column (1..7)
-      colEnd: number; // 1-based inclusive
-      isStart: boolean;
-      isEnd: boolean;
-      dim: boolean;
-      lane: number;
-    };
-    const raw: Omit<Seg, "lane">[] = [];
-    for (const s of spans) {
-      const segStart = s.start > weekStart ? s.start : weekStart;
-      const segEndExcl = s.endExclusive < weekEndExcl ? s.endExclusive : weekEndExcl;
-      if (segStart >= segEndExcl) continue;
-      const lastNight = addDays(segEndExcl, -1);
-      const colStart = colDates.indexOf(segStart) + 1;
-      const colEnd = colDates.indexOf(lastNight) + 1;
-      if (colStart < 1 || colEnd < 1) continue;
-      raw.push({
-        span: s,
-        colStart,
-        colEnd,
-        isStart: s.start >= weekStart,
-        isEnd: s.endExclusive <= weekEndExcl,
-        dim: !spanMatchesFilter(s),
-      });
-    }
-    // Stable order: earliest column first, then longer spans.
-    raw.sort((a, b) => a.colStart - b.colStart || b.colEnd - a.colEnd);
-    // Assign lanes greedily so overlapping columns get different lanes.
-    const laneEnds: number[] = []; // last occupied column per lane
-    const segs: Seg[] = raw.map((r) => {
-      let lane = laneEnds.findIndex((end) => end < r.colStart);
-      if (lane === -1) {
-        lane = laneEnds.length;
-        laneEnds.push(r.colEnd);
-      } else {
-        laneEnds[lane] = r.colEnd;
-      }
-      return { ...r, lane };
-    });
-    return segs;
-  };
 
   const canGoBack = cursor > monthStart(today);
   const showPanel =
@@ -459,10 +405,9 @@ export default function AdminCalendar(_props: Props) {
         </div>
 
         {weeks.map((week, wi) => {
-          const segs = segmentsForWeek(week);
           return (
             <div className="adm-cal2__week" key={wi} onMouseLeave={() => setHover(null)}>
-              {/* day cells */}
+              {/* day cells — each occupied day paints its whole cell */}
               <div className="adm-cal2__days">
                 {week.map((d, di) => {
                   if (d === null)
@@ -473,6 +418,14 @@ export default function AdminCalendar(_props: Props) {
                   const end = d === (rangeEnd ?? previewEnd);
                   const range = inRange(d);
                   const occ = occupiedAt(d);
+                  const occKind = occ ? (occ.kind === "block" ? "block" : occ.status) : null;
+                  const occDim = occ ? !spanMatchesFilter(occ) : false;
+                  // The stay's real check-in shows the guest/reason label.
+                  const isSpanStart = occ ? d === occ.start : false;
+                  const active =
+                    occ &&
+                    ((selBooking && occ.booking && selBooking.reference === occ.booking.reference) ||
+                      (selBlock && occ.block && selBlock.id === occ.block.id));
                   return (
                     <button
                       key={d}
@@ -485,6 +438,11 @@ export default function AdminCalendar(_props: Props) {
                         start && "is-rangestart",
                         end && "is-rangeend",
                         range && "is-inrange",
+                        occ && `is-occ is-${occKind}`,
+                        occ && isSpanStart && "is-spanstart",
+                        occ && d === addDays(occ.endExclusive, -1) && "is-spanend",
+                        occDim && "is-dim",
+                        active && "is-selected",
                       ]
                         .filter(Boolean)
                         .join(" ")}
@@ -493,57 +451,12 @@ export default function AdminCalendar(_props: Props) {
                       onMouseEnter={() => setHover(d)}
                       onFocus={() => setHover(d)}
                       aria-label={occ ? `${longDate(d)} — ${occ.label}` : longDate(d)}
+                      title={occ ? `${occ.label}${occ.status ? ` · ${STATUS_LABEL[occ.status]}` : ""}` : undefined}
                     >
                       <span className="adm-cal2__daynum">{Number(d.slice(8))}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* occupancy bars overlaid on this week */}
-              <div
-                className="adm-cal2__bars"
-                style={{
-                  gridTemplateRows: `repeat(${Math.max(1, ...segs.map((s) => s.lane + 1))}, 1.4rem)`,
-                }}
-              >
-                {segs.map((seg) => {
-                  const s = seg.span;
-                  const cls = [
-                    "adm-cal2__bar",
-                    s.kind === "block" ? "is-block" : `is-${s.status}`,
-                    seg.isStart && "is-barstart",
-                    seg.isEnd && "is-barend",
-                    seg.dim && "is-dim",
-                  ]
-                    .filter(Boolean)
-                    .join(" ");
-                  const active =
-                    (selBooking && s.booking && selBooking.reference === s.booking.reference) ||
-                    (selBlock && s.block && selBlock.id === s.block.id);
-                  return (
-                    <button
-                      key={`${s.id}-${seg.lane}-${seg.colStart}`}
-                      type="button"
-                      className={`${cls}${active ? " is-selected" : ""}`}
-                      style={{
-                        gridColumn: `${seg.colStart} / ${seg.colEnd + 1}`,
-                        gridRow: `${seg.lane + 1}`,
-                      }}
-                      onClick={() => {
-                        if (s.kind === "booking" && s.booking) {
-                          setMode("view");
-                          setSelBlock(null);
-                          setSelBooking(s.booking);
-                        } else if (s.block) {
-                          setMode("view");
-                          setSelBooking(null);
-                          setSelBlock(s.block);
-                        }
-                      }}
-                      title={`${s.label}${s.status ? ` · ${STATUS_LABEL[s.status]}` : ""}`}
-                    >
-                      {seg.isStart && <span className="adm-cal2__barlabel">{s.label}</span>}
+                      {occ && isSpanStart && (
+                        <span className="adm-cal2__celllabel">{occ.label}</span>
+                      )}
                     </button>
                   );
                 })}
