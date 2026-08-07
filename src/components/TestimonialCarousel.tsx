@@ -69,8 +69,8 @@ export default function TestimonialCarousel({ items, interval = 6500 }: Props) {
                 <p className="tc-card__quote">{t.quote}</p>
                 <footer className="tc-card__author">
                   <span className="tc-card__name">&ndash;{t.author}</span>
-                  {t.location && (
-                    <span className="tc-card__country">{t.location}</span>
+                  {(t.location || t.meta) && (
+                    <span className="tc-card__country">{t.location ?? t.meta}</span>
                   )}
                 </footer>
               </article>
