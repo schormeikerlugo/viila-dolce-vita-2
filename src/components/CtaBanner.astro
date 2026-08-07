@@ -18,12 +18,14 @@ interface Props {
   ctaHref?: string;
   image?: ImageMetadata;
   imageAlt?: string;
+  /** Content alignment within the banner. Defaults to left. */
+  align?: "start" | "center";
 }
-const { eyebrow, title, sub, ctaLabel, ctaHref, image, imageAlt = "" } = Astro.props;
+const { eyebrow, title, sub, ctaLabel, ctaHref, image, imageAlt = "", align = "start" } = Astro.props;
 const hasBar = Astro.slots.has("bar");
 ---
 
-<section class="ctab" data-parallax-scope>
+<section class:list={["ctab", { "ctab--center": align === "center" }]} data-parallax-scope>
   <div class="ctab__media" data-parallax="0.12">
     {
       image && (
@@ -126,5 +128,20 @@ const hasBar = Astro.slots.has("bar");
   .ctab :global(.ctab__bar) {
     margin-top: clamp(1rem, 2vw, 1.75rem);
     width: 100%;
+  }
+
+  /* Centred variant — content centred to the banner container. */
+  .ctab--center {
+    align-items: center;
+  }
+  .ctab--center .ctab__inner {
+    align-items: center;
+    text-align: center;
+  }
+  .ctab--center :global(.ctab__title) {
+    max-width: 20ch;
+  }
+  .ctab--center :global(.ctab__sub) {
+    margin-inline: auto;
   }
 </style>
