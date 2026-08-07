@@ -187,20 +187,427 @@
   font-size: 0.8rem;
 }
 
-/* ---- Simple availability calendar (book-style) -------------------------------- */
+/* ---- Operational availability calendar (adm-cal2) ----------------------------- */
 
-.adm-simplecal {
-  max-width: 62rem;
+.adm-cal2 {
+  max-width: 64rem;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
-.adm-simplecal__error {
+.adm-cal2.is-loading {
+  opacity: 0.6;
+}
+
+/* Toolbar: month + nav on the left, mode toggle on the right. */
+.adm-cal2__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.adm-cal2__month {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.adm-cal2__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+  letter-spacing: 0.02em;
+}
+.adm-cal2__nav {
+  display: flex;
+  gap: 0.4rem;
+}
+.adm-cal2__navbtn {
+  min-width: 2.4rem;
+  height: 2.4rem;
+  padding: 0 0.7rem;
+  background: none;
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  font-size: 0.72rem;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), opacity var(--dur-fast);
+}
+.adm-cal2__navbtn:hover:not(:disabled) {
+  background: rgba(244, 241, 234, 0.06);
+}
+.adm-cal2__navbtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Segmented View / Block toggle. */
+.adm-cal2__modes {
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
+}
+.adm-seg {
+  padding: 0.55rem 1.1rem;
+  background: none;
+  border: 0;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast);
+}
+.adm-seg + .adm-seg {
+  border-left: 1px solid var(--line-strong);
+}
+.adm-seg.is-active {
+  background: var(--accent);
+  color: var(--c-ink);
+}
+
+/* Month summary KPIs. */
+.adm-cal2__summary {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin-bottom: 1.25rem;
+}
+.adm-cal2__kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  background: var(--bg-dark);
+}
+.adm-cal2__kpival {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 0.9rem + 0.6vw, 1.5rem);
+  color: var(--text);
+}
+.adm-cal2__kpilbl {
+  font-size: 0.58rem;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Filter chips. */
+.adm-cal2__filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+.adm-chip {
+  padding: 0.4rem 0.9rem;
+  background: none;
+  border: 1px solid var(--line-strong);
+  color: var(--text-muted);
+  font-size: 0.64rem;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast);
+}
+.adm-chip.is-active {
+  background: rgba(244, 241, 234, 0.1);
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.adm-cal2__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+/* Grid. */
+.adm-cal2__grid {
+  border: 1px solid var(--line);
+}
+.adm-cal2__wds {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+.adm-cal2__wd {
+  padding: 0.5rem 0;
+  text-align: center;
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* A week row: day cells with an absolutely-positioned bar layer above. */
+.adm-cal2__week {
+  position: relative;
+}
+.adm-cal2__week + .adm-cal2__week {
+  border-top: 1px solid rgba(244, 241, 234, 0.06);
+}
+.adm-cal2__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.adm-cal2__cell {
+  position: relative;
+  min-height: 5.5rem;
+  padding: 0.4rem 0.5rem;
+  background: none;
+  border: 0;
+  border-left: 1px solid rgba(244, 241, 234, 0.06);
+  color: var(--text);
+  text-align: left;
+  cursor: default;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.adm-cal2__cell:first-child {
+  border-left: 0;
+}
+.adm-cal2__cell.is-pad {
+  background: rgba(0, 0, 0, 0.25);
+}
+.adm-cal2__cell.is-past {
+  opacity: 0.4;
+}
+.adm-cal2__daynum {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.adm-cal2__cell.is-today .adm-cal2__daynum {
+  color: var(--accent);
+  font-weight: 600;
+}
+/* Blockable free nights in block mode invite a click. */
+.adm-cal2__cell.is-blockable {
+  cursor: pointer;
+}
+.adm-cal2__cell.is-blockable:hover {
+  background: rgba(244, 241, 234, 0.05);
+}
+.adm-cal2__cell.is-inrange {
+  background: rgba(192, 138, 88, 0.14);
+}
+.adm-cal2__cell.is-rangestart,
+.adm-cal2__cell.is-rangeend {
+  background: rgba(192, 138, 88, 0.28);
+}
+
+/* Bar layer. */
+.adm-cal2__bars {
+  position: absolute;
+  inset: 1.6rem 0 0.4rem;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  pointer-events: none;
+}
+.adm-cal2__bar {
+  position: relative;
+  height: 1.3rem;
+  align-self: start;
+  margin: 0 1px;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: 2px;
+  font-size: 0.64rem;
+  line-height: 1.3rem;
+  color: var(--c-ink);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: filter var(--dur-fast) var(--ease-out), transform var(--dur-fast);
+}
+.adm-cal2__bar:hover {
+  filter: brightness(1.08);
+}
+.adm-cal2__bar.is-selected {
+  outline: 2px solid var(--c-ivory);
+  outline-offset: 1px;
+}
+.adm-cal2__bar.is-dim {
+  opacity: 0.28;
+}
+.adm-cal2__bar.is-barstart {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  margin-left: 3px;
+}
+.adm-cal2__bar.is-barend {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  margin-right: 3px;
+}
+.adm-cal2__barlabel {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Status colours (bars). */
+.adm-cal2__bar.is-requested {
+  background: rgba(192, 138, 88, 0.55);
+  color: var(--c-ivory);
+}
+.adm-cal2__bar.is-hold {
+  background: var(--accent);
+}
+.adm-cal2__bar.is-confirmed {
+  background: #9dc08b;
+}
+.adm-cal2__bar.is-completed {
+  background: rgba(157, 192, 139, 0.5);
+  color: var(--c-ivory);
+}
+.adm-cal2__bar.is-block {
+  color: var(--c-ivory);
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(192, 138, 88, 0.5),
+    rgba(192, 138, 88, 0.5) 5px,
+    rgba(192, 138, 88, 0.22) 5px,
+    rgba(192, 138, 88, 0.22) 10px
+  );
+}
+
+/* Legend. */
+.adm-cal2__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
   margin-top: 1rem;
 }
-/* The book calendar renders on dark ground already; give the panel some air. */
-.adm-simplecal .adm-panel {
-  margin-top: 1.5rem;
+.adm-cal2__lg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.62rem;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.adm-cal2__lg::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+.adm-cal2__lg.is-requested::before {
+  background: rgba(192, 138, 88, 0.55);
+}
+.adm-cal2__lg.is-hold::before {
+  background: var(--accent);
+}
+.adm-cal2__lg.is-confirmed::before {
+  background: #9dc08b;
+}
+.adm-cal2__lg.is-block::before {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(192, 138, 88, 0.6),
+    rgba(192, 138, 88, 0.6) 3px,
+    rgba(192, 138, 88, 0.2) 3px,
+    rgba(192, 138, 88, 0.2) 6px
+  );
+}
+.adm-cal2__lg.is-free::before {
+  border: 1px solid var(--line-strong);
 }
 
-/* ---- Occupancy grid ----------------------------------------------------------- */
+.adm-cal2__error {
+  margin-top: 1rem;
+}
+
+/* Panel additions. */
+.adm-cal2__panel {
+  margin-top: 1.5rem;
+}
+.adm-cal2__status {
+  margin-left: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 2px;
+  font-family: var(--font-body);
+  font-size: 0.56rem;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: var(--c-ink);
+}
+.adm-cal2__status.is-requested {
+  background: rgba(192, 138, 88, 0.55);
+  color: var(--c-ivory);
+}
+.adm-cal2__status.is-hold {
+  background: var(--accent);
+}
+.adm-cal2__status.is-confirmed {
+  background: #9dc08b;
+}
+.adm-cal2__status.is-completed {
+  background: rgba(157, 192, 139, 0.5);
+  color: var(--c-ivory);
+}
+.adm-cal2__status.is-cancelled,
+.adm-cal2__status.is-expired {
+  background: rgba(192, 88, 88, 0.4);
+  color: var(--c-ivory);
+}
+.adm-cal2__status.is-block {
+  background: rgba(192, 138, 88, 0.4);
+  color: var(--c-ivory);
+}
+.adm-cal2__facts {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 0 1rem;
+}
+.adm-cal2__facts > div {
+  display: grid;
+  gap: 0.15rem;
+}
+.adm-cal2__facts dt {
+  font-size: 0.58rem;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.adm-cal2__facts dd {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.adm-cal2__facts dd em {
+  display: block;
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+.adm-cal2__notes {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-left: 2px solid var(--line-strong);
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 780px) {
+  .adm-cal2__summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .adm-cal2__cell {
+    min-height: 4.5rem;
+  }
+}
+
+/* ---- Shared bar/title header (used by Promotions & Rates) --------------------- */
 
 .adm-cal {
   transition: opacity var(--dur-fast) var(--ease-out);

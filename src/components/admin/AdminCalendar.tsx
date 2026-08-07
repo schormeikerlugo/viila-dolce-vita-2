@@ -1,20 +1,21 @@
 /**
- * AdminCalendar — a simple two-month availability calendar for the whole
- * estate (the single bookable unit), styled like the guest booking calendar.
+ * AdminCalendar — operational availability calendar for the whole estate.
  *
- * Fast operation:
- *  - Free nights: click a start, click an end → block/occupy the range in one
- *    step (with a quick reason). A single click blocks that one night.
- *  - Blocked nights: click to open the panel and free them (delete the block).
- *  - Booked nights: click for quick confirm/cancel actions.
+ * Reads occupancy (getCalendar) + the raw bookings/blocks so it can draw each
+ * stay as a continuous bar across the nights it covers, coloured by status,
+ * with the guest name (or block reason) on the bar. Two modes:
+ *   - View  → click a bar to open its detail panel (contact, total, actions).
+ *   - Block → click a start then an end to block a free range in one step.
+ *
+ * A compact month summary (occupancy, free nights, arrivals/departures,
+ * confirmed revenue) sits above the grid. All actions run through adminApi.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminApi } from "../../lib/booking/api";
 import type {
-  AdminCalendar as CalData,
+  Booking,
   BookingStatus,
-  CalendarCell,
-  SuiteSlug,
+  CalendarBlock,
 } from "../../lib/booking/types";
 import {
   addDays,
@@ -24,88 +25,160 @@ import {
   monthGrid,
   monthLabel,
   monthStart,
+  money,
   todayISO,
 } from "../../lib/booking/dates";
 import type { SuiteMeta } from "./AdminApp";
+import CopyButton from "./CopyButton";
 
 interface Props {
   suites: SuiteMeta[];
 }
 
+type Mode = "view" | "block";
+type Filter = "all" | "pending" | "confirmed" | "blocks";
+
 const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const BOOKING_ACTIVE: BookingStatus[] = ["requested", "hold", "confirmed", "completed"];
 
-/** Weekday nightly rates (default catalogue). */
-const WEEKDAY_RATES = { monThu: 3000, fri: 4250, sat: 4750, sun: 3750 };
-function nightPrice(iso: string): number {
-  const dow = fromISO(iso).getUTCDay();
-  if (dow === 5) return WEEKDAY_RATES.fri;
-  if (dow === 6) return WEEKDAY_RATES.sat;
-  if (dow === 0) return WEEKDAY_RATES.sun;
-  return WEEKDAY_RATES.monThu;
-}
-function compactPrice(n: number): string {
-  const k = n / 1000;
-  const s = Number.isInteger(k) ? `${k}` : k.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
-  return `€${s}k`;
+/** A continuous occupancy span across the calendar. */
+interface Span {
+  id: string;
+  kind: "booking" | "block";
+  status?: BookingStatus;
+  label: string; // guest name or block reason
+  start: string; // first night (inclusive)
+  endExclusive: string; // checkout day (exclusive)
+  booking?: Booking;
+  block?: CalendarBlock;
 }
 
-export default function AdminCalendar({ suites }: Props) {
+const STATUS_LABEL: Record<BookingStatus, string> = {
+  requested: "Requested",
+  hold: "On hold",
+  confirmed: "Confirmed",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  expired: "Expired",
+};
+
+export default function AdminCalendar(_props: Props) {
   const today = todayISO();
   const [cursor, setCursor] = useState(() => monthStart(today));
-  const [cal, setCal] = useState<CalData>({});
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [blocks, setBlocks] = useState<CalendarBlock[]>([]);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Range selection for blocking free nights.
+  const [mode, setMode] = useState<Mode>("view");
+  const [filter, setFilter] = useState<Filter>("all");
+
+  // Block-mode range selection.
   const [rangeStart, setRangeStart] = useState<string | null>(null);
   const [rangeEnd, setRangeEnd] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [reason, setReason] = useState("");
 
-  // A single occupied night the admin tapped (to free / manage).
-  const [selCellDate, setSelCellDate] = useState<string | null>(null);
-
-  const suiteSlugs = suites.map((s) => s.slug as SuiteSlug);
-
-  // Load a wide window covering both visible months.
-  const windowStart = cursor;
-  const windowEnd = addMonths(cursor, 2);
+  // View-mode selection.
+  const [selBooking, setSelBooking] = useState<Booking | null>(null);
+  const [selBlock, setSelBlock] = useState<CalendarBlock | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
-    adminApi
-      .getCalendar(windowStart, windowEnd)
-      .then(setCal)
+    setError(null);
+    Promise.all([adminApi.listBookings(), adminApi.listBlocks()])
+      .then(([bk, bl]) => {
+        setBookings(bk);
+        setBlocks(bl);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Could not load the calendar."))
       .finally(() => setLoading(false));
-  }, [windowStart, windowEnd]);
+  }, []);
 
   useEffect(() => {
     load();
-    setRangeStart(null);
-    setRangeEnd(null);
-    setSelCellDate(null);
-    setError(null);
   }, [load]);
 
-  /** The most meaningful cell for a night (booking > block > external). */
-  const villaCell = useCallback(
-    (date: string): CalendarCell | undefined => {
-      const day = cal[date];
-      if (!day) return undefined;
-      const cells = suiteSlugs.map((s) => day[s]).filter(Boolean) as CalendarCell[];
-      return (
-        cells.find((c) => c.kind === "booking") ??
-        cells.find((c) => c.kind === "block") ??
-        cells.find((c) => c.kind === "external") ??
-        cells[0]
-      );
-    },
-    [cal, suiteSlugs],
+  // Clear transient selection when the month changes.
+  useEffect(() => {
+    setRangeStart(null);
+    setRangeEnd(null);
+    setSelBooking(null);
+    setSelBlock(null);
+  }, [cursor, mode]);
+
+  /* ---- Build spans from bookings + blocks ---- */
+  const spans: Span[] = useMemo(() => {
+    const out: Span[] = [];
+    for (const b of bookings) {
+      if (!BOOKING_ACTIVE.includes(b.status)) continue;
+      out.push({
+        id: `bk-${b.reference}`,
+        kind: "booking",
+        status: b.status,
+        label: b.request.guest.name,
+        start: b.request.stay.arrive,
+        endExclusive: b.request.stay.depart,
+        booking: b,
+      });
+    }
+    for (const bl of blocks) {
+      out.push({
+        id: `bl-${bl.id}`,
+        kind: "block",
+        label: bl.reason,
+        start: bl.start,
+        endExclusive: bl.end,
+        block: bl,
+      });
+    }
+    return out;
+  }, [bookings, blocks]);
+
+  // Occupancy lookup for a given night (used by block-mode range checks + free cells).
+  const occupiedAt = useCallback(
+    (d: string): Span | undefined =>
+      spans.find((s) => d >= s.start && d < s.endExclusive),
+    [spans],
   );
 
-  const isOccupied = (d: string) => Boolean(villaCell(d));
+  const spanMatchesFilter = (s: Span): boolean => {
+    if (filter === "all") return true;
+    if (filter === "blocks") return s.kind === "block";
+    if (filter === "pending") return s.kind === "booking" && (s.status === "requested" || s.status === "hold");
+    if (filter === "confirmed") return s.kind === "booking" && (s.status === "confirmed" || s.status === "completed");
+    return true;
+  };
 
+  /* ---- Month summary ---- */
+  const monthDays = useMemo(
+    () => monthGrid(cursor).filter((d): d is string => d !== null),
+    [cursor],
+  );
+  const summary = useMemo(() => {
+    const total = monthDays.length;
+    let occupied = 0;
+    let arrivals = 0;
+    let departures = 0;
+    let revenue = 0;
+    const monthEndExcl = addDays(monthDays[monthDays.length - 1], 1);
+    for (const d of monthDays) if (occupiedAt(d)) occupied++;
+    for (const s of spans) {
+      if (s.start >= monthDays[0] && s.start < monthEndExcl) arrivals++;
+      if (s.endExclusive > monthDays[0] && s.endExclusive <= monthEndExcl && s.kind === "booking")
+        departures++;
+    }
+    for (const b of bookings) {
+      if (b.status !== "confirmed" && b.status !== "completed") continue;
+      if (b.request.stay.arrive >= monthDays[0] && b.request.stay.arrive < monthEndExcl)
+        revenue += b.quote.total;
+    }
+    const occPct = total ? Math.round((occupied / total) * 100) : 0;
+    return { occPct, free: total - occupied, arrivals, departures, revenue };
+  }, [monthDays, spans, occupiedAt, bookings]);
+
+  /* ---- Actions ---- */
   const run = (op: () => Promise<unknown>) => {
     setBusy(true);
     setError(null);
@@ -113,7 +186,8 @@ export default function AdminCalendar({ suites }: Props) {
       .then(() => {
         setRangeStart(null);
         setRangeEnd(null);
-        setSelCellDate(null);
+        setSelBooking(null);
+        setSelBlock(null);
         setReason("");
         load();
       })
@@ -121,40 +195,42 @@ export default function AdminCalendar({ suites }: Props) {
       .finally(() => setBusy(false));
   };
 
-  /** Any occupied night inside [a, b)? (can't block across a real booking) */
-  const occupiedIn = (a: string, b: string): string[] => {
+  const occupiedIn = (a: string, bExcl: string): string[] => {
     const out: string[] = [];
-    for (let d = a; d < b; d = addDays(d, 1)) if (isOccupied(d)) out.push(d);
+    for (let d = a; d < bExcl; d = addDays(d, 1)) if (occupiedAt(d)) out.push(d);
     return out;
   };
 
-  const pick = (day: string) => {
+  const pickDay = (day: string, span: Span | undefined) => {
     if (day < today) return;
     setError(null);
 
-    const cell = villaCell(day);
-    if (cell) {
-      // Occupied night → open the manage panel (free block / booking actions).
-      setRangeStart(null);
-      setRangeEnd(null);
-      setSelCellDate(day);
+    if (mode === "view") {
+      if (span?.kind === "booking" && span.booking) {
+        setSelBlock(null);
+        setSelBooking(span.booking);
+      } else if (span?.kind === "block" && span.block) {
+        setSelBooking(null);
+        setSelBlock(span.block);
+      }
       return;
     }
 
-    // Free night → range selection to block.
-    setSelCellDate(null);
+    // Block mode — can't start on an occupied night.
+    if (span) {
+      setError("That night is already occupied. Free it first, or pick an empty range.");
+      return;
+    }
     if (!rangeStart || (rangeStart && rangeEnd)) {
       setRangeStart(day);
       setRangeEnd(null);
       return;
     }
-    // Clicking the same start again clears it.
     if (day === rangeStart) {
       setRangeStart(null);
       return;
     }
     if (day > rangeStart) {
-      // End (check-out) is exclusive; block [start, day].
       const crossed = occupiedIn(rangeStart, addDays(day, 1));
       if (crossed.length) {
         setError(`That range hits an occupied night (${longDate(crossed[0])}). Pick a clear range.`);
@@ -163,32 +239,27 @@ export default function AdminCalendar({ suites }: Props) {
       setRangeEnd(day);
       return;
     }
-    // Earlier day → restart selection here.
     setRangeStart(day);
     setRangeEnd(null);
   };
 
-  // Preview the tentative range while hovering.
   const previewEnd = useMemo(() => {
-    if (!rangeStart || rangeEnd || !hover || hover <= rangeStart) return null;
+    if (mode !== "block" || !rangeStart || rangeEnd || !hover || hover <= rangeStart) return null;
     return occupiedIn(rangeStart, addDays(hover, 1)).length === 0 ? hover : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rangeStart, rangeEnd, hover, cal]);
+  }, [mode, rangeStart, rangeEnd, hover, spans]);
 
   const inRange = (d: string) => {
     const end = rangeEnd ?? previewEnd;
     return Boolean(rangeStart && end && d >= rangeStart && d <= end);
   };
 
-  const selCell = selCellDate ? villaCell(selCellDate) : undefined;
-
-  // Submit a block for the chosen range (end is exclusive = day after last).
   const blockRange = () => {
     if (!rangeStart) return;
     const lastNight = rangeEnd ?? rangeStart;
     run(() =>
       adminApi.createBlock({
-        suite: null, // whole estate
+        suite: null,
         start: rangeStart,
         end: addDays(lastNight, 1),
         reason: reason.trim() || "Blocked by owner",
@@ -196,212 +267,454 @@ export default function AdminCalendar({ suites }: Props) {
     );
   };
 
-  const months = [cursor, addMonths(cursor, 1)];
+  /* ---- Week rows (grid + overlaid bars) ---- */
+  const weeks = useMemo(() => {
+    const grid = monthGrid(cursor);
+    const rows: (string | null)[][] = [];
+    for (let i = 0; i < grid.length; i += 7) rows.push(grid.slice(i, i + 7));
+    return rows;
+  }, [cursor]);
+
+  // For one week row, compute the bar segments to render.
+  const segmentsForWeek = (week: (string | null)[]) => {
+    const days = week.filter((d): d is string => d !== null);
+    if (!days.length) return [];
+    const weekStart = days[0];
+    const weekEndExcl = addDays(days[days.length - 1], 1);
+    const segs: {
+      span: Span;
+      colStart: number; // 1-based (1..7)
+      colEnd: number; // inclusive
+      isStart: boolean;
+      isEnd: boolean;
+      dim: boolean;
+    }[] = [];
+    for (const s of spans) {
+      // overlap of [s.start, s.endExclusive) with [weekStart, weekEndExcl)
+      const segStart = s.start > weekStart ? s.start : weekStart;
+      const segEndExcl = s.endExclusive < weekEndExcl ? s.endExclusive : weekEndExcl;
+      if (segStart >= segEndExcl) continue;
+      const lastNight = addDays(segEndExcl, -1);
+      const colStart = week.findIndex((d) => d === segStart) + 1;
+      const colEnd = week.findIndex((d) => d === lastNight) + 1;
+      if (colStart < 1 || colEnd < 1) continue;
+      segs.push({
+        span: s,
+        colStart,
+        colEnd,
+        isStart: s.start >= weekStart, // real check-in falls in this week
+        isEnd: s.endExclusive <= weekEndExcl,
+        dim: !spanMatchesFilter(s),
+      });
+    }
+    return segs;
+  };
+
   const canGoBack = cursor > monthStart(today);
+  const showPanel =
+    selBooking || selBlock || (mode === "block" && rangeStart);
 
   return (
-    <section className="adm-simplecal" aria-label="Villa availability calendar">
-      <div className={`bk-cal${loading ? " is-loading" : ""}`}>
-        <div className="bk-cal__nav">
-          <button
-            type="button"
-            className="bk-cal__navbtn"
-            onClick={() => setCursor((c) => addMonths(c, -1))}
-            disabled={!canGoBack}
-            aria-label="Previous month"
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            className="bk-cal__navbtn"
-            onClick={() => setCursor(monthStart(today))}
-            aria-label="Jump to today"
-          >
-            Today
-          </button>
-          <button
-            type="button"
-            className="bk-cal__navbtn"
-            onClick={() => setCursor((c) => addMonths(c, 1))}
-            aria-label="Next month"
-          >
-            →
-          </button>
+    <section className={`adm-cal2${loading ? " is-loading" : ""}`} aria-label="Villa availability">
+      {/* ---- Toolbar ---- */}
+      <div className="adm-cal2__toolbar">
+        <div className="adm-cal2__month">
+          <h2 className="adm-cal2__title">{monthLabel(cursor)}</h2>
+          <div className="adm-cal2__nav">
+            <button
+              type="button"
+              className="adm-cal2__navbtn"
+              onClick={() => setCursor((c) => addMonths(c, -1))}
+              disabled={!canGoBack}
+              aria-label="Previous month"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              className="adm-cal2__navbtn"
+              onClick={() => setCursor(monthStart(today))}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              className="adm-cal2__navbtn"
+              onClick={() => setCursor((c) => addMonths(c, 1))}
+              aria-label="Next month"
+            >
+              →
+            </button>
+          </div>
         </div>
 
-        <div className="bk-cal__months">
-          {months.map((m) => (
-            <div className="bk-cal__month" key={m}>
-              <p className="bk-cal__label">{monthLabel(m)}</p>
-              <div className="bk-cal__grid" role="grid" onMouseLeave={() => setHover(null)}>
-                {WEEKDAYS.map((w) => (
-                  <span key={w} className="bk-cal__wd" aria-hidden="true">
-                    {w}
-                  </span>
-                ))}
-                {monthGrid(m).map((d, i) => {
+        <div
+          className="adm-cal2__modes"
+          role="tablist"
+          aria-label="Calendar mode"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "view"}
+            className={`adm-seg${mode === "view" ? " is-active" : ""}`}
+            onClick={() => setMode("view")}
+          >
+            View
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "block"}
+            className={`adm-seg${mode === "block" ? " is-active" : ""}`}
+            onClick={() => setMode("block")}
+          >
+            Block dates
+          </button>
+        </div>
+      </div>
+
+      {/* ---- Month summary ---- */}
+      <div className="adm-cal2__summary">
+        <div className="adm-cal2__kpi">
+          <span className="adm-cal2__kpival">{summary.occPct}%</span>
+          <span className="adm-cal2__kpilbl">Occupancy</span>
+        </div>
+        <div className="adm-cal2__kpi">
+          <span className="adm-cal2__kpival">{summary.free}</span>
+          <span className="adm-cal2__kpilbl">Free nights</span>
+        </div>
+        <div className="adm-cal2__kpi">
+          <span className="adm-cal2__kpival">{summary.arrivals}</span>
+          <span className="adm-cal2__kpilbl">Arrivals</span>
+        </div>
+        <div className="adm-cal2__kpi">
+          <span className="adm-cal2__kpival">{summary.departures}</span>
+          <span className="adm-cal2__kpilbl">Departures</span>
+        </div>
+        <div className="adm-cal2__kpi">
+          <span className="adm-cal2__kpival">{money(summary.revenue)}</span>
+          <span className="adm-cal2__kpilbl">Confirmed revenue</span>
+        </div>
+      </div>
+
+      {/* ---- Filters ---- */}
+      <div className="adm-cal2__filters" role="group" aria-label="Filter stays">
+        {(
+          [
+            ["all", "All"],
+            ["pending", "Pending"],
+            ["confirmed", "Confirmed"],
+            ["blocks", "Blocks"],
+          ] as [Filter, string][]
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={`adm-chip${filter === id ? " is-active" : ""}`}
+            onClick={() => setFilter(id)}
+            aria-pressed={filter === id}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {mode === "block" && (
+        <p className="adm-cal2__hint">
+          {rangeStart
+            ? "Pick an end date to block a range, or block just this night in the panel."
+            : "Click a free night to start a block."}
+        </p>
+      )}
+
+      {/* ---- Calendar grid ---- */}
+      <div className="adm-cal2__grid">
+        <div className="adm-cal2__wds">
+          {WEEKDAYS.map((w) => (
+            <span key={w} className="adm-cal2__wd">
+              {w}
+            </span>
+          ))}
+        </div>
+
+        {weeks.map((week, wi) => {
+          const segs = segmentsForWeek(week);
+          return (
+            <div className="adm-cal2__week" key={wi} onMouseLeave={() => setHover(null)}>
+              {/* day cells */}
+              <div className="adm-cal2__days">
+                {week.map((d, di) => {
                   if (d === null)
-                    return <span key={`${m}-pad-${i}`} className="bk-cal__pad" aria-hidden="true" />;
-                  const cell = d >= today ? villaCell(d) : undefined;
-                  const kind = cell?.kind;
-                  const selected = d === selCellDate;
-                  const isStart = d === rangeStart;
-                  const isEnd = d === (rangeEnd ?? previewEnd);
+                    return <span key={`pad-${wi}-${di}`} className="adm-cal2__cell is-pad" />;
+                  const past = d < today;
+                  const isToday = d === today;
+                  const start = d === rangeStart;
+                  const end = d === (rangeEnd ?? previewEnd);
+                  const range = inRange(d);
+                  const occ = occupiedAt(d);
                   return (
                     <button
                       key={d}
                       type="button"
                       className={[
-                        "bk-cal__day",
-                        d < today && "is-past",
-                        kind === "booking" && "is-full",
-                        kind === "block" && "is-block",
-                        kind === "external" && "is-full",
-                        isStart && "is-arrive",
-                        isEnd && "is-depart",
-                        inRange(d) && "is-inrange",
-                        selected && "is-selected",
+                        "adm-cal2__cell",
+                        past && "is-past",
+                        isToday && "is-today",
+                        mode === "block" && !occ && !past && "is-blockable",
+                        start && "is-rangestart",
+                        end && "is-rangeend",
+                        range && "is-inrange",
                       ]
                         .filter(Boolean)
                         .join(" ")}
-                      disabled={d < today}
-                      aria-label={cell ? `${longDate(d)} — ${cell.label}` : longDate(d)}
-                      title={cell ? cell.label : `Free · €${nightPrice(d).toLocaleString()}`}
-                      onClick={() => pick(d)}
+                      disabled={past}
+                      onClick={() => pickDay(d, occ)}
                       onMouseEnter={() => setHover(d)}
                       onFocus={() => setHover(d)}
+                      aria-label={occ ? `${longDate(d)} — ${occ.label}` : longDate(d)}
                     >
-                      <span className="bk-cal__daynum">{Number(d.slice(8))}</span>
-                      {d >= today && !cell && (
-                        <span className="bk-cal__price">{compactPrice(nightPrice(d))}</span>
-                      )}
-                      {cell && (
-                        <span className="bk-cal__bubble" role="tooltip">
-                          {kind === "booking" ? "Booked" : kind === "block" ? "Blocked" : "Busy"}
-                        </span>
-                      )}
+                      <span className="adm-cal2__daynum">{Number(d.slice(8))}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* occupancy bars overlaid on this week */}
+              <div className="adm-cal2__bars">
+                {segs.map((seg, si) => {
+                  const s = seg.span;
+                  const cls = [
+                    "adm-cal2__bar",
+                    s.kind === "block" ? "is-block" : `is-${s.status}`,
+                    seg.isStart && "is-barstart",
+                    seg.isEnd && "is-barend",
+                    seg.dim && "is-dim",
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
+                  const active =
+                    (selBooking && s.booking && selBooking.reference === s.booking.reference) ||
+                    (selBlock && s.block && selBlock.id === s.block.id);
+                  return (
+                    <button
+                      key={`${s.id}-${si}`}
+                      type="button"
+                      className={`${cls}${active ? " is-selected" : ""}`}
+                      style={{ gridColumn: `${seg.colStart} / ${seg.colEnd + 1}`, top: `${si * 1.5 + 0.1}rem` }}
+                      onClick={() => {
+                        if (s.kind === "booking" && s.booking) {
+                          setMode("view");
+                          setSelBlock(null);
+                          setSelBooking(s.booking);
+                        } else if (s.block) {
+                          setMode("view");
+                          setSelBooking(null);
+                          setSelBlock(s.block);
+                        }
+                      }}
+                      title={`${s.label}${s.status ? ` · ${STATUS_LABEL[s.status]}` : ""}`}
+                    >
+                      {seg.isStart && <span className="adm-cal2__barlabel">{s.label}</span>}
                     </button>
                   );
                 })}
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="bk-cal__legend">
-          <span className="bk-cal__key bk-cal__key--free">Free</span>
-          <span className="bk-cal__key bk-cal__key--full">Booked</span>
-          <span className="bk-cal__key bk-cal__key--block">Blocked</span>
-        </div>
+          );
+        })}
       </div>
 
-      {error && <p className="bk-error adm-simplecal__error">{error}</p>}
+      {/* ---- Legend ---- */}
+      <div className="adm-cal2__legend">
+        <span className="adm-cal2__lg is-requested">Requested</span>
+        <span className="adm-cal2__lg is-hold">On hold</span>
+        <span className="adm-cal2__lg is-confirmed">Confirmed</span>
+        <span className="adm-cal2__lg is-block">Blocked</span>
+        <span className="adm-cal2__lg is-free">Free</span>
+      </div>
 
-      {/* ---- Action panel: block a range, or manage an occupied night ---- */}
-      {rangeStart && !selCell && (
-        <div className="adm-panel">
-          <div className="adm-panel__head">
-            <p className="adm-panel__title">
-              Block {longDate(rangeStart)}
-              {rangeEnd && rangeEnd !== rangeStart ? ` → ${longDate(rangeEnd)}` : ""}
-            </p>
-            <button
-              type="button"
-              className="adm-panel__close"
-              onClick={() => {
-                setRangeStart(null);
-                setRangeEnd(null);
-              }}
-            >
-              Close
-            </button>
-          </div>
-          <p className="adm-panel__hint">
-            {rangeEnd
-              ? "These nights will be removed from the guest calendar instantly."
-              : "Pick an end date to block a range, or block just this night below."}
-          </p>
-          <form
-            className="adm-panel__form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              blockRange();
-            }}
-          >
-            <label className="bk-field">
-              <span className="bk-field__label">Reason</span>
-              <input
-                type="text"
-                className="bk-field__input"
-                placeholder="Maintenance, owner stay, wedding…"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </label>
-            <button type="submit" className="bk-btn" disabled={busy}>
-              {busy
-                ? "Blocking…"
-                : rangeEnd && rangeEnd !== rangeStart
-                  ? "Block These Dates"
-                  : "Block This Night"}
-            </button>
-          </form>
-        </div>
-      )}
+      {error && <p className="bk-error adm-cal2__error">{error}</p>}
 
-      {selCell && selCellDate && (
-        <div className="adm-panel">
-          <div className="adm-panel__head">
-            <p className="adm-panel__title">{longDate(selCellDate)} — {selCell.label}</p>
-            <button type="button" className="adm-panel__close" onClick={() => setSelCellDate(null)}>
-              Close
-            </button>
-          </div>
-
-          {selCell.kind === "block" && (
-            <div className="adm-panel__body">
-              <p className="adm-panel__hint">
-                Blocked — <strong>{selCell.label}</strong>. Freeing it reopens every night the
-                block covers.
-              </p>
-              <button
-                type="button"
-                className="bk-btn"
-                disabled={busy}
-                onClick={() => run(() => adminApi.deleteBlock(selCell.blockId!))}
-              >
-                {busy ? "Freeing…" : "Free These Dates"}
-              </button>
-            </div>
-          )}
-
-          {selCell.kind === "booking" && (
-            <div className="adm-panel__body">
-              <p className="adm-panel__hint">
-                Booking <strong>{selCell.reference}</strong> — {selCell.label}. Manage the full
-                record in the Bookings tab; quick actions:
-              </p>
-              <div className="adm-panel__actions">
-                {(["confirmed", "cancelled"] as BookingStatus[]).map((status) => (
-                  <button
-                    key={status}
-                    type="button"
-                    className={`bk-btn${status === "cancelled" ? " bk-btn--ghost" : ""}`}
-                    disabled={busy}
-                    onClick={() => run(() => adminApi.setBookingStatus(selCell.reference!, status))}
-                  >
-                    {status === "confirmed" ? "Confirm" : "Cancel Booking"}
-                  </button>
-                ))}
+      {/* ---- Detail / action panel ---- */}
+      {showPanel && (
+        <div className="adm-panel adm-cal2__panel">
+          {/* Booking detail */}
+          {selBooking && (
+            <>
+              <div className="adm-panel__head">
+                <p className="adm-panel__title">
+                  {selBooking.request.guest.name}
+                  <span className={`adm-cal2__status is-${selBooking.status}`}>
+                    {STATUS_LABEL[selBooking.status]}
+                  </span>
+                </p>
+                <button type="button" className="adm-panel__close" onClick={() => setSelBooking(null)}>
+                  Close
+                </button>
               </div>
-            </div>
+
+              <dl className="adm-cal2__facts">
+                <div>
+                  <dt>Stay</dt>
+                  <dd>
+                    {longDate(selBooking.request.stay.arrive)} → {longDate(selBooking.request.stay.depart)}
+                    <em>{selBooking.quote.nights} nights · {selBooking.request.stay.guests} guests</em>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Reference</dt>
+                  <dd className="adm-copyable">
+                    {selBooking.reference}
+                    <CopyButton value={selBooking.reference} label="Copy reference" />
+                  </dd>
+                </div>
+                <div>
+                  <dt>Email</dt>
+                  <dd className="adm-copyable">
+                    {selBooking.request.guest.email}
+                    <CopyButton value={selBooking.request.guest.email} label="Copy email" />
+                  </dd>
+                </div>
+                {selBooking.request.guest.phone && (
+                  <div>
+                    <dt>Phone</dt>
+                    <dd className="adm-copyable">
+                      {selBooking.request.guest.phone}
+                      <CopyButton value={selBooking.request.guest.phone} label="Copy phone" />
+                    </dd>
+                  </div>
+                )}
+                <div>
+                  <dt>Total</dt>
+                  <dd>
+                    {money(selBooking.quote.total)}
+                    <em>Deposit {money(selBooking.quote.depositDue)}</em>
+                  </dd>
+                </div>
+              </dl>
+
+              {selBooking.request.guest.notes && (
+                <p className="adm-cal2__notes">“{selBooking.request.guest.notes}”</p>
+              )}
+
+              <div className="adm-panel__actions">
+                {selBooking.status !== "confirmed" && (
+                  <button
+                    type="button"
+                    className="bk-btn"
+                    disabled={busy}
+                    onClick={() => run(() => adminApi.setBookingStatus(selBooking.reference, "confirmed"))}
+                  >
+                    {busy ? "…" : "Confirm"}
+                  </button>
+                )}
+                {selBooking.status === "requested" && (
+                  <button
+                    type="button"
+                    className="bk-btn bk-btn--ghost"
+                    disabled={busy}
+                    onClick={() => run(() => adminApi.setBookingStatus(selBooking.reference, "hold"))}
+                  >
+                    Hold
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="bk-btn bk-btn--ghost"
+                  disabled={busy}
+                  onClick={() => run(() => adminApi.setBookingStatus(selBooking.reference, "cancelled"))}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
           )}
 
-          {selCell.kind === "external" && (
-            <p className="adm-panel__hint">
-              Imported stay (channel/iCal sync). These are read-only here.
-            </p>
+          {/* Block detail */}
+          {selBlock && (
+            <>
+              <div className="adm-panel__head">
+                <p className="adm-panel__title">
+                  Blocked
+                  <span className="adm-cal2__status is-block">Owner block</span>
+                </p>
+                <button type="button" className="adm-panel__close" onClick={() => setSelBlock(null)}>
+                  Close
+                </button>
+              </div>
+              <dl className="adm-cal2__facts">
+                <div>
+                  <dt>Dates</dt>
+                  <dd>
+                    {longDate(selBlock.start)} → {longDate(addDays(selBlock.end, -1))}
+                    <em>{selBlock.reason}</em>
+                  </dd>
+                </div>
+              </dl>
+              <div className="adm-panel__actions">
+                <button
+                  type="button"
+                  className="bk-btn"
+                  disabled={busy}
+                  onClick={() => run(() => adminApi.deleteBlock(selBlock.id))}
+                >
+                  {busy ? "Freeing…" : "Free these dates"}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Block-mode range form */}
+          {!selBooking && !selBlock && mode === "block" && rangeStart && (
+            <>
+              <div className="adm-panel__head">
+                <p className="adm-panel__title">
+                  Block {longDate(rangeStart)}
+                  {rangeEnd && rangeEnd !== rangeStart ? ` → ${longDate(rangeEnd)}` : ""}
+                </p>
+                <button
+                  type="button"
+                  className="adm-panel__close"
+                  onClick={() => {
+                    setRangeStart(null);
+                    setRangeEnd(null);
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+              <p className="adm-panel__hint">
+                {rangeEnd
+                  ? "These nights leave the guest calendar instantly."
+                  : "Pick an end date for a range, or block just this night below."}
+              </p>
+              <form
+                className="adm-panel__form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  blockRange();
+                }}
+              >
+                <label className="bk-field">
+                  <span className="bk-field__label">Reason</span>
+                  <input
+                    type="text"
+                    className="bk-field__input"
+                    placeholder="Maintenance, owner stay, wedding…"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                  />
+                </label>
+                <button type="submit" className="bk-btn" disabled={busy}>
+                  {busy
+                    ? "Blocking…"
+                    : rangeEnd && rangeEnd !== rangeStart
+                      ? "Block these dates"
+                      : "Block this night"}
+                </button>
+              </form>
+            </>
           )}
         </div>
       )}
