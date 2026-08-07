@@ -9,8 +9,13 @@ const services = nav.filter((n) =>
   ["/experiences", "/weddings-events", "/journal"].includes(n.href),
 );
 const quick = nav.filter((n) =>
-  ["/the-property", "/suites", "/gallery", "/contact"].includes(n.href),
+  ["/the-property", "/gallery", "/contact"].includes(n.href),
 );
+/** Explore column links, incl. the external Google reviews page. */
+const exploreLinks = [
+  ...quick,
+  { label: "Reviews", href: "https://share.google/XQXPoXfwHHaS6zwiF", external: true },
+];
 const year = new Date().getFullYear();
 ---
 
@@ -36,7 +41,19 @@ const year = new Date().getFullYear();
     <nav class="footer__col" aria-label="Explore">
       <h3>Explore</h3>
       <ul>
-        {quick.map((q) => <li><a href={q.href}>{q.label}</a></li>)}
+        {
+          exploreLinks.map((q) => (
+            <li>
+              {"external" in q && q.external ? (
+                <a href={q.href} target="_blank" rel="noopener noreferrer">
+                  {q.label} <span aria-hidden="true">↗</span>
+                </a>
+              ) : (
+                <a href={q.href}>{q.label}</a>
+              )}
+            </li>
+          ))
+        }
       </ul>
     </nav>
 
