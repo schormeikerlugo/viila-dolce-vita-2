@@ -66,12 +66,36 @@ const canonicalUrl = new URL(canonicalPath, Astro.site ?? site.url).href;
 
 // Structured data: the estate card everywhere + page-level extras.
 const jsonLd = [lodgingBusinessSchema(), ...schemas];
+
+// Google Analytics (GA4) — only injected in production builds.
+const GA_ID = "G-5E5D8Y7PS5";
+const analyticsEnabled = import.meta.env.PROD;
 ---
 
 <!doctype html>
 <html lang="en" class="no-js">
   <head>
     <meta charset="UTF-8" />
+    {/* Google tag (gtag.js) — GA4, production only. */}
+    {
+      analyticsEnabled && (
+        <>
+          <script
+            is:inline
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          />
+          <script is:inline define:vars={{ GA_ID }}>
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', GA_ID);
+            `}
+          </script>
+        </>
+      )
+    }
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
@@ -105,6 +129,26 @@ const jsonLd = [lodgingBusinessSchema(), ...schemas];
     {jsonLd.map((block) => (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(block)} />
     ))}
+
+    {/* GA4 page_view on every View-Transition navigation (gtag doesn't
+        re-run on soft nav). Production only. */}
+    {
+      analyticsEnabled && (
+        <script is:inline define:vars={{ GA_ID }}>
+          {`
+            document.addEventListener("astro:page-load", () => {
+              if (typeof window.gtag !== "function") return;
+              window.gtag("event", "page_view", {
+                page_title: document.title,
+                page_location: window.location.href,
+                page_path: window.location.pathname,
+                send_to: GA_ID,
+              });
+            });
+          `}
+        </script>
+      )
+    }
 
     <!-- Smooth cross-page fade (no flash between nav sections). -->
     <ClientRouter />
