@@ -275,38 +275,58 @@ export default function AdminCalendar(_props: Props) {
     return rows;
   }, [cursor]);
 
-  // For one week row, compute the bar segments to render.
+  // For one week row, compute the bar segments to render, each with a lane
+  // (stacking level) so overlapping stays never sit on top of each other.
   const segmentsForWeek = (week: (string | null)[]) => {
-    const days = week.filter((d): d is string => d !== null);
-    if (!days.length) return [];
-    const weekStart = days[0];
-    const weekEndExcl = addDays(days[days.length - 1], 1);
-    const segs: {
+    // Map each column (0..6) to its date (null for padding).
+    const colDates = week.map((d) => d);
+    const firstReal = colDates.find((d): d is string => d !== null);
+    const lastReal = [...colDates].reverse().find((d): d is string => d !== null);
+    if (!firstReal || !lastReal) return [];
+    const weekStart = firstReal;
+    const weekEndExcl = addDays(lastReal, 1);
+
+    type Seg = {
       span: Span;
-      colStart: number; // 1-based (1..7)
-      colEnd: number; // inclusive
+      colStart: number; // 1-based grid column (1..7)
+      colEnd: number; // 1-based inclusive
       isStart: boolean;
       isEnd: boolean;
       dim: boolean;
-    }[] = [];
+      lane: number;
+    };
+    const raw: Omit<Seg, "lane">[] = [];
     for (const s of spans) {
-      // overlap of [s.start, s.endExclusive) with [weekStart, weekEndExcl)
       const segStart = s.start > weekStart ? s.start : weekStart;
       const segEndExcl = s.endExclusive < weekEndExcl ? s.endExclusive : weekEndExcl;
       if (segStart >= segEndExcl) continue;
       const lastNight = addDays(segEndExcl, -1);
-      const colStart = week.findIndex((d) => d === segStart) + 1;
-      const colEnd = week.findIndex((d) => d === lastNight) + 1;
+      const colStart = colDates.indexOf(segStart) + 1;
+      const colEnd = colDates.indexOf(lastNight) + 1;
       if (colStart < 1 || colEnd < 1) continue;
-      segs.push({
+      raw.push({
         span: s,
         colStart,
         colEnd,
-        isStart: s.start >= weekStart, // real check-in falls in this week
+        isStart: s.start >= weekStart,
         isEnd: s.endExclusive <= weekEndExcl,
         dim: !spanMatchesFilter(s),
       });
     }
+    // Stable order: earliest column first, then longer spans.
+    raw.sort((a, b) => a.colStart - b.colStart || b.colEnd - a.colEnd);
+    // Assign lanes greedily so overlapping columns get different lanes.
+    const laneEnds: number[] = []; // last occupied column per lane
+    const segs: Seg[] = raw.map((r) => {
+      let lane = laneEnds.findIndex((end) => end < r.colStart);
+      if (lane === -1) {
+        lane = laneEnds.length;
+        laneEnds.push(r.colEnd);
+      } else {
+        laneEnds[lane] = r.colEnd;
+      }
+      return { ...r, lane };
+    });
     return segs;
   };
 
@@ -481,8 +501,13 @@ export default function AdminCalendar(_props: Props) {
               </div>
 
               {/* occupancy bars overlaid on this week */}
-              <div className="adm-cal2__bars">
-                {segs.map((seg, si) => {
+              <div
+                className="adm-cal2__bars"
+                style={{
+                  gridTemplateRows: `repeat(${Math.max(1, ...segs.map((s) => s.lane + 1))}, 1.4rem)`,
+                }}
+              >
+                {segs.map((seg) => {
                   const s = seg.span;
                   const cls = [
                     "adm-cal2__bar",
@@ -498,10 +523,13 @@ export default function AdminCalendar(_props: Props) {
                     (selBlock && s.block && selBlock.id === s.block.id);
                   return (
                     <button
-                      key={`${s.id}-${si}`}
+                      key={`${s.id}-${seg.lane}-${seg.colStart}`}
                       type="button"
                       className={`${cls}${active ? " is-selected" : ""}`}
-                      style={{ gridColumn: `${seg.colStart} / ${seg.colEnd + 1}`, top: `${si * 1.5 + 0.1}rem` }}
+                      style={{
+                        gridColumn: `${seg.colStart} / ${seg.colEnd + 1}`,
+                        gridRow: `${seg.lane + 1}`,
+                      }}
                       onClick={() => {
                         if (s.kind === "booking" && s.booking) {
                           setMode("view");

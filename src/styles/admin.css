@@ -399,31 +399,33 @@
   background: rgba(192, 138, 88, 0.28);
 }
 
-/* Bar layer. */
+/* Bar layer — a 7-col grid sitting below the day numbers; bars occupy
+   grid-column (day span) and grid-row (stacking lane). */
 .adm-cal2__bars {
   position: absolute;
-  inset: 1.6rem 0 0.4rem;
+  inset: 1.7rem 0 0.35rem;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 1.4rem;
+  row-gap: 3px;
   pointer-events: none;
 }
 .adm-cal2__bar {
-  position: relative;
-  height: 1.3rem;
-  align-self: start;
+  height: 1.25rem;
   margin: 0 1px;
-  padding: 0 0.5rem;
+  padding: 0 0.45rem;
   border: 0;
   border-radius: 2px;
-  font-size: 0.64rem;
-  line-height: 1.3rem;
+  font-size: 0.62rem;
+  line-height: 1.25rem;
   color: var(--c-ink);
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
   pointer-events: auto;
-  transition: filter var(--dur-fast) var(--ease-out), transform var(--dur-fast);
+  transition: filter var(--dur-fast) var(--ease-out);
 }
 .adm-cal2__bar:hover {
   filter: brightness(1.08);
@@ -436,16 +438,19 @@
   opacity: 0.28;
 }
 .adm-cal2__bar.is-barstart {
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
   margin-left: 3px;
 }
 .adm-cal2__bar.is-barend {
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
   margin-right: 3px;
 }
 .adm-cal2__barlabel {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 600;
   letter-spacing: 0.01em;
 }
