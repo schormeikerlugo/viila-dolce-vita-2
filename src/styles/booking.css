@@ -654,16 +654,17 @@
   border-bottom: 1px solid var(--line);
 }
 
-/* Left: a compact exterior mosaic — 8 tiles, roughly half the old size. */
+/* Left: a compact estate mosaic — 7 tiles. One big square top-left, one
+   tall portrait tile (t5, the interior), and a big square bottom-right. */
 .bk-villahead__media {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
   grid-template-areas:
-    "big big t2 t3"
-    "big big t4 t5"
-    "t6  t7  t8 t8"
-    "t6  t7  t8 t8";
+    "big big t2 t5"
+    "big big t3 t5"
+    "t4  t6  t7 t7"
+    "t4  t6  t7 t7";
   gap: 5px;
   aspect-ratio: 16 / 12;
   max-height: 26rem;
@@ -703,7 +704,6 @@
 .bk-villahead__tile--5 { grid-area: t5; }
 .bk-villahead__tile--6 { grid-area: t6; }
 .bk-villahead__tile--7 { grid-area: t7; }
-.bk-villahead__tile--8 { grid-area: t8; }
 
 .bk-villahead__body {
   display: flex;

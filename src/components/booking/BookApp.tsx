@@ -8,6 +8,7 @@
  * (src/lib/booking/api.ts): today the mock, tomorrow Supabase.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../../lib/booking/api";
 import type {
   AvailabilityMap,
@@ -316,7 +317,13 @@ function VillaHeader({ exterior }: { exterior: ExteriorPhoto[] }) {
       else if (e.key === "ArrowLeft") step(-1);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Lock body scroll while the lightbox is open.
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [lightbox, close, step]);
 
   return (
@@ -363,34 +370,42 @@ function VillaHeader({ exterior }: { exterior: ExteriorPhoto[] }) {
         </div>
       </div>
 
-      {lightbox !== null && (
-        <div className="bk-lightbox" role="dialog" aria-modal="true" aria-label="Villa photo">
-          <button type="button" className="bk-lightbox__backdrop" aria-label="Close" onClick={close} />
-          <button type="button" className="bk-lightbox__close" aria-label="Close" onClick={close}>
-            ✕
-          </button>
-          <button
-            type="button"
-            className="bk-lightbox__nav bk-lightbox__nav--prev"
-            aria-label="Previous photo"
-            onClick={() => step(-1)}
-          >
-            ‹
-          </button>
-          <figure className="bk-lightbox__figure">
-            <img src={exterior[lightbox].src} alt={exterior[lightbox].alt} />
-            <figcaption>{exterior[lightbox].alt}</figcaption>
-          </figure>
-          <button
-            type="button"
-            className="bk-lightbox__nav bk-lightbox__nav--next"
-            aria-label="Next photo"
-            onClick={() => step(1)}
-          >
-            ›
-          </button>
-        </div>
-      )}
+      {lightbox !== null &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="bk-lightbox" role="dialog" aria-modal="true" aria-label="Villa photo">
+            <button
+              type="button"
+              className="bk-lightbox__backdrop"
+              aria-label="Close"
+              onClick={close}
+            />
+            <button type="button" className="bk-lightbox__close" aria-label="Close" onClick={close}>
+              ✕
+            </button>
+            <button
+              type="button"
+              className="bk-lightbox__nav bk-lightbox__nav--prev"
+              aria-label="Previous photo"
+              onClick={() => step(-1)}
+            >
+              ‹
+            </button>
+            <figure className="bk-lightbox__figure">
+              <img src={exterior[lightbox].src} alt={exterior[lightbox].alt} />
+              <figcaption>{exterior[lightbox].alt}</figcaption>
+            </figure>
+            <button
+              type="button"
+              className="bk-lightbox__nav bk-lightbox__nav--next"
+              aria-label="Next photo"
+              onClick={() => step(1)}
+            >
+              ›
+            </button>
+          </div>,
+          document.body,
+        )}
     </header>
   );
 }

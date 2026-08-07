@@ -70,6 +70,7 @@ const meta: Record<string, Meta> = {
   "patio-sail-lounge": { cat: "villa", alt: "A private gravel patio with lounge sofas under a sail canopy, the yellow villa and olive trees behind" },
   "car-hillside-road": { cat: "experiences", alt: "A car winds along a tree-lined hillside road above the green valley" },
   "hilltown-aerial-fortress": { cat: "tuscany", alt: "A medieval hilltop town and its fortress walls seen from above at golden hour" },
+  "living-room-well-table": { cat: "villa", alt: "The villa's living room with a stone well-base glass table and dried lavender, the kitchen and valley view beyond" },
 };
 
 export type GalleryItem = {
