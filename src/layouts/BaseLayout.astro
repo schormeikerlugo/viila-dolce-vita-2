@@ -10,6 +10,7 @@ import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import Cursor from "../components/Cursor.astro";
 import StickyCta from "../components/StickyCta.astro";
+import CookieConsent from "../components/CookieConsent.astro";
 import { site } from "../data/site";
 import { ClientRouter, fade } from "astro:transitions";
 import { getImage } from "astro:assets";
@@ -67,8 +68,10 @@ const canonicalUrl = new URL(canonicalPath, Astro.site ?? site.url).href;
 // Structured data: the estate card everywhere + page-level extras.
 const jsonLd = [lodgingBusinessSchema(), ...schemas];
 
-// Google Analytics (GA4) — only injected in production builds.
+// Google tags — GA4 + Google Ads. Only injected in production builds; both
+// share a single gtag.js loader (Google: "don't add more than one tag").
 const GA_ID = "G-5E5D8Y7PS5";
+const ADS_ID = "AW-18378644975";
 const analyticsEnabled = import.meta.env.PROD;
 ---
 
@@ -76,21 +79,39 @@ const analyticsEnabled = import.meta.env.PROD;
 <html lang="en" class="no-js">
   <head>
     <meta charset="UTF-8" />
-    {/* Google tag (gtag.js) — GA4, production only. */}
+    {/* Google tag (gtag.js) — GA4 + Google Ads, one loader, production only.
+        Consent Mode v2 defaults to denied until the visitor chooses. */}
     {
       analyticsEnabled && (
         <>
+          <script is:inline>
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              // Consent Mode v2 — deny storage until the banner grants it.
+              try {
+                var vdvConsent = localStorage.getItem('vdv-consent');
+              } catch (e) { var vdvConsent = null; }
+              var granted = vdvConsent === 'granted';
+              gtag('consent', 'default', {
+                ad_storage: granted ? 'granted' : 'denied',
+                ad_user_data: granted ? 'granted' : 'denied',
+                ad_personalization: granted ? 'granted' : 'denied',
+                analytics_storage: granted ? 'granted' : 'denied',
+                wait_for_update: 500,
+              });
+              gtag('js', new Date());
+            `}
+          </script>
           <script
             is:inline
             async
             src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
           />
-          <script is:inline define:vars={{ GA_ID }}>
+          <script is:inline define:vars={{ GA_ID, ADS_ID }}>
             {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
               gtag('config', GA_ID);
+              gtag('config', ADS_ID);
             `}
           </script>
         </>
@@ -170,6 +191,7 @@ const analyticsEnabled = import.meta.env.PROD;
 
     <Cursor />
     <StickyCta />
+    {analyticsEnabled && <CookieConsent />}
 
     {/* Tell the persistent nav what theme each page needs. */}
     <meta name="nav-theme" content={navTheme} data-nav-theme />

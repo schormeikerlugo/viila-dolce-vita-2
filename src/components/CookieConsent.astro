@@ -1,0 +1,179 @@
+---
+/**
+ * CookieConsent — a discreet Consent Mode v2 banner (EEA compliance).
+ *
+ * Storage is denied by default (set in BaseLayout before gtag loads). This
+ * banner lets the visitor grant or decline analytics + ads cookies; the
+ * choice is saved in localStorage and pushed to gtag via consent 'update'.
+ * Hidden once a choice exists. Re-checks on every View-Transition load.
+ */
+const { privacyHref = "/contact" } = Astro.props;
+---
+
+<div class="cc" id="cookie-consent" data-cc hidden aria-hidden="true">
+  <div class="cc__inner wrap">
+    <p class="cc__text">
+      We use cookies to measure traffic and improve our advertising. You can
+      accept or decline analytics and ad cookies. Essential cookies always stay
+      on. <a href={privacyHref} class="cc__link">Learn more</a>.
+    </p>
+    <div class="cc__actions">
+      <button type="button" class="cc__btn cc__btn--ghost" data-cc-decline>Decline</button>
+      <button type="button" class="cc__btn" data-cc-accept>Accept</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const KEY = "vdv-consent";
+
+  function applyConsent(granted: boolean) {
+    // gtag is defined by the tag loader in BaseLayout (production only).
+    const w = window as unknown as { gtag?: (...a: unknown[]) => void };
+    if (typeof w.gtag !== "function") return;
+    const value = granted ? "granted" : "denied";
+    w.gtag("consent", "update", {
+      ad_storage: value,
+      ad_user_data: value,
+      ad_personalization: value,
+      analytics_storage: value,
+    });
+  }
+
+  function initConsent() {
+    const banner = document.querySelector<HTMLElement>("[data-cc]");
+    if (!banner) return;
+
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem(KEY);
+    } catch {
+      saved = null;
+    }
+
+    if (saved === "granted" || saved === "denied") {
+      // Re-assert the saved choice for this page load, keep the banner hidden.
+      applyConsent(saved === "granted");
+      banner.hidden = true;
+      banner.setAttribute("aria-hidden", "true");
+      return;
+    }
+
+    // No choice yet — show the banner.
+    banner.hidden = false;
+    banner.setAttribute("aria-hidden", "false");
+
+    const choose = (granted: boolean) => {
+      try {
+        localStorage.setItem(KEY, granted ? "granted" : "denied");
+      } catch {
+        /* storage blocked — consent applies for this session only */
+      }
+      applyConsent(granted);
+      banner.hidden = true;
+      banner.setAttribute("aria-hidden", "true");
+    };
+
+    banner
+      .querySelector("[data-cc-accept]")
+      ?.addEventListener("click", () => choose(true), { once: true });
+    banner
+      .querySelector("[data-cc-decline]")
+      ?.addEventListener("click", () => choose(false), { once: true });
+  }
+
+  document.addEventListener("astro:page-load", initConsent);
+</script>
+
+<style>
+  .cc {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-overlay, 200);
+    background: var(--c-ink-soft, #262320);
+    border-top: 1px solid var(--line-strong, rgba(244, 241, 234, 0.22));
+    color: var(--c-ivory, #f4f1ea);
+    animation: cc-rise 0.5s var(--ease-out, ease) both;
+  }
+  .cc[hidden] {
+    display: none;
+  }
+  .cc__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(1rem, 3vw, 2.5rem);
+    padding-block: 1rem;
+    flex-wrap: wrap;
+  }
+  .cc__text {
+    margin: 0;
+    max-width: 62ch;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: rgba(244, 241, 234, 0.85);
+  }
+  .cc__link {
+    color: var(--accent, #c08a58);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .cc__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex: 0 0 auto;
+  }
+  .cc__btn {
+    padding: 0.7rem 1.5rem;
+    border: 1px solid var(--c-ivory, #f4f1ea);
+    background: var(--c-ivory, #f4f1ea);
+    color: var(--c-ink, #161412);
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps, 0.18em);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      background var(--dur-fast, 0.2s) var(--ease-out, ease),
+      color var(--dur-fast, 0.2s) var(--ease-out, ease);
+  }
+  .cc__btn:hover {
+    background: transparent;
+    color: var(--c-ivory, #f4f1ea);
+  }
+  .cc__btn--ghost {
+    background: transparent;
+    color: var(--c-ivory, #f4f1ea);
+    border-color: rgba(244, 241, 234, 0.4);
+  }
+  .cc__btn--ghost:hover {
+    border-color: var(--c-ivory, #f4f1ea);
+  }
+
+  @keyframes cc-rise {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cc {
+      animation: none;
+    }
+  }
+  @media (max-width: 640px) {
+    .cc__actions {
+      width: 100%;
+    }
+    .cc__btn {
+      flex: 1;
+    }
+  }
+</style>
