@@ -3,7 +3,7 @@
    Rendered by BaseLayout; all values come from src/data (nothing invented).
    ========================================================================== */
 
-import { site, contact, social } from "../data/site";
+import { site, contact, social, socialLive } from "../data/site";
 import type { FaqItem } from "../data/faq";
 import type { ImageMetadata } from "astro";
 import { photos } from "../data/media";
@@ -34,7 +34,8 @@ export function lodgingBusinessSchema() {
       longitude: 10.9671672,
     },
     hasMap: "https://maps.google.com/?q=SP441+56+58024+Massa+Marittima+GR+Italy",
-    sameAs: social.map((s) => s.href),
+    // Only advertise social profiles once the accounts are live.
+    ...(socialLive ? { sameAs: social.map((s) => s.href) } : {}),
     petsAllowed: true,
     numberOfRooms: 7,
   };

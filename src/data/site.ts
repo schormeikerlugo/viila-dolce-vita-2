@@ -23,7 +23,14 @@ export const contact = {
   bookingEngine: "https://bookings.villadolcevita.eu/hotel/villa-dolce-vita",
 } as const;
 
-/** Social profiles — rendered as icon links in the footer. */
+/**
+ * Social accounts are still being set up. Flip this to `true` to show the
+ * social links in the footer again (and advertise the profiles in structured
+ * data). Kept as one switch so re-enabling is a single-line change.
+ */
+export const socialLive = false;
+
+/** Social profiles — rendered as links in the footer when `socialLive`. */
 export const social = [
   { label: "Instagram", href: "https://www.instagram.com/villadolcevitatoscana/" },
   { label: "Pinterest", href: "https://www.pinterest.com/villadolcevitatoscana/" },
