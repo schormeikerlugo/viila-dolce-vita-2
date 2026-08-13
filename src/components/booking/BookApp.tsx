@@ -206,11 +206,13 @@ export default function BookApp({ exterior }: Props) {
         <div className="bk-done">
           <p className="bk-done__eyebrow">Request Received</p>
           <p className="bk-done__ref">{booking.reference}</p>
-          <h2 className="bk-done__title">The Hill Is Holding Your Dates</h2>
+          <h2 className="bk-done__title">Your Request Is With the Concierge</h2>
           <p className="bk-done__copy">
             Your request for <strong>the entire Villa</strong> —{" "}
-            {longDate(booking.request.stay.arrive)} to {longDate(booking.request.stay.depart)} — is
-            with the concierge. We confirm personally, by WhatsApp or email.
+            {longDate(booking.request.stay.arrive)} to {longDate(booking.request.stay.depart)} — has
+            reached us. These dates aren’t reserved yet: we review each request
+            personally and will confirm availability with you by WhatsApp or
+            email, usually within a day.
           </p>
           <dl className="bk-done__meta">
             <div>

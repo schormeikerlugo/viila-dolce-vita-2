@@ -55,6 +55,10 @@ function addDays(iso: string, days: number): string {
 function nightsBetween(arrive: string, depart: string): number {
   return Math.round((fromISO(depart).getTime() - fromISO(arrive).getTime()) / DAY);
 }
+/** Half-open date ranges [aStart, aEnd) and [bStart, bEnd) overlap. */
+function rangesOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
+  return aStart < bEnd && bStart < aEnd;
+}
 function todayISO(): string {
   return toISO(new Date());
 }
@@ -208,7 +212,10 @@ function resolvePromo(
   return auto[0] ?? null;
 }
 
-const CALENDAR_ACTIVE: Booking["status"][] = ["requested", "hold", "confirmed", "completed"];
+// Only confirmed/completed bookings block the calendar now — a guest request is
+// non-binding and never takes a date off the public availability map. Overlapping
+// requests coexist until the concierge confirms one.
+const CALENDAR_ACTIVE: Booking["status"][] = ["confirmed", "completed"];
 
 function bookingSuites(unit: UnitId): SuiteSlug[] {
   return unit === ESTATE ? allSuiteSlugs : [unit];
@@ -602,9 +609,75 @@ export const mockAdminApi: AdminBookingApi = {
     const all = bookingsStore.read();
     const booking = all.find((b) => b.reference === reference);
     if (!booking) throw new Error(`Booking ${reference} not found.`);
+    // Confirming locks the date: refuse if a different confirmed stay overlaps.
+    if (status === "confirmed" || status === "completed") {
+      const clash = all.find(
+        (b) =>
+          b.reference !== reference &&
+          (b.status === "confirmed" || b.status === "completed") &&
+          rangesOverlap(
+            b.request.stay.arrive,
+            b.request.stay.depart,
+            booking.request.stay.arrive,
+            booking.request.stay.depart,
+          ),
+      );
+      if (clash) throw new Error("Those dates overlap another confirmed stay — pick different dates.");
+    }
     booking.status = status;
     bookingsStore.write(all);
     return delay({ ...booking }, 250);
+  },
+
+  async rescheduleBooking(reference, arriveISO, departISO) {
+    const all = bookingsStore.read();
+    const booking = all.find((b) => b.reference === reference);
+    if (!booking) throw new Error(`Booking ${reference} not found.`);
+    if (booking.status === "cancelled" || booking.status === "expired")
+      throw new Error(`Cannot reschedule a ${booking.status} booking.`);
+    if (departISO <= arriveISO) throw new Error("Departure must be after arrival.");
+    // A confirmed booking can't be moved onto another confirmed stay.
+    if (booking.status === "confirmed" || booking.status === "completed") {
+      const clash = all.find(
+        (b) =>
+          b.reference !== reference &&
+          (b.status === "confirmed" || b.status === "completed") &&
+          rangesOverlap(b.request.stay.arrive, b.request.stay.depart, arriveISO, departISO),
+      );
+      if (clash) throw new Error("Those dates overlap another confirmed stay — pick different dates.");
+    }
+    const movedStay: StayRequest = { ...booking.request.stay, arrive: arriveISO, depart: departISO };
+    const quote = computeQuote(movedStay, booking.request.extras, booking.request.promoCode);
+    booking.request = { ...booking.request, stay: movedStay };
+    booking.quote = quote;
+    bookingsStore.write(all);
+    return delay({ ...booking }, 300);
+  },
+
+  async overlappingRequests(reference) {
+    const all = bookingsStore.read();
+    const booking = all.find((b) => b.reference === reference);
+    if (!booking) throw new Error(`Booking ${reference} not found.`);
+    const overlaps = all
+      .filter(
+        (b) =>
+          b.reference !== reference &&
+          (b.status === "requested" || b.status === "hold") &&
+          rangesOverlap(
+            b.request.stay.arrive,
+            b.request.stay.depart,
+            booking.request.stay.arrive,
+            booking.request.stay.depart,
+          ),
+      )
+      .map((b) => ({
+        reference: b.reference,
+        guestName: b.request.guest.name,
+        status: b.status,
+        arrive: b.request.stay.arrive,
+        depart: b.request.stay.depart,
+      }));
+    return delay(overlaps, 250);
   },
 
   async getCalendar(startISO, endISO) {

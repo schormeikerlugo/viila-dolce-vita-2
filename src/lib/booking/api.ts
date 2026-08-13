@@ -18,6 +18,7 @@ import type {
   Extra,
   LeadCapture,
   LeadInput,
+  OverlappingRequest,
   Promotion,
   PromotionInput,
   Quote,
@@ -70,6 +71,19 @@ export interface AdminBookingApi {
   /** Bookings created in this system (newest first). */
   listBookings(): Promise<Booking[]>;
   setBookingStatus(reference: string, status: BookingStatus): Promise<Booking>;
+
+  /**
+   * Move/trim a booking's stay. Re-quotes API-side and rewrites the held
+   * nights. Lets the concierge free up days for another guest, or shift a
+   * stay. Rejects if the new range overlaps a different *confirmed* stay.
+   */
+  rescheduleBooking(reference: string, arriveISO: string, departISO: string): Promise<Booking>;
+
+  /**
+   * Other still-pending requests (requested/hold) whose stay overlaps this
+   * booking. Shown as a warning before the concierge confirms and locks a date.
+   */
+  overlappingRequests(reference: string): Promise<OverlappingRequest[]>;
 
   /** Captured leads — incomplete submissions with contact details. */
   listLeads(): Promise<LeadCapture[]>;

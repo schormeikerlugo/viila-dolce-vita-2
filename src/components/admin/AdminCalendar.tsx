@@ -16,6 +16,7 @@ import type {
   Booking,
   BookingStatus,
   CalendarBlock,
+  OverlappingRequest,
 } from "../../lib/booking/types";
 import {
   addDays,
@@ -39,7 +40,6 @@ type Mode = "view" | "block";
 type Filter = "all" | "pending" | "confirmed" | "blocks";
 
 const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-const BOOKING_ACTIVE: BookingStatus[] = ["requested", "hold", "confirmed", "completed"];
 
 /** A continuous occupancy span across the calendar. */
 interface Span {
@@ -84,6 +84,14 @@ export default function AdminCalendar(_props: Props) {
   const [selBooking, setSelBooking] = useState<Booking | null>(null);
   const [selBlock, setSelBlock] = useState<CalendarBlock | null>(null);
 
+  // Reschedule form (concierge shifts/trims a stay to free days for others).
+  const [reschedOpen, setReschedOpen] = useState(false);
+  const [reschedArrive, setReschedArrive] = useState("");
+  const [reschedDepart, setReschedDepart] = useState("");
+
+  // Other pending requests overlapping the selected booking (warn on confirm).
+  const [overlaps, setOverlaps] = useState<OverlappingRequest[]>([]);
+
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -106,13 +114,42 @@ export default function AdminCalendar(_props: Props) {
     setRangeEnd(null);
     setSelBooking(null);
     setSelBlock(null);
+    setReschedOpen(false);
   }, [cursor, mode]);
 
-  /* ---- Build spans from bookings + blocks ---- */
-  const spans: Span[] = useMemo(() => {
+  // When a booking is selected, prime the reschedule form and fetch any other
+  // pending requests that overlap it (so we can warn before confirming).
+  useEffect(() => {
+    setReschedOpen(false);
+    setOverlaps([]);
+    if (!selBooking) return;
+    setReschedArrive(selBooking.request.stay.arrive);
+    setReschedDepart(selBooking.request.stay.depart);
+    let alive = true;
+    adminApi
+      .overlappingRequests(selBooking.reference)
+      .then((list) => {
+        if (alive) setOverlaps(list);
+      })
+      .catch(() => {
+        if (alive) setOverlaps([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [selBooking]);
+
+  /* ---- Build spans from bookings + blocks ----
+     Two kinds now, because a request no longer blocks the calendar:
+       • occupyingSpans — confirmed/completed bookings + owner blocks. These
+         take the date off the guest calendar and paint the cell background.
+       • requestSpans — pending requested/hold bookings. Non-binding: they show
+         as small markers so the concierge can evaluate them, and several may
+         overlap the same nights, but they never block a cell. */
+  const occupyingSpans: Span[] = useMemo(() => {
     const out: Span[] = [];
     for (const b of bookings) {
-      if (!BOOKING_ACTIVE.includes(b.status)) continue;
+      if (b.status !== "confirmed" && b.status !== "completed") continue;
       out.push({
         id: `bk-${b.reference}`,
         kind: "booking",
@@ -136,11 +173,41 @@ export default function AdminCalendar(_props: Props) {
     return out;
   }, [bookings, blocks]);
 
-  // Occupancy lookup for a given night (used by block-mode range checks + free cells).
+  const requestSpans: Span[] = useMemo(() => {
+    const out: Span[] = [];
+    for (const b of bookings) {
+      if (b.status !== "requested" && b.status !== "hold") continue;
+      out.push({
+        id: `rq-${b.reference}`,
+        kind: "booking",
+        status: b.status,
+        label: b.request.guest.name,
+        start: b.request.stay.arrive,
+        endExclusive: b.request.stay.depart,
+        booking: b,
+      });
+    }
+    return out;
+  }, [bookings]);
+
+  // Every span, for filter counting and the "start label" logic.
+  const spans: Span[] = useMemo(
+    () => [...occupyingSpans, ...requestSpans],
+    [occupyingSpans, requestSpans],
+  );
+
+  // Occupancy lookup for a given night — ONLY confirmed stays + blocks block a
+  // cell now. Used by block-mode range checks, free-night counts and cell paint.
   const occupiedAt = useCallback(
     (d: string): Span | undefined =>
-      spans.find((s) => d >= s.start && d < s.endExclusive),
-    [spans],
+      occupyingSpans.find((s) => d >= s.start && d < s.endExclusive),
+    [occupyingSpans],
+  );
+
+  // Pending requests touching a night (may be several — overlapping requests).
+  const requestsAt = useCallback(
+    (d: string): Span[] => requestSpans.filter((s) => d >= s.start && d < s.endExclusive),
+    [requestSpans],
   );
 
   const spanMatchesFilter = (s: Span): boolean => {
@@ -189,6 +256,7 @@ export default function AdminCalendar(_props: Props) {
         setSelBooking(null);
         setSelBlock(null);
         setReason("");
+        setReschedOpen(false);
         load();
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Something went wrong."))
@@ -212,6 +280,13 @@ export default function AdminCalendar(_props: Props) {
       } else if (span?.kind === "block" && span.block) {
         setSelBooking(null);
         setSelBlock(span.block);
+      } else {
+        // Not an occupied cell — but there may be pending request(s) here.
+        const reqs = requestsAt(day);
+        if (reqs.length && reqs[0].booking) {
+          setSelBlock(null);
+          setSelBooking(reqs[0].booking);
+        }
       }
       return;
     }
@@ -420,6 +495,10 @@ export default function AdminCalendar(_props: Props) {
                   const occ = occupiedAt(d);
                   const occKind = occ ? (occ.kind === "block" ? "block" : occ.status) : null;
                   const occDim = occ ? !spanMatchesFilter(occ) : false;
+                  // Pending requests touching this night (shown as markers, they
+                  // don't block the cell). Hidden when the filter excludes them.
+                  const dayRequests =
+                    filter === "confirmed" || filter === "blocks" ? [] : requestsAt(d);
                   // The stay's real check-in shows the guest/reason label.
                   const isSpanStart = occ ? d === occ.start : false;
                   const active =
@@ -442,6 +521,7 @@ export default function AdminCalendar(_props: Props) {
                         occ && isSpanStart && "is-spanstart",
                         occ && d === addDays(occ.endExclusive, -1) && "is-spanend",
                         occDim && "is-dim",
+                        !occ && dayRequests.length > 0 && "has-requests",
                         active && "is-selected",
                       ]
                         .filter(Boolean)
@@ -450,12 +530,38 @@ export default function AdminCalendar(_props: Props) {
                       onClick={() => pickDay(d, occ)}
                       onMouseEnter={() => setHover(d)}
                       onFocus={() => setHover(d)}
-                      aria-label={occ ? `${longDate(d)} — ${occ.label}` : longDate(d)}
-                      title={occ ? `${occ.label}${occ.status ? ` · ${STATUS_LABEL[occ.status]}` : ""}` : undefined}
+                      aria-label={
+                        occ
+                          ? `${longDate(d)} — ${occ.label}`
+                          : dayRequests.length
+                            ? `${longDate(d)} — ${dayRequests.length} pending request${dayRequests.length > 1 ? "s" : ""}`
+                            : longDate(d)
+                      }
+                      title={
+                        occ
+                          ? `${occ.label}${occ.status ? ` · ${STATUS_LABEL[occ.status]}` : ""}`
+                          : dayRequests.length
+                            ? dayRequests.map((r) => `${r.label} (${STATUS_LABEL[r.status!]})`).join("\n")
+                            : undefined
+                      }
                     >
                       <span className="adm-cal2__daynum">{Number(d.slice(8))}</span>
                       {occ && isSpanStart && (
                         <span className="adm-cal2__celllabel">{occ.label}</span>
+                      )}
+                      {!occ && dayRequests.length > 0 && (
+                        <span
+                          className="adm-cal2__reqdots"
+                          aria-hidden="true"
+                          data-count={dayRequests.length}
+                        >
+                          {dayRequests.slice(0, 3).map((r) => (
+                            <span key={r.id} className={`adm-cal2__reqdot is-${r.status}`} />
+                          ))}
+                          {dayRequests.length > 3 && (
+                            <span className="adm-cal2__reqmore">+{dayRequests.length - 3}</span>
+                          )}
+                        </span>
                       )}
                     </button>
                   );
@@ -468,12 +574,17 @@ export default function AdminCalendar(_props: Props) {
 
       {/* ---- Legend ---- */}
       <div className="adm-cal2__legend">
-        <span className="adm-cal2__lg is-requested">Requested</span>
-        <span className="adm-cal2__lg is-hold">On hold</span>
         <span className="adm-cal2__lg is-confirmed">Confirmed</span>
         <span className="adm-cal2__lg is-block">Blocked</span>
         <span className="adm-cal2__lg is-free">Free</span>
+        <span className="adm-cal2__lg adm-cal2__lg--req is-requested">Request (doesn’t block)</span>
+        <span className="adm-cal2__lg adm-cal2__lg--req is-hold">On hold</span>
       </div>
+      <p className="adm-cal2__note">
+        Guest requests are non-binding and never take a date off the guest
+        calendar. Only <strong>Confirm</strong> (or a manual block) locks a date.
+        Several requests can share the same nights — dots show how many.
+      </p>
 
       {error && <p className="bk-error adm-cal2__error">{error}</p>}
 
@@ -539,6 +650,31 @@ export default function AdminCalendar(_props: Props) {
                 <p className="adm-cal2__notes">“{selBooking.request.guest.notes}”</p>
               )}
 
+              {/* Warn the concierge which other pending requests share these
+                  nights — confirming this one keeps the date; the others stay
+                  as requests for them to decide on. */}
+              {overlaps.length > 0 &&
+                (selBooking.status === "requested" || selBooking.status === "hold") && (
+                  <div className="adm-cal2__overlaps" role="note">
+                    <p className="adm-cal2__overlaps-h">
+                      {overlaps.length} other request{overlaps.length > 1 ? "s" : ""} for
+                      these dates
+                    </p>
+                    <ul className="adm-cal2__overlaps-list">
+                      {overlaps.map((o) => (
+                        <li key={o.reference}>
+                          <strong>{o.guestName}</strong> · {longDate(o.arrive)} →{" "}
+                          {longDate(o.depart)} · {STATUS_LABEL[o.status]}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="adm-cal2__overlaps-note">
+                      Confirming this booking locks the date. The others remain
+                      requests for you to handle.
+                    </p>
+                  </div>
+                )}
+
               <div className="adm-panel__actions">
                 {selBooking.status !== "confirmed" && (
                   <button
@@ -564,11 +700,77 @@ export default function AdminCalendar(_props: Props) {
                   type="button"
                   className="bk-btn bk-btn--ghost"
                   disabled={busy}
+                  onClick={() => setReschedOpen((v) => !v)}
+                >
+                  {reschedOpen ? "Close dates" : "Edit dates"}
+                </button>
+                <button
+                  type="button"
+                  className="bk-btn bk-btn--ghost"
+                  disabled={busy}
                   onClick={() => run(() => adminApi.setBookingStatus(selBooking.reference, "cancelled"))}
                 >
                   Cancel
                 </button>
               </div>
+
+              {/* Reschedule — shift or trim the stay to free days for others. */}
+              {reschedOpen && (
+                <form
+                  className="adm-panel__form adm-cal2__resched"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    run(() =>
+                      adminApi.rescheduleBooking(
+                        selBooking.reference,
+                        reschedArrive,
+                        reschedDepart,
+                      ),
+                    );
+                  }}
+                >
+                  <p className="adm-panel__hint">
+                    Move or shorten this stay. The nights you free open up on the
+                    guest calendar; the total is re-quoted automatically.
+                  </p>
+                  <div className="adm-cal2__resched-row">
+                    <label className="bk-field">
+                      <span className="bk-field__label">Check-in</span>
+                      <input
+                        type="date"
+                        className="bk-field__input"
+                        value={reschedArrive}
+                        min={today}
+                        onChange={(e) => setReschedArrive(e.target.value)}
+                      />
+                    </label>
+                    <label className="bk-field">
+                      <span className="bk-field__label">Check-out</span>
+                      <input
+                        type="date"
+                        className="bk-field__input"
+                        value={reschedDepart}
+                        min={reschedArrive || today}
+                        onChange={(e) => setReschedDepart(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type="submit"
+                    className="bk-btn"
+                    disabled={
+                      busy ||
+                      !reschedArrive ||
+                      !reschedDepart ||
+                      reschedDepart <= reschedArrive ||
+                      (reschedArrive === selBooking.request.stay.arrive &&
+                        reschedDepart === selBooking.request.stay.depart)
+                    }
+                  >
+                    {busy ? "Saving…" : "Save new dates"}
+                  </button>
+                </form>
+              )}
             </>
           )}
 

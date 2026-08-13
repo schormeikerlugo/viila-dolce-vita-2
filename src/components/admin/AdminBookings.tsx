@@ -2,8 +2,12 @@
  * AdminBookings — every request made through /book, newest first, with a
  * status filter, free-text search and one-click transitions. Clicking a row
  * opens a detail drawer: the full quote breakdown, extras, notes and direct
- * contact actions (WhatsApp deep-link, email). Cancelling frees the nights
- * on both calendars immediately.
+ * contact actions (WhatsApp deep-link, email).
+ *
+ * Requests are non-binding: a 'requested'/'hold' booking never blocks the
+ * calendar. Only Confirm (→ confirmed) locks the dates; several requests may
+ * share the same nights until the concierge confirms one. Date edits live in
+ * the Calendar tab (reschedule).
  */
 import { useCallback, useEffect, useState } from "react";
 import { adminApi } from "../../lib/booking/api";
@@ -109,6 +113,12 @@ export default function AdminBookings({ suites }: Props) {
           ))}
         </div>
       </div>
+
+      <p className="adm-bookings__note">
+        Requests are non-binding — they don’t block the calendar. Confirm a
+        booking to lock its dates; overlapping requests stay open until you do.
+        Adjust a stay’s dates from the Calendar tab.
+      </p>
 
       {error && <p className="bk-error">{error}</p>}
 

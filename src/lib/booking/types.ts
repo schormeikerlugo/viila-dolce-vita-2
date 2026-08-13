@@ -168,6 +168,19 @@ export interface Booking {
   quote: Quote;
 }
 
+/**
+ * A still-pending booking whose stay overlaps another booking's range. Surfaced
+ * to the concierge before confirming, so they know which competing requests
+ * they'd be turning away by locking the date.
+ */
+export interface OverlappingRequest {
+  reference: string;
+  guestName: string;
+  status: BookingStatus;
+  arrive: string;
+  depart: string;
+}
+
 /** A captured lead (contact given before the booking completed). */
 export interface LeadCapture {
   id: string;

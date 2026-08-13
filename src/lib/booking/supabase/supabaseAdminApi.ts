@@ -214,6 +214,43 @@ export const supabaseAdminApi: AdminBookingApi = {
     return toBooking(data as unknown as BookingRow);
   },
 
+  async rescheduleBooking(reference, arriveISO, departISO) {
+    const { error } = await supabase().rpc("admin_reschedule_booking", {
+      p_reference: reference,
+      p_arrive: arriveISO,
+      p_depart: departISO,
+    });
+    if (error) fail(error, `Could not reschedule ${reference}.`);
+    // The RPC returns a summary; re-read the row for the canonical booking.
+    const { data, error: readErr } = await supabase()
+      .from("bookings")
+      .select(BOOKING_COLS)
+      .eq("reference", reference)
+      .single();
+    if (readErr) fail(readErr, `Could not reload ${reference}.`);
+    return toBooking(data as unknown as BookingRow);
+  },
+
+  async overlappingRequests(reference) {
+    const { data, error } = await supabase().rpc("admin_overlapping_requests", {
+      p_reference: reference,
+    });
+    if (error) fail(error, "Could not check overlapping requests.");
+    return ((data ?? []) as Array<{
+      reference: string;
+      guestName: string;
+      status: Booking["status"];
+      arrive: string;
+      depart: string;
+    }>).map((r) => ({
+      reference: r.reference,
+      guestName: r.guestName,
+      status: r.status,
+      arrive: r.arrive,
+      depart: r.depart,
+    }));
+  },
+
   async getCalendar(startISO, endISO) {
     const { data, error } = await supabase().rpc("get_admin_calendar", {
       p_start: startISO,
