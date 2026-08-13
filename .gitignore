@@ -36,3 +36,4 @@ content/
 
 # Reference material — heavy originals, not part of the build.
 referencia/
+supabase/.temp/

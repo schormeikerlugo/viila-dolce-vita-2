@@ -13,9 +13,9 @@
      supabase secrets set \
        RESEND_API_KEY=re_xxx \
        NOTIFY_SECRET=<random> \
-       OWNER_EMAIL=niccolo@villadolcevita.eu \
+       OWNER_EMAIL=bookings@villadolcevita.eu \
        FROM_EMAIL="Villa Dolce Vita <reservations@send.villadolcevita.eu>" \
-       REPLY_TO=niccolo@villadolcevita.eu \
+       REPLY_TO=bookings@villadolcevita.eu \
        ADMIN_URL=https://villadolcevita.eu/admin
 
    Deploy: supabase functions deploy notify-booking --no-verify-jwt
@@ -44,7 +44,7 @@ interface BookingPayload {
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const NOTIFY_SECRET = Deno.env.get("NOTIFY_SECRET");
-const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "niccolo@villadolcevita.eu";
+const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "bookings@villadolcevita.eu";
 const FROM_EMAIL =
   Deno.env.get("FROM_EMAIL") ?? "Villa Dolce Vita <reservations@send.villadolcevita.eu>";
 const REPLY_TO = Deno.env.get("REPLY_TO") ?? OWNER_EMAIL;
