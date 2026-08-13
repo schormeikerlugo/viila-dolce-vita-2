@@ -3,7 +3,7 @@
  * Footer — Tuscan Editorial: hairline sitemap columns and the oversized
  * "Dolce Vita" wordmark bleeding off the bottom edge (Tonelli signature).
  */
-import { contact, nav, site, social, socialLive } from "../data/site";
+import { contact, nav, site, socialVisible, socialLive } from "../data/site";
 
 const services = nav.filter((n) =>
   ["/experiences", "/weddings-events", "/journal"].includes(n.href),
@@ -66,7 +66,7 @@ const year = new Date().getFullYear();
         <nav class="footer__col" aria-label="Social">
           <h3>Social</h3>
           <ul>
-            {social.map((s) => (
+            {socialVisible.map((s) => (
               <li>
                 <a href={s.href} target="_blank" rel="noopener noreferrer">
                   {s.label} <span aria-hidden="true">↗</span>

@@ -24,18 +24,21 @@ export const contact = {
 } as const;
 
 /**
- * Social accounts are still being set up. Flip this to `true` to show the
- * social links in the footer again (and advertise the profiles in structured
- * data). Kept as one switch so re-enabling is a single-line change.
+ * Social profiles. Some accounts are still being set up, so each carries a
+ * `live` flag: only `live` profiles show in the footer and in structured data.
+ * Flip a profile's `live` to true once its account is ready.
  */
-export const socialLive = false;
-
-/** Social profiles — rendered as links in the footer when `socialLive`. */
 export const social = [
-  { label: "Instagram", href: "https://www.instagram.com/villadolcevitatoscana/" },
-  { label: "Pinterest", href: "https://www.pinterest.com/villadolcevitatoscana/" },
-  { label: "Facebook", href: "https://www.facebook.com/profile.php?id=61592923647481" },
+  { label: "Instagram", href: "https://www.instagram.com/villadolcevitatoscana/", live: true },
+  { label: "Pinterest", href: "https://www.pinterest.com/villadolcevitatoscana/", live: false },
+  { label: "Facebook", href: "https://www.facebook.com/profile.php?id=61592923647481", live: false },
 ] as const;
+
+/** The subset of profiles that are live and safe to link. */
+export const socialVisible = social.filter((s) => s.live);
+
+/** True when at least one social profile is live (drives footer visibility). */
+export const socialLive = socialVisible.length > 0;
 
 /**
  * The "Check Availability" CTA target — the in-house booking engine at /book.
